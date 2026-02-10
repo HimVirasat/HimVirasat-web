@@ -109,6 +109,23 @@ export default function Home() {
             </Link>
           </Button>
 
+          <Button asChild className={actionButtonClass}>
+            <Link
+              href="https://www.reddit.com/r/HimVirasat/" //Reddit link
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Image
+                src="/reddit.png"
+                alt="Himachal Pradesh Reddit Community"
+                width={36}
+                height={36}
+                className="rounded-full"
+              />
+              Join HP Reddit
+            </Link>
+          </Button>
+
           <Button asChild className={`w-40 ${actionButtonClass}`}>
             <Link href="/contribute">
               <HeartIcon className="h-6 w-6 scale-125 text-red-500 fill-red-500" />

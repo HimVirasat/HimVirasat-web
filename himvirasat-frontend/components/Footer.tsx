@@ -5,7 +5,6 @@ export default function Footer() {
   return (
     <footer className=" border-t border-border/40 bg-background/90 backdrop-blur-md">
       <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
-        {/* Brand & Mission */}
         <div className="flex flex-col items-start gap-4 md:max-w-sm">
           <Link href="/" className="flex items-center gap-2">
             <Image
@@ -20,12 +19,10 @@ export default function Footer() {
             </span>
           </Link>
           <p className="text-sm leading-6 text-muted-foreground">
-            An open-source initiative dedicated to the digital preservation of
-            Himachal's linguistic heritage and cultural memory.
+            {`An open-source initiative dedicated to the digital preservation of Himachal's linguistic heritage and cultural memory.`}
           </p>
         </div>
 
-        {/* Quick Links */}
         <div className="mt-8 flex flex-wrap gap-x-8 gap-y-4 md:mt-0">
           <Link
             href="/vocabulary"
@@ -53,7 +50,6 @@ export default function Footer() {
           </Link>
         </div>
 
-        {/* Legal/Credit */}
         <div className="mt-8 md:mt-0">
           <p className="text-xs leading-5 text-muted-foreground">
             &copy; {new Date().getFullYear()} HimVirasat. Built by the

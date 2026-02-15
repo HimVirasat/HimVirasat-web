@@ -30,7 +30,7 @@ export default function AboutPage() {
               Beyond Just Words
             </h2>
             <p className="mt-4 text-slate-800 dark:text-zinc-300 leading-relaxed">
-              HimVirasat isn't just a dictionary; it's a technical ecosystem.
+              {`HimVirasat isn't just a dictionary; it's a technical ecosystem.`}{" "}
               From maintaining this digital archive to developing
               <strong> open-source Pahadi learning tools</strong>, we are
               building the infrastructure for Himachal’s digital future. Our

@@ -89,7 +89,7 @@ export default function VocabularySearch({ dialect }: { dialect: string }) {
             ))
           ) : !loading ? (
             <div className="text-center py-20 text-slate-300">
-              No matches found for "{query}"
+              {`No matches found for "${query}"`}
             </div>
           ) : (
             Array.from({ length: 5 }).map((_, i) => (

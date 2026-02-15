@@ -18,8 +18,8 @@ export default function NotFound() {
           Lost in the <br /> Clouds?
         </h1>
         <p className="mt-6 text-lg text-slate-700 dark:text-slate-300 max-w-md mx-auto leading-relaxed">
-          The trail you're looking for doesn't exist. It might have been moved
-          or renamed in our heritage archives.
+          {`The trail you're looking for doesn't exist.`} It might have been
+          moved or renamed in our heritage archives.
         </p>
 
         <div className="mt-10">

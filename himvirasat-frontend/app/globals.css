@@ -123,3 +123,40 @@
     @apply bg-background text-foreground;
   }
 }
+@keyframes fade-slide {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-slide {
+  animation: fade-slide 0.4s ease-out forwards;
+}
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@utility glass {
+  background-color: oklch(from var(--background) l c h / 40%);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid var(--border);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@utility text-brand {
+  @apply bg-linear-to-r from-emerald-700 via-green-700 to-amber-600 bg-clip-text text-transparent;
+}

@@ -31,7 +31,7 @@ export default function Navbar() {
 
   const headerClasses = STRICT_STICKY
     ? `fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-      ? "bg-background/80 dark:bg-zinc-950/90 backdrop-blur-md border-b border-border/40 py-2"
+      ? "bg-white/85 dark:bg-zinc-950/90 backdrop-blur-md border-b border-border/40 py-2"
       : "bg-transparent py-4"
     }`
     : `fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-in-out ${isScrolled ? "top-2 w-[88%] max-w-4xl" : "top-2 w-[92%] max-w-5xl"
@@ -39,7 +39,7 @@ export default function Navbar() {
 
   const navClasses = STRICT_STICKY
     ? "mx-auto max-w-7xl px-6 flex items-center justify-between"
-    : `glass dark:bg-zinc-950/90 rounded-full transition-all duration-300 flex items-center justify-between ${isScrolled ? "px-6 py-2 shadow-xl" : "px-8 py-4 shadow-lg"
+    : `glass bg-white/85 dark:bg-zinc-950/90 rounded-full backdrop-blur-md transition-all duration-300 flex items-center justify-between ${isScrolled ? "px-6 py-2 shadow-xl" : "px-8 py-4 shadow-lg"
     }`;
 
   return (
@@ -95,12 +95,11 @@ export default function Navbar() {
         </button>
       </nav>
 
-      {/* Mobile Menu */}
       <div
         className={`
           md:hidden absolute left-1/2 -translate-x-1/2 w-[95%]
-          glass dark:bg-zinc-950/95 rounded-3xl p-6 shadow-2xl
-          transition-all duration-300 origin-top
+          bg-white/85 dark:bg-zinc-950/95 backdrop-blur-md
+          rounded-3xl p-6 shadow-2xl transition-all duration-300 origin-top
           ${STRICT_STICKY ? "top-16" : "top-14"}
           ${isOpen ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"}
         `}

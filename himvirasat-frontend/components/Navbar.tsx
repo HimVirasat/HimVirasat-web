@@ -29,23 +29,18 @@ export default function Navbar() {
     { name: "About", href: "/about" },
   ];
 
-  // Logical branch for the outer wrapper classes
   const headerClasses = STRICT_STICKY
-    ? `fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-background/80 backdrop-blur-md border-b border-border/40 py-2"
-          : "bg-transparent py-4"
-      }`
-    : `fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-in-out ${
-        isScrolled ? "top-2 w-[88%] max-w-4xl" : "top-2 w-[92%] max-w-5xl"
-      }`;
+    ? `fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
+      ? "bg-background/80 dark:bg-zinc-950/90 backdrop-blur-md border-b border-border/40 py-2"
+      : "bg-transparent py-4"
+    }`
+    : `fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-in-out ${isScrolled ? "top-2 w-[88%] max-w-4xl" : "top-2 w-[92%] max-w-5xl"
+    }`;
 
-  // Logical branch for the inner container (the "Glass" part)
   const navClasses = STRICT_STICKY
-    ? "mx-auto max-w-7xl px-6 flex items-center justify-between" // No pill shape in sticky mode
-    : `glass rounded-full transition-all duration-300 flex items-center justify-between ${
-        isScrolled ? "px-6 py-2 shadow-xl" : "px-8 py-4 shadow-lg"
-      }`;
+    ? "mx-auto max-w-7xl px-6 flex items-center justify-between"
+    : `glass dark:bg-zinc-950/90 rounded-full transition-all duration-300 flex items-center justify-between ${isScrolled ? "px-6 py-2 shadow-xl" : "px-8 py-4 shadow-lg"
+    }`;
 
   return (
     <header className={headerClasses}>
@@ -75,13 +70,12 @@ export default function Navbar() {
                 key={link.name}
                 href={link.href}
                 className={`
-                    relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300
-                    ${
-                      isActive
-                        ? "text-emerald-700 dark:text-emerald-400 bg-emerald-500/10"
-                        : "text-foreground/70 hover:text-foreground hover:bg-foreground/5"
-                    }
-                    `}
+                  relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300
+                  ${isActive
+                    ? "text-emerald-700 dark:text-emerald-400 bg-emerald-500/10"
+                    : "text-foreground/70 hover:text-foreground hover:bg-foreground/5"
+                  }
+                `}
               >
                 {link.name}
                 {isActive && (
@@ -104,10 +98,12 @@ export default function Navbar() {
       {/* Mobile Menu */}
       <div
         className={`
-                md:hidden absolute left-1/2 -translate-x-1/2 w-[95%] glass rounded-3xl p-6 shadow-2xl transition-all duration-300 origin-top
-                ${STRICT_STICKY ? "top-16" : "top-14"}
-                ${isOpen ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"}
-            `}
+          md:hidden absolute left-1/2 -translate-x-1/2 w-[95%]
+          glass dark:bg-zinc-950/95 rounded-3xl p-6 shadow-2xl
+          transition-all duration-300 origin-top
+          ${STRICT_STICKY ? "top-16" : "top-14"}
+          ${isOpen ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"}
+        `}
       >
         <div className="flex flex-col gap-4 text-center">
           {navLinks.map((link) => (

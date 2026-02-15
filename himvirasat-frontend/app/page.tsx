@@ -107,31 +107,25 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Image
-                src="/hp-github.png"
-                alt="HimVirasat GitHub"
-                width={36}
-                height={36}
-                className="rounded-full"
-              />
+              <SiGithub className="h-16 w-16 scale-150" />
               HimVirasat GitHub
             </Link>
           </Button>
 
           <Button asChild className={`${actionButtonClass}`}>
             <Link href="/datasets">
-              <ArrowDownTrayIcon /> Datasets
+              <ArrowDownTrayIcon className="h-16 w-16 scale-150" /> Datasets
             </Link>
           </Button>
           <Button asChild className={`${actionButtonClass}`}>
             <Link href="/contribute">
-              <HeartIcon className="h-6 w-6 scale-125 text-red-500 fill-red-500" />
+              <HeartIcon className="h-16 w-16 scale-150 text-red-500 fill-red-500" />
               <span>Contribute</span>
             </Link>
           </Button>
           <Button asChild className={`${actionButtonClass}`}>
             <Link href="/vocabulary">
-              <PencilSquareIcon />
+              <PencilSquareIcon className="h-16 w-16 scale-150" />
               Vocabulary
             </Link>
           </Button>

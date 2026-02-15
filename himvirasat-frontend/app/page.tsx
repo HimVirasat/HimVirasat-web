@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { SiGithub } from "@icons-pack/react-simple-icons";
 const actionButtonClass =
-  "h-14 gap-3 rounded-full px-6 text-sm font-medium " +
+  "h-14 w-60 gap-3 rounded-full px-6 text-sm font-medium " +
   "bg-white/95 text-gray-900 " +
   "dark:bg-zinc-900 dark:text-zinc-100 " +
   "shadow-sm ring-1 ring-black/10 dark:ring-white/10 " +
@@ -80,7 +80,7 @@ export default function Home() {
                 height={36}
                 className="rounded-full"
               />
-              Join HimVirasat Discord
+              HimVirasat Discord
             </Link>
           </Button>
 
@@ -97,7 +97,7 @@ export default function Home() {
                 height={36}
                 className="rounded-full"
               />
-              Join HP Discord Community
+              HP Discord Community
             </Link>
           </Button>
 
@@ -118,18 +118,18 @@ export default function Home() {
             </Link>
           </Button>
 
-          <Button asChild className={`w-40 ${actionButtonClass}`}>
+          <Button asChild className={`${actionButtonClass}`}>
             <Link href="/datasets">
               <ArrowDownTrayIcon /> Datasets
             </Link>
           </Button>
-          <Button asChild className={`w-40 ${actionButtonClass}`}>
+          <Button asChild className={`${actionButtonClass}`}>
             <Link href="/contribute">
               <HeartIcon className="h-6 w-6 scale-125 text-red-500 fill-red-500" />
               <span>Contribute</span>
             </Link>
           </Button>
-          <Button asChild className={`w-40 ${actionButtonClass}`}>
+          <Button asChild className={`${actionButtonClass}`}>
             <Link href="/vocabulary">
               <PencilSquareIcon />
               Vocabulary

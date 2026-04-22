@@ -25,6 +25,7 @@ export default function Navbar() {
   const navLinks = [
     { name: "Home", href: "/" },
     { name: "Vocabulary", href: "/vocabulary" },
+    { name: "Tools", href: "/tools" }, // ← ADD THIS
     { name: "Contribute", href: "/contribute" },
     { name: "About", href: "/about" },
   ];

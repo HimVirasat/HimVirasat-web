@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import DialectLink from "@/components/DialectLink";
 
 export default function ToolsPage() {
   return (
@@ -26,7 +26,9 @@ export default function ToolsPage() {
             Tools
           </span>
 
-          <h1 className="mt-2 text-4xl md:text-5xl font-semibold">Tools</h1>
+          <h1 className="mt-2 text-4xl md:text-5xl font-semibold">
+            Tools
+          </h1>
 
           <p className="mt-4 text-lg max-w-xl opacity-80 leading-relaxed">
             Utility tools to assist contributors in working with scripts,
@@ -35,18 +37,11 @@ export default function ToolsPage() {
 
           {/* Tools Grid */}
           <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-xl">
-            <Link
+            <DialectLink
               href="/tools/transliterator"
-              className="rounded-2xl bg-white/90 p-6 shadow dark:bg-zinc-900/80 hover:scale-[1.02] transition"
-            >
-              <h3 className="text-lg font-semibold text-emerald-700 dark:text-emerald-400">
-                Transliterator
-              </h3>
-
-              <p className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
-                Convert between Devanagari and Tankri scripts.
-              </p>
-            </Link>
+              title="Transliterator"
+              subtitle="Convert between Devanagari and Tankri scripts."
+            />
           </div>
         </div>
       </main>

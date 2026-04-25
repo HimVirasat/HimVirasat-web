@@ -38,6 +38,13 @@ export default function TransliteratorPage() {
           <div className="mt-10">
             <Transliterator />
           </div>
+
+          {/* Font Support Note */}
+          <p className="mt-6 text-xs opacity-60 max-w-xl leading-relaxed">
+            Tankri characters may not display correctly on some systems due to
+            limited font support. If characters appear as blank boxes, please
+            install a Unicode font that supports Tankri (e.g., Noto Sans Tankri).
+          </p>
         </div>
       </main>
     </div>

@@ -20,7 +20,7 @@ export default function TransliteratorPage() {
       <div className="absolute inset-0 bg-white/60 dark:bg-black/85" />
 
       {/* Content */}
-      <main className="relative z-10 min-h-screen flex items-center justify-center px-6">
+      <main className="relative z-10 min-h-screen flex items-center justify-center px-6 pt-20">
         <div className="w-full max-w-6xl">
           <span className="uppercase tracking-widest text-xs opacity-70 font-semibold">
             Tools

@@ -18,6 +18,7 @@ app.use(morgan("dev"));
 
 app.get("/health", (_, res) => {
   res.json({
-    status: "ok"
+    status: "ok",
+    message: "Hello from HimVirasat Backend!"
   });
 });

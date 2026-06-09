@@ -62,7 +62,6 @@ export const tankriToDevMap: Record<string, string> = {
   "𑚷": "़",
 
   "𑚸": "ख",
-  "𑚹": "ग",
 
   "𑛀": "०",
   "𑛁": "1",

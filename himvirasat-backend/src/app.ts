@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
 import morgan from "morgan";
+import { supabase } from "./services/supabase.js";
 
 export const app = express();
 

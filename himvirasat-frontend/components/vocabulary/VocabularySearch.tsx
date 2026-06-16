@@ -2,19 +2,22 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState, useDeferredValue } from "react";
-import searchVocabulary from "@/lib/search-vocabulary";
-import { VocabularyEntry } from "@/types/vocabulary-types";
-import { datasetFilesMap } from "@/lib/dialect-utils";
+import searchVocabulary from "@/lib/vocabulary/search-vocabulary";
+import { VocabularyEntry } from "@/types/vocabulary/vocabulary-types";
+import { datasetFilesMap } from "@/lib/dialects/dialect-config";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const VocabularyCard = dynamic(() => import("@/components/VocabularyCard"), {
-  loading: () => <Skeleton className="h-28 w-full rounded-xl" />,
-  ssr: false,
-});
+const VocabularyCard = dynamic(
+  () => import("@/components/vocabulary/VocabularyCard"),
+  {
+    loading: () => <Skeleton className="h-28 w-full rounded-xl" />,
+    ssr: false,
+  }
+);
 
 export default function VocabularySearch({ dialect }: { dialect: string }) {
   const [data, setData] = useState<VocabularyEntry[]>([]);

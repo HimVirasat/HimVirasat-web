@@ -1,4 +1,4 @@
-import DialectCard from "@/components/DialectCard";
+import DialectCard from "@/components/dialects/DialectCard";
 
 export default function ContributePage() {
   const dialects = [

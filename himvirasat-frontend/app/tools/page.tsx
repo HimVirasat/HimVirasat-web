@@ -1,5 +1,5 @@
 import Image from "next/image";
-import DialectLink from "@/components/DialectLink";
+import DialectLink from "@/components/vocabulary/DialectLink";
 
 export default function ToolsPage() {
   return (
@@ -26,9 +26,7 @@ export default function ToolsPage() {
             Tools
           </span>
 
-          <h1 className="mt-2 text-4xl md:text-5xl font-semibold">
-            Tools
-          </h1>
+          <h1 className="mt-2 text-4xl md:text-5xl font-semibold">Tools</h1>
 
           <p className="mt-4 text-lg max-w-xl opacity-80 leading-relaxed">
             Utility tools to assist contributors in working with scripts,

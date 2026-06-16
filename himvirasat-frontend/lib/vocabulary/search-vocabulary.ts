@@ -1,4 +1,4 @@
-import { VocabularyEntry } from "../types/vocabulary-types";
+import { VocabularyEntry } from "../../types/vocabulary/vocabulary-types";
 
 function getLevenshteinDistance(a: string, b: string): number {
   const matrix = Array.from({ length: b.length + 1 }, (_, i) => [i]);

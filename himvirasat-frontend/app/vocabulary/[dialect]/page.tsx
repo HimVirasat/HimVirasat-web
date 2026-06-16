@@ -4,8 +4,8 @@ import { Suspense } from "react";
 import {
   dialectToBackground,
   availableDialectsArray,
-} from "@/lib/dialect-utils";
-import VocabularySearch from "@/components/VocabularySearch";
+} from "@/lib/dialects/dialect-config";
+import VocabularySearch from "@/components/vocabulary/VocabularySearch";
 
 function VocabularySearchSkeleton() {
   return (

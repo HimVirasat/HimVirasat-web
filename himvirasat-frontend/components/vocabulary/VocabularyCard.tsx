@@ -1,6 +1,6 @@
 "use client";
 
-import type { VocabularyEntry } from "@/types/vocabulary-types";
+import type { VocabularyEntry } from "@/types/vocabulary/vocabulary-types";
 import { memo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,7 +59,6 @@ export default memo(function VocabularyCard({
 
   return (
     <div className="min-w-0 overflow-hidden border border-border rounded-xl bg-card text-card-foreground p-6 space-y-4 hover:bg-muted/95 transition-colors duration-200">
-
       {/* Word + Meaning */}
       <div className="min-w-0">
         <h2 className="text-3xl sm:text-2xl font-semibold leading-snug break-all">
@@ -104,9 +103,7 @@ export default memo(function VocabularyCard({
               {copied ? "Copied" : "Copy"}
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
-            {copied ? "Copied!" : "Copy word"}
-          </TooltipContent>
+          <TooltipContent>{copied ? "Copied!" : "Copy word"}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -120,9 +117,7 @@ export default memo(function VocabularyCard({
               Search
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
-            Search this word
-          </TooltipContent>
+          <TooltipContent>Search this word</TooltipContent>
         </Tooltip>
       </div>
     </div>

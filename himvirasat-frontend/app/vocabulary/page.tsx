@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
-import DialectLink from "@/components/DialectLink";
-import { dialectsConfig } from "@/lib/dialect-utils"; // Import the config
+import DialectLink from "@/components/vocabulary/DialectLink";
+import { dialectsConfig } from "@/lib/dialects/dialect-config"; // Import the config
 
 export default function VocabularyPage() {
   return (

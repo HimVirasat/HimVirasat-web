@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { datasets } from "@/lib/dataset-utils";
+import { datasets } from "@/lib/datasets/dataset-utils";
 
 export default function DatasetsPage() {
   return (

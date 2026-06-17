@@ -6,16 +6,20 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/auth.routes.js";
-
+import userRoutes from "./routes/user.routes.js";
 export const app = express();
 
 app.use(cookieParser());
 app.use(helmet());
-app.use(cors());
 app.use(compression());
 app.use(express.json());
 app.use(morgan("dev"));
-
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 app.get("/health", (_, res) => {
   res.json({
     status: "ok",
@@ -24,3 +28,4 @@ app.get("/health", (_, res) => {
 });
 
 app.use("/auth", authRoutes);
+app.use("/users", userRoutes);

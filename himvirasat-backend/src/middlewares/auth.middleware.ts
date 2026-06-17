@@ -1,48 +1,27 @@
-import {
-    Request,
-    Response,
-    NextFunction,
-} from "express";
+import { Request, Response, NextFunction } from "express";
 
 import { verifyToken } from "../utils/jwt.js";
 
-import type {
-    JwtUser,
-} from "../types/auth.types.js";
+import type { JwtUser } from "../types/auth.types.js";
 
-export interface AuthenticatedRequest
-    extends Request {
-    user?: JwtUser;
+export interface AuthenticatedRequest extends Request {
+  user?: JwtUser;
 }
 
-export function requireAuth(
-    req: Request,
-    res: Response,
-    next: NextFunction
-) {
-    try {
-        const token =
-            req.cookies?.access_token;
+export function requireAuth(req: Request, res: Response, next: NextFunction) {
+  try {
+    const token = req.cookies?.access_token;
 
-        if (!token) {
-            return res.status(401).json({
-                success: false,
-                message: "Unauthorized",
-            });
-        }
-
-        const payload =
-            verifyToken(token);
-
-        (
-            req as AuthenticatedRequest
-        ).user = payload;
-
-        next();
-    } catch {
-        return res.status(401).json({
-            success: false,
-            message: "Invalid token",
-        });
+    if (!token) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
+
+    const payload = verifyToken(token);
+
+    (req as AuthenticatedRequest).user = payload;
+
+    next();
+  } catch {
+    return res.status(401).json({ success: false, message: "Invalid token" });
+  }
 }

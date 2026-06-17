@@ -11,7 +11,7 @@ const schema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string(),
 
   JWT_SECRET: z.string(),
-  JWT_EXPIRES_IN: z.string()
+  JWT_EXPIRES_IN: z.string(),
 });
 
 export const env = schema.parse(process.env);

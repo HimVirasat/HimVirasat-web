@@ -1,6 +1,4 @@
-export type UserRole =
-  | "super_admin"
-  | "language_expert";
+export type UserRole = "super_admin" | "language_expert";
 
 export interface JwtUser {
   userId: string;

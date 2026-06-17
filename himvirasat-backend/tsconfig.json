@@ -15,7 +15,17 @@
 
     "forceConsistentCasingInFileNames": true,
 
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+
+    "noImplicitAny": true,
+
+    "noUnusedLocals": true,
+
+    "noUnusedParameters": true,
+
+    "noUncheckedIndexedAccess": true,
+
+    "exactOptionalPropertyTypes": true
   },
 
   "include": ["src"]

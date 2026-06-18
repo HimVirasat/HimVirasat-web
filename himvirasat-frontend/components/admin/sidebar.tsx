@@ -42,14 +42,22 @@ function getInitials(name: string) {
 const SUPER_ADMIN_ITEMS = [
   { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard },
   { title: "Language Experts", url: "/admin/dashboard/experts", icon: Users },
-  { title: "Contributions", url: "/admin/dashboard/contributions", icon: FileText },
+  {
+    title: "Contributions",
+    url: "/admin/dashboard/contributions",
+    icon: FileText,
+  },
   { title: "Datasets", url: "/admin/dashboard/datasets", icon: Database },
   { title: "Settings", url: "/admin/dashboard/settings", icon: Settings },
 ];
 
 const EXPERT_ITEMS = [
   { title: "Dashboard", url: "/admin/dashboard", icon: LayoutDashboard },
-  { title: "Contributions", url: "/admin/dashboard/contributions", icon: FileText },
+  {
+    title: "Contributions",
+    url: "/admin/dashboard/contributions",
+    icon: FileText,
+  },
 ];
 
 export function AdminSidebar({ user }: AdminSidebarProps) {
@@ -64,7 +72,13 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary shadow-sm">
             {/* <Languages className="h-5 w-5 text-primary-foreground" /> */}
-            <Image src={"/virasat.png"} height={36} width={36} className="rounded-md" alt="_" ></Image>
+            <Image
+              src={"/virasat.png"}
+              height={36}
+              width={36}
+              className="rounded-md"
+              alt="_"
+            ></Image>
           </div>
           <div className="leading-tight">
             <p className="text-sm font-semibold tracking-tight">HimVirasat</p>
@@ -96,9 +110,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                       )}
                     >
                       <Link href={item.url} className="flex items-center gap-3">
-                        <item.icon
-                          className="h-4 w-4 shrink-0 transition-transform duration-150 group-hover:scale-110"
-                        />
+                        <item.icon className="h-4 w-4 shrink-0 transition-transform duration-150 group-hover:scale-110" />
                         <span className="flex-1">{item.title}</span>
                         {isActive && (
                           <ChevronRight className="h-3.5 w-3.5 opacity-60" />

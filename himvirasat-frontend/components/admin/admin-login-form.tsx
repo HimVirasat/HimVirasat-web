@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { ShieldCheck, Loader2 } from "lucide-react";
+
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
@@ -19,34 +22,41 @@ import {
 import { AdminAuthService } from "@/lib/services/admin/admin-auth-service";
 
 export function AdminLoginForm() {
+  const router = useRouter();
+
   const [username, setUsername] = useState("");
 
   const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
 
-  const [error, setError] = useState<string | null>(null);
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setLoading(true);
-    setError(null);
 
     try {
-      const response = await AdminAuthService.login({
-        username,
-        password,
-      });
+      const response = await AdminAuthService.login(username, password);
 
-      console.log(response);
+      if (!response.success) {
+        toast.error(response.message ?? "Authentication failed");
+        return;
+      }
+      console.log(response.user);
 
-      /**
-       * Future:
-       * router.push("/admin/dashboard");
-       */
+      if (response.user?.role === "super_admin") {
+        toast.success("Logged in as Super Admin");
+      }
+
+      if (response.user?.role === "language_expert") {
+        toast.success("Logged in as Language Expert");
+      }
+
+      router.push("/admin/dashboard");
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Login failed");
+      console.error(error);
+
+      toast.error(error instanceof Error ? error.message : "Login failed");
     } finally {
       setLoading(false);
     }
@@ -82,8 +92,6 @@ export function AdminLoginForm() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
-
-          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? (

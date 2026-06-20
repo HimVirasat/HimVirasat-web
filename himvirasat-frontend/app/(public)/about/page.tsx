@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-
+import { TeamSection } from "@/components/about/team-section";
 export default function AboutPage() {
   return (
     <div className="relative min-h-screen">
@@ -11,7 +11,7 @@ export default function AboutPage() {
       />
       <div className="fixed inset-0 bg-white/70 dark:bg-black/85 -z-10" />
 
-      <main className="max-w-4xl mx-auto px-6 py-24 sm:py-32">
+      <main className="max-w-5xl mx-auto px-6 py-24 sm:py-32">
         <header className="space-y-4">
           <span className="text-emerald-600 dark:text-emerald-400 font-bold tracking-widest uppercase text-xs">
             Our Vision
@@ -90,6 +90,9 @@ export default function AboutPage() {
               </Button>
             </div>
           </div>
+        </section>
+        <section id="team">
+          <TeamSection />
         </section>
       </main>
     </div>

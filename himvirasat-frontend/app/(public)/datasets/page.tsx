@@ -1,4 +1,5 @@
-import Image from "next/image";
+import { BackgroundDecor } from "@/components/layout/background-decor";
+// import Image from "next/image";
 import Link from "next/link";
 import { SiGithub } from "@icons-pack/react-simple-icons";
 
@@ -18,19 +19,7 @@ export default function DatasetsPage() {
   return (
     <div className="relative min-h-screen overflow-hidden text-foreground">
       {/* Background Image */}
-      <div className="absolute inset-0">
-        <Image
-          src="/mountains1.png"
-          alt="Mountain background"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
-      </div>
-
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-white/60 dark:bg-black/85" />
+      <BackgroundDecor />
 
       <main className="relative z-10 min-h-screen flex items-center">
         <div className="max-w-6xl px-6 sm:px-10 w-full">

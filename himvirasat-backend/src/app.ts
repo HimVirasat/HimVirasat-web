@@ -17,7 +17,7 @@ app.use(morgan("dev"));
 
 const allowedOrigins = [
   "http://localhost:3000",
-  process.env.FRONTEND_URL,
+  "https://him-virasat.vercel.app",
 ].filter((origin): origin is string => Boolean(origin));
 app.use(
   cors({

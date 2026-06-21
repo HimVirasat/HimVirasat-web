@@ -6,6 +6,5 @@ export interface LanguageExpertDto {
   dialects: string[];
   is_active: boolean;
   created_at: string;
-  points: number
+  points: number;
 }
-

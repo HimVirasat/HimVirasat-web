@@ -13,48 +13,33 @@ import { primaryButtonStyles } from "@/lib/constants";
 import { CreateExpertDialog } from "./create-expert-dialog";
 import { useState } from "react";
 import { QueryObserverResult, RefetchOptions } from "@tanstack/react-query";
+
 interface ExpertsToolbarProps {
-  loading: boolean;
-  onRefresh: any;
+  refreshing: boolean;
+  onRefresh: () => void;
 }
 
-export function ExpertsToolbar({
-  loading,
-  onRefresh,
-}: ExpertsToolbarProps) {
+export function ExpertsToolbar({ refreshing, onRefresh }: ExpertsToolbarProps) {
   const [open, setOpen] = useState(false);
 
   return (
     <div className="flex items-center justify-start">
       <ButtonGroup aria-label="Expert actions">
-
         <Button
           variant="outline"
           onClick={() => onRefresh()}
-          disabled={loading}
+          disabled={refreshing}
         >
-          <RefreshCw
-            className={cn(
-              "h-4 w-4",
-              loading && "animate-spin"
-            )}
-          />
+          <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
 
-          {loading ? "Refreshing..." : "Refresh"}
+          {refreshing ? "Refreshing..." : "Refresh"}
         </Button>
         <ButtonGroupSeparator />
-        <Button
-          variant="outline"
-
-          onClick={() => setOpen(true)}
-        >
+        <Button variant="outline" onClick={() => setOpen(true)}>
           <Plus className="h-4 w-4" />
           Create Expert
         </Button>
-        <CreateExpertDialog
-          open={open}
-          onOpenChange={setOpen}
-        />
+        <CreateExpertDialog open={open} onOpenChange={setOpen} />
       </ButtonGroup>
     </div>
   );

@@ -25,28 +25,20 @@ export class UserService {
     // console.log(data);
     return data.experts;
   }
-  static async createLanguageExpert(
-    data: CreateLanguageExpertRequest
-  ) {
-    const response = await fetch(
-      `${API_URL}/users/language-experts`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      }
-    );
+  static async createLanguageExpert(data: CreateLanguageExpertRequest) {
+    const response = await fetch(`${API_URL}/users/language-experts`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
 
     const json = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        json.message ??
-        "Failed to create language expert"
-      );
+      throw new Error(json.message ?? "Failed to create language expert");
     }
 
     return json;

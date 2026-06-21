@@ -25,9 +25,7 @@ export function CreateExpertDialog({
   open,
   onOpenChange,
 }: CreateExpertDialogProps) {
-  async function handleSubmit(
-    e: React.FormEvent<HTMLFormElement>
-  ) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const fullName = formData.get("fullName")?.toString().trim() ?? "";
@@ -50,38 +48,31 @@ export function CreateExpertDialog({
       });
       // console.log(ret);
       if (ret.success) {
-        toast.success(`Language Expert ${fullName} created successfully.`, { duration: 5000 });
+        toast.success(`Language Expert ${fullName} created successfully.`, {
+          duration: 5000,
+        });
       }
       onOpenChange(true);
-
     } catch (error) {
-      toast.error(`Unable to create Language Expert ${error}`, { duration: 5000 });
+      toast.error(`Unable to create Language Expert ${error}`, {
+        duration: 5000,
+      });
     }
   }
   return (
-    <Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            Create Expert
-          </DialogTitle>
+          <DialogTitle>Create Expert</DialogTitle>
 
           <DialogDescription>
             Create a new language expert and assign supported dialects.
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="fullName">
-              Full Name
-            </Label>
+            <Label htmlFor="fullName">Full Name</Label>
 
             <Input
               id="fullName"
@@ -92,9 +83,7 @@ export function CreateExpertDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">
-              Email
-            </Label>
+            <Label htmlFor="email">Email</Label>
 
             <Input
               id="email"
@@ -106,9 +95,7 @@ export function CreateExpertDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="username">
-              Username
-            </Label>
+            <Label htmlFor="username">Username</Label>
 
             <Input
               id="username"
@@ -119,9 +106,7 @@ export function CreateExpertDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">
-              Password
-            </Label>
+            <Label htmlFor="password">Password</Label>
 
             <Input
               id="password"
@@ -133,9 +118,7 @@ export function CreateExpertDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="dialects">
-              Dialects
-            </Label>
+            <Label htmlFor="dialects">Dialects</Label>
 
             <Input
               id="dialects"
@@ -158,7 +141,10 @@ export function CreateExpertDialog({
               Cancel
             </Button>
 
-            <Button type="submit" className={"rounded-b-none" + primaryButtonStyles}>
+            <Button
+              type="submit"
+              className={"rounded-b-none" + primaryButtonStyles}
+            >
               Create
             </Button>
           </DialogFooter>

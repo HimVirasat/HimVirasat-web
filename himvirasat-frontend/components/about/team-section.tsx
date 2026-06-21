@@ -300,8 +300,7 @@ const TECH_LEADS: TeamMember[] = [
     avatar: "/team/headlock.png",
     socials: [
       { platform: "github", url: "https://github.com/Arkur745" },
-      { platform: "discord", url: "https://discord.com/users/1466294408604418230" },
-      { platform: "email", url: "mailto:" }
+      { platform: "discord", url: "https://discord.com/users/1466294408604418230" }
     ],
   },
 ];
@@ -321,7 +320,10 @@ const LANGUAGE_HEADS: TeamMember[] = [
     role: "Head of Languages",
     avatar: "/team/ryan.png",
     languages: ["Mandyali", "Kangri"],
-    socials: [{ platform: "discord", url: "https://discord.com/users/1308474011151372376" }],
+    socials: [
+      { platform: "discord", url: "https://discord.com/users/1308474011151372376" },
+      { platform: "instagram", url: "https://www.instagram.com/_ryan_sharma?igsh=cjF1cnB1OTNkNHIw" }
+    ],
   },
   {
     name: "Moyo Mc Spicy",

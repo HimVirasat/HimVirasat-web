@@ -14,9 +14,14 @@ app.use(helmet());
 app.use(compression());
 app.use(express.json());
 app.use(morgan("dev"));
+
+const allowedOrigins = [
+  "http://localhost:3000",
+  process.env.FRONTEND_URL,
+].filter((origin): origin is string => Boolean(origin));
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: allowedOrigins,
     credentials: true,
   })
 );

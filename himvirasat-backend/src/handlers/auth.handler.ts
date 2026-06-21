@@ -139,7 +139,7 @@ export async function me(req: Request, res: Response) {
   }
 }
 
-export async function logout(req: Request, res: Response) {
+export async function logout(_req: Request, res: Response) {
   res.clearCookie("access_token");
 
   return res

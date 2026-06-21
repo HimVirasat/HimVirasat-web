@@ -6,7 +6,8 @@ import type { JwtUser } from "../types/auth.types.js";
 
 export function generateToken(payload: JwtUser): string {
   return jwt.sign(payload, env.JWT_SECRET, {
-    expiresIn: env.JWT_EXPIRES_IN,
+    // fix as never someday
+    expiresIn: env.JWT_EXPIRES_IN as never,
   });
 }
 

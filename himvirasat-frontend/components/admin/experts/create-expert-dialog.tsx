@@ -48,7 +48,7 @@ export function CreateExpertDialog({
         password,
         dialects,
       });
-      console.log(ret);
+      // console.log(ret);
       if (ret.success) {
         toast.success(`Language Expert ${fullName} created successfully.`, { duration: 5000 });
       }

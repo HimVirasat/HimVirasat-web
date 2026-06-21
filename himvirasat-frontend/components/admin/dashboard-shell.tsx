@@ -17,7 +17,7 @@ export function DashboardShell({
       <BackgroundDecor />
 
       <div className="relative z-10">
-        <SidebarProvider defaultOpen={false}>
+        <SidebarProvider defaultOpen={true}>
           <AdminSidebar user={user} />
 
           <SidebarInset className="bg-transparent">

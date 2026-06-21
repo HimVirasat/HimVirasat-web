@@ -103,8 +103,8 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                 <Image
                   src="/virasat.png"
                   alt="HimVirasat"
-                  width={24}
-                  height={24}
+                  width={28}
+                  height={28}
                   className="rounded-md"
                 />
               </div>
@@ -182,7 +182,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                     : "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400"
                 )}
               >
-                {isSuperAdmin ? "Admin" : "Expert"}
+                {isSuperAdmin ? "Super Admin" : "Language Expert"}
               </Badge>
             </SidebarMenuButton>
           </SidebarMenuItem>

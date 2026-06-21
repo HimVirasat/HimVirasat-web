@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { getLanguageExperts } from "../handlers/user.handler.js";
+import { getLanguageExperts, createLanguageExpert } from "../handlers/user.handler.js";
 
 import { requireAuth } from "../middlewares/auth.middleware.js";
 
@@ -14,5 +14,11 @@ router.get(
   requireRole("super_admin"),
   getLanguageExperts
 );
-
+// this is for creating the language experts via a POST.
+router.post(
+  "/language-experts",
+  requireAuth,
+  requireRole("super_admin"),
+  createLanguageExpert
+);
 export default router;

@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const schema = z.object({
-  PORT: z.string().default("3000"),
+  PORT: z.string().default("3002"),
 
   SUPABASE_URL: z.string(),
 

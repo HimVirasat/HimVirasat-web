@@ -31,6 +31,9 @@ app.get("/health", (_, res) => {
     message: "Hello from HimVirasat Backend!",
   });
 });
+app.get("/", (_, res) => {
+  res.send("Backend is running");
+});
 
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);

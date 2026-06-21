@@ -1,7 +1,7 @@
 "use client";
 
 import type { ElementType } from "react";
-import { Crown, Code2, Languages } from "lucide-react";
+import { Crown, Code2, Languages, Mail } from "lucide-react";
 import {
   FaGithub,
   FaDiscord,
@@ -18,11 +18,8 @@ import { cn } from "@/lib/utils";
 
 function initials(name: string) {
   return name
-    .split(" ")
-    .map((word) => word[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+    .split(" ").map((word) => word[0])
+    .slice(0, 2).join("").toUpperCase();
 }
 
 function SocialRow({ socials }: { socials?: SocialLink[] }) {
@@ -40,7 +37,10 @@ function SocialRow({ socials }: { socials?: SocialLink[] }) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`${social.platform} profile`}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-emerald-500/15 bg-emerald-500/5 text-slate-600 transition-colors hover:bg-emerald-500/10 hover:text-emerald-700 dark:text-zinc-300 dark:hover:text-emerald-400"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border 
+            border-emerald-500/15 bg-emerald-500/5 text-slate-600 
+            transition-colors hover:bg-emerald-500/10 hover:text-emerald-700 
+            dark:text-zinc-300 dark:hover:text-emerald-400"
           >
             <Icon className="h-4 w-4" />
           </a>
@@ -50,25 +50,13 @@ function SocialRow({ socials }: { socials?: SocialLink[] }) {
   );
 }
 
-function PersonCard({
-  member,
-  size = "md",
-}: {
+function PersonCard({ member, size = "md", }: {
   member: TeamMember;
   size?: "lg" | "md" | "sm";
 }) {
-  const cardPadding =
-    size === "lg" ? "p-6" : size === "md" ? "p-5" : "p-4";
-
-  const avatarSize =
-    size === "lg"
-      ? "h-20 w-20"
-      : size === "md"
-        ? "h-16 w-16"
-        : "h-14 w-14";
-
+  const cardPadding = size === "lg" ? "p-6" : size === "md" ? "p-5" : "p-4";
+  const avatarSize = size === "lg" ? "h-20 w-20" : size === "md" ? "h-16 w-16" : "h-14 w-14";
   const nameSize = size === "lg" ? "text-lg" : size === "md" ? "text-base" : "text-sm";
-
   const roleSize = size === "lg" ? "text-md" : "text-[12px]";
 
   return (
@@ -89,7 +77,6 @@ function PersonCard({
             src={member.avatar}
             alt={member.name}
           />
-
           <AvatarFallback className="bg-emerald-600/10 text-emerald-700 dark:text-emerald-400">
             {initials(member.name)}
           </AvatarFallback>
@@ -280,7 +267,8 @@ type SocialPlatform =
   | "reddit"
   | "twitter"
   | "instagram"
-  | "linkedin";
+  | "linkedin"
+  | "email";
 
 interface SocialLink {
   platform: SocialPlatform;
@@ -301,8 +289,9 @@ const TECH_LEADS: TeamMember[] = [
     role: "Lead Developer",
     avatar: "/team/jasper.png",
     socials: [
-      { platform: "github", url: "https://github.com/SharonIV0X86" },
+      { platform: "github", url: "https://github.com/DrLestrange" },
       { platform: "discord", url: "https://discord.com/users/1011937653203144715" },
+      { platform: "email", url: "mailto:casesilver777@gmail.com" },
     ],
   },
   {
@@ -311,7 +300,8 @@ const TECH_LEADS: TeamMember[] = [
     avatar: "/team/headlock.png",
     socials: [
       { platform: "github", url: "https://github.com/Arkur745" },
-      { platform: "discord", url: "https://discord.com/users/1466294408604418230" }
+      { platform: "discord", url: "https://discord.com/users/1466294408604418230" },
+      { platform: "email", url: "mailto:" }
     ],
   },
 ];
@@ -366,4 +356,5 @@ const SOCIAL_ICONS: Record<SocialPlatform, ElementType> = {
   twitter: FaXTwitter,
   instagram: FaInstagram,
   linkedin: FaLinkedin,
+  email: Mail
 };

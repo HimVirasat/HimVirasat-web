@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-
+import bcrypt from "bcrypt";
 import { supabase } from "../services/supabase.js";
 
 import type { LanguageExpertDto } from "../types/user.types.js";
@@ -46,6 +46,77 @@ export async function getLanguageExperts(
       success: false,
       message:
         "Failed to fetch language experts",
+    });
+  }
+}
+
+export async function createLanguageExpert(
+  req: Request,
+  res: Response
+) {
+  try {
+    const {
+      fullName,
+      email,
+      username,
+      password,
+      dialects,
+    } = req.body;
+    console.log(req.body);
+
+    const passwordHash = await bcrypt.hash(
+      password,
+      12
+    );
+
+    const { data: existingUser } =
+      await supabase
+        .from("users")
+        .select("id")
+        .eq("username", username)
+        .maybeSingle();
+
+    if (existingUser) {
+      
+      return res.status(409).json({
+        success: false,
+        message: "Username already exists",
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("users")
+      .insert({
+        username,
+        password_hash: passwordHash,
+        full_name: fullName,
+        email,
+        role: "language_expert",
+        dialects,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return res.status(201).json({
+      success: true,
+      message:
+        "Language expert created successfully",
+      expert: {
+        id: data.id,
+        username: data.username,
+        dialects: data.dialects,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message:
+        "Failed to create language expert",
     });
   }
 }

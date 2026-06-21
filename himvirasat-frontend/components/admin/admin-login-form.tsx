@@ -42,7 +42,7 @@ export function AdminLoginForm() {
         toast.error(response.message ?? "Authentication failed");
         return;
       }
-      console.log(response.user);
+      // console.log(response.user);
 
       if (response.user?.role === "super_admin") {
         toast.success("Logged in as Super Admin");

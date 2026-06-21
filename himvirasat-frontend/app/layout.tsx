@@ -1,7 +1,7 @@
 import "./globals.css";
 
-import { ThemeProvider } from "@/components/layout/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
+import { Providers } from "./providers";
+
 export default function RootLayout({
   children,
 }: {
@@ -9,11 +9,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning className="antialiased">
-        <ThemeProvider>
+      <body
+        suppressHydrationWarning
+        className="antialiased"
+      >
+        <Providers>
           {children}
-          <Toaster />
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

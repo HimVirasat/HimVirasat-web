@@ -16,12 +16,12 @@ export default function ExpertsPage() {
   const {
     data: experts = [],
     isLoading,
+    isFetching,
     refetch,
   } = useQuery({
     queryKey: ["experts"],
     queryFn: UserService.getLanguageExperts,
   });
-
   async function handleRemove(expertId: string) {
     // todo later
   }
@@ -30,30 +30,18 @@ export default function ExpertsPage() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">
-            Language Experts
-          </h1>
+          <h1 className="text-3xl font-bold">Language Experts</h1>
 
           <p className="text-muted-foreground">
             Manage language experts and dialect assignments.
           </p>
         </div>
-
       </div>
 
-      <CreateExpertDialog
-        open={open}
-        onOpenChange={setOpen}
-      />
-      <ExpertsToolbar
-        loading={loading}
-        onRefresh={refetch}
-      />
+      <CreateExpertDialog open={open} onOpenChange={setOpen} />
+      <ExpertsToolbar refreshing={isFetching} onRefresh={refetch} />
 
-      <ExpertTable
-        experts={experts}
-        onRemove={handleRemove}
-      />
+      <ExpertTable experts={experts} onRemove={handleRemove} />
     </div>
   );
 }

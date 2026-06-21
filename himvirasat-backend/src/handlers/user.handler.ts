@@ -4,10 +4,7 @@ import { supabase } from "../services/supabase.js";
 
 import type { LanguageExpertDto } from "../types/user.types.js";
 
-export async function getLanguageExperts(
-  _: Request,
-  res: Response
-) {
+export async function getLanguageExperts(_: Request, res: Response) {
   try {
     const { data, error } = await supabase
       .from("users")
@@ -21,7 +18,7 @@ export async function getLanguageExperts(
         is_active,
         created_at,
         points
-      `
+      `,
       )
       .eq("role", "language_expert")
       .order("created_at", {
@@ -32,8 +29,7 @@ export async function getLanguageExperts(
       throw error;
     }
 
-    const experts =
-      data as LanguageExpertDto[];
+    const experts = data as LanguageExpertDto[];
 
     return res.json({
       success: true,
@@ -44,40 +40,25 @@ export async function getLanguageExperts(
 
     return res.status(500).json({
       success: false,
-      message:
-        "Failed to fetch language experts",
+      message: "Failed to fetch language experts",
     });
   }
 }
 
-export async function createLanguageExpert(
-  req: Request,
-  res: Response
-) {
+export async function createLanguageExpert(req: Request, res: Response) {
   try {
-    const {
-      fullName,
-      email,
-      username,
-      password,
-      dialects,
-    } = req.body;
+    const { fullName, email, username, password, dialects } = req.body;
     console.log(req.body);
 
-    const passwordHash = await bcrypt.hash(
-      password,
-      12
-    );
+    const passwordHash = await bcrypt.hash(password, 12);
 
-    const { data: existingUser } =
-      await supabase
-        .from("users")
-        .select("id")
-        .eq("username", username)
-        .maybeSingle();
+    const { data: existingUser } = await supabase
+      .from("users")
+      .select("id")
+      .eq("username", username)
+      .maybeSingle();
 
     if (existingUser) {
-      
       return res.status(409).json({
         success: false,
         message: "Username already exists",
@@ -103,8 +84,7 @@ export async function createLanguageExpert(
 
     return res.status(201).json({
       success: true,
-      message:
-        "Language expert created successfully",
+      message: "Language expert created successfully",
       expert: {
         id: data.id,
         username: data.username,
@@ -115,8 +95,7 @@ export async function createLanguageExpert(
     console.error(error);
     return res.status(500).json({
       success: false,
-      message:
-        "Failed to create language expert",
+      message: "Failed to create language expert",
     });
   }
 }

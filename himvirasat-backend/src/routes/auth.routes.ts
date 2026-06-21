@@ -11,9 +11,5 @@ router.post("/login", login);
 router.post("/logout", logout);
 
 // router.get("/me", requireAuth, requireRole("super_admin"), requireRole("language_expert"), me);
-router.get(
-    "/me",
-    requireAuth,
-    me
-);
+router.get("/me", requireAuth, me);
 export default router;

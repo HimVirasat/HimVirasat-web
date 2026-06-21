@@ -18,8 +18,11 @@ import { cn } from "@/lib/utils";
 
 function initials(name: string) {
   return name
-    .split(" ").map((word) => word[0])
-    .slice(0, 2).join("").toUpperCase();
+    .split(" ")
+    .map((word) => word[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
 function SocialRow({ socials }: { socials?: SocialLink[] }) {
@@ -50,33 +53,27 @@ function SocialRow({ socials }: { socials?: SocialLink[] }) {
   );
 }
 
-function PersonCard({ member, size = "md", }: {
+function PersonCard({
+  member,
+  size = "md",
+}: {
   member: TeamMember;
   size?: "lg" | "md" | "sm";
 }) {
   const cardPadding = size === "lg" ? "p-6" : size === "md" ? "p-5" : "p-4";
-  const avatarSize = size === "lg" ? "h-20 w-20" : size === "md" ? "h-16 w-16" : "h-14 w-14";
-  const nameSize = size === "lg" ? "text-lg" : size === "md" ? "text-base" : "text-sm";
+  const avatarSize =
+    size === "lg" ? "h-20 w-20" : size === "md" ? "h-16 w-16" : "h-14 w-14";
+  const nameSize =
+    size === "lg" ? "text-lg" : size === "md" ? "text-base" : "text-sm";
   const roleSize = size === "lg" ? "text-md" : "text-[12px]";
 
   return (
     <Card className="h-full border-white/20 bg-white/45 dark:bg-white/5">
       <CardContent
-        className={cn(
-          cardPadding,
-          "flex flex-col items-center text-center"
-        )}
+        className={cn(cardPadding, "flex flex-col items-center text-center")}
       >
-        <Avatar
-          className={cn(
-            avatarSize,
-            "ring-2 ring-emerald-500/25"
-          )}
-        >
-          <AvatarImage
-            src={member.avatar}
-            alt={member.name}
-          />
+        <Avatar className={cn(avatarSize, "ring-2 ring-emerald-500/25")}>
+          <AvatarImage src={member.avatar} alt={member.name} />
           <AvatarFallback className="bg-emerald-600/10 text-emerald-700 dark:text-emerald-400">
             {initials(member.name)}
           </AvatarFallback>
@@ -164,7 +161,6 @@ function SectionShell({
   );
 }
 
-
 export function TeamSection() {
   return (
     <section className="mt-32 scroll-mt-24">
@@ -194,11 +190,8 @@ export function TeamSection() {
         >
           <div className="mx-auto grid max-w-2xl gap-6 md:grid-cols-2">
             {TECH_LEADS.map((member) => (
-              <PersonCard
-                key={member.name}
-                member={member}
-                size="md"
-              />))}
+              <PersonCard key={member.name} member={member} size="md" />
+            ))}
           </div>
 
           <ConnectorLine />
@@ -207,17 +200,15 @@ export function TeamSection() {
               Developers
             </h4>
             <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">
-              Developers and researchers building the technical foundation of HimVirasat.
+              Developers and researchers building the technical foundation of
+              HimVirasat.
             </p>
           </div>
 
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {DEVELOPERS.map((member) => (
-              <PersonCard
-                key={member.name}
-                member={member}
-                size="md"
-              />))}
+              <PersonCard key={member.name} member={member} size="md" />
+            ))}
           </div>
         </SectionShell>
 
@@ -228,11 +219,8 @@ export function TeamSection() {
         >
           <div className="mx-auto grid max-w-2xl gap-6 md:grid-cols-2">
             {LANGUAGE_HEADS.map((member) => (
-              <PersonCard
-                key={member.name}
-                member={member}
-                size="md"
-              />))}
+              <PersonCard key={member.name} member={member} size="md" />
+            ))}
           </div>
 
           <ConnectorLine />
@@ -248,18 +236,14 @@ export function TeamSection() {
 
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {CONTRIBUTORS.map((member) => (
-              <PersonCard
-                key={member.name}
-                member={member}
-                size="md"
-              />))}
+              <PersonCard key={member.name} member={member} size="md" />
+            ))}
           </div>
         </SectionShell>
       </div>
     </section>
   );
 }
-
 
 type SocialPlatform =
   | "github"
@@ -290,7 +274,10 @@ const TECH_LEADS: TeamMember[] = [
     avatar: "/team/jasper.png",
     socials: [
       { platform: "github", url: "https://github.com/DrLestrange" },
-      { platform: "discord", url: "https://discord.com/users/1011937653203144715" },
+      {
+        platform: "discord",
+        url: "https://discord.com/users/1011937653203144715",
+      },
       { platform: "email", url: "mailto:casesilver777@gmail.com" },
     ],
   },
@@ -300,7 +287,10 @@ const TECH_LEADS: TeamMember[] = [
     avatar: "/team/headlock.png",
     socials: [
       { platform: "github", url: "https://github.com/Arkur745" },
-      { platform: "discord", url: "https://discord.com/users/1466294408604418230" }
+      {
+        platform: "discord",
+        url: "https://discord.com/users/1466294408604418230",
+      },
     ],
   },
 ];
@@ -321,8 +311,14 @@ const LANGUAGE_HEADS: TeamMember[] = [
     avatar: "/team/ryan.png",
     languages: ["Mandyali", "Kangri"],
     socials: [
-      { platform: "discord", url: "https://discord.com/users/1308474011151372376" },
-      { platform: "instagram", url: "https://www.instagram.com/_ryan_sharma?igsh=cjF1cnB1OTNkNHIw" }
+      {
+        platform: "discord",
+        url: "https://discord.com/users/1308474011151372376",
+      },
+      {
+        platform: "instagram",
+        url: "https://www.instagram.com/_ryan_sharma?igsh=cjF1cnB1OTNkNHIw",
+      },
     ],
   },
   {
@@ -331,7 +327,10 @@ const LANGUAGE_HEADS: TeamMember[] = [
     avatar: "/team/moyo.png",
     languages: ["Kangri"],
     socials: [
-      { platform: "discord", url: "https://discord.com/users/207767720081620993" }
+      {
+        platform: "discord",
+        url: "https://discord.com/users/207767720081620993",
+      },
     ],
   },
 ];
@@ -347,9 +346,7 @@ const CONTRIBUTORS: TeamMember[] = [
   //     { platform: "reddit", url: "#" },
   //   ],
   // },
-
 ];
-
 
 const SOCIAL_ICONS: Record<SocialPlatform, ElementType> = {
   github: FaGithub,
@@ -358,5 +355,5 @@ const SOCIAL_ICONS: Record<SocialPlatform, ElementType> = {
   twitter: FaXTwitter,
   instagram: FaInstagram,
   linkedin: FaLinkedin,
-  email: Mail
+  email: Mail,
 };

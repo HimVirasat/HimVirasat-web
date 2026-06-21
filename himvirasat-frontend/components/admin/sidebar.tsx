@@ -88,9 +88,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
 
   const isSuperAdmin = user.role === "super_admin";
 
-  const items = isSuperAdmin
-    ? SUPER_ADMIN_ITEMS
-    : EXPERT_ITEMS;
+  const items = isSuperAdmin ? SUPER_ADMIN_ITEMS : EXPERT_ITEMS;
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
@@ -110,9 +108,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
               </div>
 
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">
-                  HimVirasat
-                </span>
+                <span className="truncate font-semibold">HimVirasat</span>
 
                 <span className="truncate text-xs text-muted-foreground">
                   Admin Console
@@ -155,18 +151,13 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       <SidebarFooter className="border-t">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              tooltip={user.full_name}
-            >
+            <SidebarMenuButton size="lg" tooltip={user.full_name}>
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-xs font-semibold text-primary-foreground">
                 {getInitials(user.full_name)}
               </div>
 
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">
-                  {user.full_name}
-                </span>
+                <span className="truncate font-semibold">{user.full_name}</span>
 
                 <span className="truncate text-xs text-muted-foreground">
                   @{user.username}

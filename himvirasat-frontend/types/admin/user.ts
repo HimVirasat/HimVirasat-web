@@ -17,3 +17,14 @@ export interface LanguageExpert {
   created_at: string;
   points: number;
 }
+
+export interface DashboardStats {
+  languageExpertsCount: number;
+  languageHeadsCount: number;
+  superAdminsCount: number;
+}
+export interface DeleteLanguageExpertResponse {
+  success: boolean;
+  message: string;
+  deleted_id: string;
+}

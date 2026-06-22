@@ -1,4 +1,7 @@
-import type { LanguageExpert } from "@/types/admin/user";
+import type {
+  DeleteLanguageExpertResponse,
+  LanguageExpert,
+} from "@/types/admin/user";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -12,17 +15,15 @@ export interface CreateLanguageExpertRequest {
 
 export class UserService {
   static async getLanguageExperts(): Promise<LanguageExpert[]> {
-    // console.log(API_URL);
     const response = await fetch(`${API_URL}/users/language-experts`, {
       credentials: "include",
     });
-    // console.log(response);
-    if (!response.ok) {
-      throw new Error("Failed to fetch language experts");
-    }
 
     const data = await response.json();
-    // console.log(data);
+
+    if (!response.ok) {
+      throw new Error(data.message ?? "Failed to fetch language experts");
+    }
     return data.experts;
   }
   static async createLanguageExpert(data: CreateLanguageExpertRequest) {
@@ -42,5 +43,27 @@ export class UserService {
     }
 
     return json;
+  }
+  static async deleteLanguageExpert(
+    expertId: string
+  ): Promise<DeleteLanguageExpertResponse> {
+    const response = await fetch(`${API_URL}/users/delete-expert`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        id: expertId,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message ?? "Failed to delete language expert");
+    }
+
+    return result;
   }
 }

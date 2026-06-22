@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
 export const app = express();
 
 app.use(cookieParser());
@@ -37,3 +38,4 @@ app.get("/", (_, res) => {
 
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
+app.use("/dashboard", dashboardRoutes);

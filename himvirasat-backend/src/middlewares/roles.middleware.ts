@@ -4,7 +4,7 @@ import type { AuthenticatedRequest } from "./auth.middleware.js";
 
 import type { UserRole } from "../types/auth.types.js";
 
-export function requireRole(role: UserRole) {
+export function requireRole(...roles: UserRole[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     const user = (req as AuthenticatedRequest).user;
 
@@ -15,8 +15,11 @@ export function requireRole(role: UserRole) {
       });
     }
 
-    if (user.role !== role) {
-      return res.status(403).json({ success: false, message: "Forbidden" });
+    if (!roles.includes(user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden",
+      });
     }
 
     next();

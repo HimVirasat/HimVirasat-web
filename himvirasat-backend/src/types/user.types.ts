@@ -8,3 +8,9 @@ export interface LanguageExpertDto {
   created_at: string;
   points: number;
 }
+
+export interface DashboardStatsDto {
+  languageExpertsCount: number;
+  languageHeadsCount: number;
+  superAdminsCount: number;
+}

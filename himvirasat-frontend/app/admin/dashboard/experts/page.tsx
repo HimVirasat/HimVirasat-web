@@ -7,10 +7,9 @@ import { UserService } from "@/lib/services/admin/user-service";
 import { LanguageExpert } from "@/types/admin/user";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState, useCallback } from "react";
+import { toast } from "sonner";
 
 export default function ExpertsPage() {
-  // const [experts, setExperts] = useState<LanguageExpert[]>([]);
-  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
   const {
@@ -22,8 +21,23 @@ export default function ExpertsPage() {
     queryKey: ["experts"],
     queryFn: UserService.getLanguageExperts,
   });
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
   async function handleRemove(expertId: string) {
-    // todo later
+    try {
+      setDeletingId(expertId);
+
+      const resp = await UserService.deleteLanguageExpert(expertId);
+      if (resp.success) {
+        toast.success("Language Expert Deleted");
+      }
+      await refetch();
+    } catch (error) {
+      toast.error(`Language Expert Deletion Failed: ${error}`);
+      console.error(error);
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   return (
@@ -39,9 +53,19 @@ export default function ExpertsPage() {
       </div>
 
       <CreateExpertDialog open={open} onOpenChange={setOpen} />
-      <ExpertsToolbar refreshing={isFetching} onRefresh={refetch} />
+      <ExpertsToolbar
+        refreshing={isFetching}
+        onRefresh={refetch}
+        search={search}
+        onSearchChange={setSearch}
+      />
 
-      <ExpertTable experts={experts} onRemove={handleRemove} />
+      <ExpertTable
+        experts={experts}
+        deletingId={deletingId}
+        onRemove={handleRemove}
+        globalFilter={search}
+      />
     </div>
   );
 }

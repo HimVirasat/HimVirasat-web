@@ -54,9 +54,9 @@ const SUPER_ADMIN_ITEMS = [
     icon: Users,
   },
   {
-    title: "Contributions",
-    url: "/admin/dashboard/contributions",
-    icon: FileText,
+    title: "Language Heads",
+    url: "/admin/dashboard/heads",
+    icon: Users,
   },
   {
     title: "Datasets",
@@ -70,26 +70,62 @@ const SUPER_ADMIN_ITEMS = [
   },
 ];
 
-const EXPERT_ITEMS = [
+const LANGUAGE_HEAD_ITEMS = [
   {
     title: "Dashboard",
     url: "/admin/dashboard",
     icon: LayoutDashboard,
   },
   {
-    title: "Contributions",
-    url: "/admin/dashboard/contributions",
-    icon: FileText,
+    title: "Language Experts",
+    url: "/admin/dashboard/experts",
+    icon: Users,
+  },
+  {
+    title: "Settings",
+    url: "/admin/dashboard/settings",
+    icon: Settings,
   },
 ];
 
+const LANGUAGE_EXPERT_ITEMS = [
+  {
+    title: "Dashboard",
+    url: "/admin/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Settings",
+    url: "/admin/dashboard/settings",
+    icon: Settings,
+  },
+];
+const SIDEBAR_ITEMS = {
+  super_admin: SUPER_ADMIN_ITEMS,
+  language_head: LANGUAGE_HEAD_ITEMS,
+  language_expert: LANGUAGE_EXPERT_ITEMS,
+} as const;
+
+const ROLE_LABELS = {
+  super_admin: "Super Admin",
+  language_head: "Language Head",
+  language_expert: "Language Expert",
+} as const;
+
+const ROLE_BADGE_STYLES = {
+  super_admin:
+    "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+
+  language_head:
+    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+
+  language_expert:
+    "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400",
+} as const;
+
 export function AdminSidebar({ user }: AdminSidebarProps) {
   const pathname = usePathname();
-
-  const isSuperAdmin = user.role === "super_admin";
-
-  const items = isSuperAdmin ? SUPER_ADMIN_ITEMS : EXPERT_ITEMS;
-
+  const items = SIDEBAR_ITEMS[user.role];
   return (
     <Sidebar collapsible="icon" variant="sidebar">
       {/* Header */}
@@ -168,12 +204,10 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                 variant="secondary"
                 className={cn(
                   "shrink-0 text-[10px]",
-                  isSuperAdmin
-                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                    : "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400"
+                  ROLE_BADGE_STYLES[user.role]
                 )}
               >
-                {isSuperAdmin ? "Super Admin" : "Language Expert"}
+                {ROLE_LABELS[user.role]}
               </Badge>
             </SidebarMenuButton>
           </SidebarMenuItem>

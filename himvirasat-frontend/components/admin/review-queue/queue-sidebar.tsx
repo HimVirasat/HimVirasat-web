@@ -34,6 +34,7 @@ export default function QueueSidebar({
   selectedId,
   handleSelectItem,
 }: QueueSidebarProps) {
+  // Badge config for the list items
   const getStatusBadgeConfig = (status: ContributionStatus) => {
     switch (status) {
       case "pending_review_1":
@@ -63,13 +64,22 @@ export default function QueueSidebar({
       default:
         return {
           label: "Unknown",
-          style: "bg-slate-500/10 text-slate-600 border-slate-500/20 dark:text-slate-400",
+          style:
+            "bg-slate-500/10 text-slate-600 border-slate-500/20 dark:text-slate-400",
         };
     }
   };
 
+  // The sequential stages for our interactive filter pipeline
+  const filterPipelineStages = [
+    { id: "all", label: "All" },
+    { id: "pending_review_1", label: "L1 Queue" },
+    { id: "pending_review_2", label: "L2 Queue" },
+    { id: "questionable", label: "Flagged" },
+  ] as const;
+
   return (
-    <aside className="w-85 shrink-0 border-r flex flex-col min-h-0">
+    <aside className="w-85 shrink-0 border-r flex flex-col min-h-0 bg-background">
       {/* Top Tab Switcher Row */}
       <div className="p-3 pb-0 flex gap-1 border-b">
         <button
@@ -102,46 +112,77 @@ export default function QueueSidebar({
         </button>
       </div>
 
-      {/* Search and Filters Segment */}
-      <div className="p-3 border-b space-y-2">
-        <div className="relative">
-          <Search className="absolute left-3 top-2.5 size-3.5 text-muted-foreground/60" />
-          <Input
-            placeholder="Find lemma, track code, or tag..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8.5 h-8.5 text-xs bg-background/40 backdrop-blur-xs rounded-lg border-border/80"
-          />
-        </div>
+      {/* Interactive Filter Pipeline */}
+      <div className="border-b space-y-4 pt-5 pb-3">
+        <div className="relative flex justify-between w-full px-4 z-0">
+          {filterPipelineStages.map((stage, idx) => {
+            const isActive = filterStatus === stage.id;
+            const isFlagged = stage.id === "questionable";
+            const isTargetFlagged = filterStatus === "questionable";
 
-        <div className="flex gap-1 overflow-x-auto pb-1 text-[10px] scrollbar-none">
-          {(
-            [
-              "all",
-              "pending_review_1",
-              "pending_review_2",
-              "questionable",
-            ] as const
-          ).map((st) => {
+            // Determine if this segment should be highlighted
+            // We look at the index to see if the current filter covers this path
+            const activeIdx = filterPipelineStages.findIndex(
+              (s) => s.id === filterStatus
+            );
+            const isSegmentActive = idx <= activeIdx && activeIdx !== 0;
+
             return (
-              <button
-                key={st}
-                onClick={() => setFilterStatus(st)}
-                className={cn(
-                  "px-2 py-0.5 rounded-md font-medium border shrink-0 transition-all capitalize",
-                  filterStatus === st
-                    ? "bg-foreground text-background border-foreground font-semibold"
-                    : "bg-background/40 backdrop-blur-xs text-muted-foreground border-border hover:text-foreground"
+              <React.Fragment key={stage.id}>
+                {/* Connecting Line Segment (only render if not the first node) */}
+                {idx > 0 && (
+                  <div
+                    className={cn(
+                      "absolute top-[9px] h-[2px] transition-colors duration-300 -z-10",
+                      // Positioning logic for 4 items
+                      idx === 1
+                        ? "left-[12.5%] right-[37.5%]"
+                        : idx === 2
+                          ? "left-[37.5%] right-[37.5%]"
+                          : "left-[62.5%] right-[12.5%]",
+                      isSegmentActive
+                        ? isTargetFlagged
+                          ? "bg-amber-500"
+                          : "bg-emerald-500"
+                        : "bg-neutral-200 dark:bg-neutral-800"
+                    )}
+                  />
                 )}
-              >
-                {st === "all"
-                  ? "All Tracks"
-                  : st === "pending_review_1"
-                    ? "L1 Queue"
-                    : st === "pending_review_2"
-                      ? "L2 Queue"
-                      : "Flagged"}
-              </button>
+
+                {/* Node Button */}
+                <button
+                  onClick={() => setFilterStatus(stage.id)}
+                  className="flex flex-col items-center gap-2 flex-1 relative group cursor-pointer"
+                >
+                  <div
+                    className={cn(
+                      "size-[18px] rounded-full flex items-center justify-center transition-all duration-300 border-[3px] shadow-sm z-10",
+                      isActive
+                        ? isFlagged
+                          ? "bg-amber-500 border-amber-500 ring-4 ring-amber-500/20"
+                          : "bg-emerald-500 border-emerald-500 ring-4 ring-emerald-500/20"
+                        : "bg-background border-neutral-300 dark:border-neutral-700"
+                    )}
+                  >
+                    {isActive && (
+                      <div className="size-1.5 rounded-full bg-white" />
+                    )}
+                  </div>
+
+                  <span
+                    className={cn(
+                      "text-[10px] font-semibold transition-colors",
+                      isActive
+                        ? isFlagged
+                          ? "text-amber-600"
+                          : "text-emerald-600"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {stage.label}
+                  </span>
+                </button>
+              </React.Fragment>
             );
           })}
         </div>
@@ -153,10 +194,10 @@ export default function QueueSidebar({
           <div className="p-8 text-center flex flex-col items-center justify-center text-muted-foreground h-64">
             <Inbox className="size-6 stroke-[1.5] mb-2 text-muted-foreground/50" />
             <p className="text-xs font-semibold text-foreground/80">
-              Empty...
+              Clear boundary bounds
             </p>
             <p className="text-[11px] max-w-48 mx-auto mt-0.5 opacity-70">
-              No data found.
+              No incoming tokens fit the selected validation scope parameters.
             </p>
           </div>
         ) : (
@@ -164,6 +205,7 @@ export default function QueueSidebar({
             {queueFilteredItems.map((item) => {
               const isSelected = item.id === selectedId;
               const cfg = getStatusBadgeConfig(item.status);
+
               return (
                 <div
                   key={item.id}
@@ -195,6 +237,7 @@ export default function QueueSidebar({
                         {item.category}
                       </span>
                     </div>
+                    {/* Item Badge */}
                     <Badge
                       variant="outline"
                       className={cn(

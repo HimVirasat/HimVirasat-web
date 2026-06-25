@@ -133,7 +133,7 @@ export default function QueueSidebar({
                 {idx > 0 && (
                   <div
                     className={cn(
-                      "absolute top-[9px] h-[2px] transition-colors duration-300 -z-10",
+                      "absolute top-2.25 h-0.5 transition-colors duration-300 -z-10",
                       // Positioning logic for 4 items
                       idx === 1
                         ? "left-[12.5%] right-[37.5%]"
@@ -156,7 +156,7 @@ export default function QueueSidebar({
                 >
                   <div
                     className={cn(
-                      "size-[18px] rounded-full flex items-center justify-center transition-all duration-300 border-[3px] shadow-sm z-10",
+                      "size-4.5 rounded-full flex items-center justify-center transition-all duration-300 border-[3px] shadow-sm z-10",
                       isActive
                         ? isFlagged
                           ? "bg-amber-500 border-amber-500 ring-4 ring-amber-500/20"

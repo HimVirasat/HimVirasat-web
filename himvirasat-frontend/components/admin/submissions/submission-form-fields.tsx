@@ -213,7 +213,7 @@ export function SubmissionFormFields({ values, onChange }: FormFieldsProps) {
               <Textarea
                 id="meaning"
                 className={cn(
-                  "min-h-[110px] text-xs leading-relaxed resize-none p-4",
+                  "min-h-27.5 text-xs leading-relaxed resize-none p-4",
                   inputStyle
                 )}
                 placeholder="Dissect semantics, connotations, archaic applications, and native idioms..."
@@ -236,7 +236,7 @@ export function SubmissionFormFields({ values, onChange }: FormFieldsProps) {
               <Textarea
                 id="example_sentence"
                 className={cn(
-                  "min-h-[85px] text-xs leading-relaxed font-medium tracking-wide resize-none p-4",
+                  "min-h-21.25 text-xs leading-relaxed font-medium tracking-wide resize-none p-4",
                   inputStyle
                 )}
                 placeholder="Transcribe how this vocabulary element is spoken organically within sentences..."

@@ -416,209 +416,214 @@ export default function WorkspaceContent({
               </div>
             </div>
           )}
+          <div className="shrink-0 border-t border-border bg-card/90 dark:bg-background/95 backdrop-blur px-6 py-3 shadow-[0_-4px_12px_-4px_rgba(0,0,0,0.08)] -mt-1 relative z-10">
+            <div className="max-w-3xl mx-auto flex items-center justify-between gap-4 flex-wrap">
+              {/* Left Side: Status / Role Info */}
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground bg-muted/80 dark:bg-muted/40 px-2.5 py-1 rounded-md border border-border/60">
+                <Clock className="size-3 text-indigo-500" />
+                <span>
+                  Role Level:{" "}
+                  <span className="font-bold text-foreground capitalize">
+                    {activeUser.role.replace("_", " ")}
+                  </span>
+                </span>
+              </div>
+
+              {/* Right Side: Clean Button Row */}
+              <div className="flex items-center gap-2 ml-auto">
+                {/* REJECT ALERT DIALOG WITH INTERNAL REASON FIELD */}
+                {WORKFLOW_RULES[currentItem.status].canReject(
+                  activeUser.role
+                ) && (
+                  <AlertDialog
+                    open={isRejectOpen}
+                    onOpenChange={(open) => {
+                      setIsRejectOpen(open);
+                      if (!open) setReviewerComment("");
+                    }}
+                  >
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-xs font-semibold text-destructive dark:text-red-400 hover:bg-destructive/10 px-3 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="size-3.5 mr-1.5" /> Reject
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-background border border-border max-w-md rounded-2xl shadow-xl p-6">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+                          <Trash2 className="size-4 text-destructive" /> Reject
+                          Entry Confirmation
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed pt-1">
+                          Are you certain you want to reject this contribution
+                          entry node ({currentItem.id})? This will drop it out
+                          of the evaluation timeline completely.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+
+                      <div className="my-4 space-y-1.5">
+                        <label
+                          htmlFor="reject-reason"
+                          className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block"
+                        >
+                          Rejection Reason{" "}
+                          <span className="text-destructive">*</span>
+                        </label>
+                        <Textarea
+                          id="reject-reason"
+                          placeholder="Provide specific validation failure reasons or notes..."
+                          value={reviewerComment}
+                          onChange={(e) => setReviewerComment(e.target.value)}
+                          className="min-h-18 text-xs bg-muted/20 text-foreground border-border focus-visible:ring-destructive rounded-lg resize-none"
+                        />
+                      </div>
+
+                      <AlertDialogFooter className="gap-2">
+                        <AlertDialogCancel className="h-8 text-xs rounded-lg border border-border bg-background text-foreground m-0">
+                          Cancel
+                        </AlertDialogCancel>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="h-8 text-xs font-semibold bg-destructive hover:bg-destructive/90 text-white rounded-lg px-4"
+                          disabled={!reviewerComment.trim()}
+                          onClick={() => {
+                            handleReject(currentItem.id);
+                            setIsRejectOpen(false);
+                          }}
+                        >
+                          Confirm Rejection
+                        </Button>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+
+                {/* FLAG CONCERNS ALERT DIALOG WITH INTERNAL REASON FIELD */}
+                {WORKFLOW_RULES[currentItem.status].canFlag(
+                  activeUser.id,
+                  currentItem,
+                  activeUser.role
+                ) && (
+                  <AlertDialog
+                    open={isFlagOpen}
+                    onOpenChange={(open) => {
+                      setIsFlagOpen(open);
+                      if (!open) setReviewerComment("");
+                    }}
+                  >
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs font-semibold border-amber-500/30 dark:border-amber-500/20 text-amber-600 dark:text-amber-400 bg-background hover:bg-amber-500/5 px-3 shadow-none rounded-lg transition-colors"
+                      >
+                        <AlertTriangle className="size-3.5 mr-1.5" /> Flag
+                        Concerns
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-background border border-border max-w-md rounded-2xl shadow-xl p-6">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+                          <AlertTriangle className="size-4 text-amber-500" />{" "}
+                          Flag Contentious Items
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed pt-1">
+                          Are you sure you want to flag concerns regarding this
+                          item? It will step back to questionable status
+                          awaiting remediation guidelines.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+
+                      <div className="my-4 space-y-1.5">
+                        <label
+                          htmlFor="flag-reason"
+                          className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block"
+                        >
+                          Flag Reasoning Summary{" "}
+                          <span className="text-amber-600">*</span>
+                        </label>
+                        <Textarea
+                          id="flag-reason"
+                          placeholder="Describe linguistic concerns, formatting discrepancies, or dialect errors..."
+                          value={reviewerComment}
+                          onChange={(e) => setReviewerComment(e.target.value)}
+                          className="min-h-18 text-xs bg-muted/20 text-foreground border-border focus-visible:ring-amber-500 rounded-lg resize-none"
+                        />
+                      </div>
+
+                      <AlertDialogFooter className="gap-2">
+                        <AlertDialogCancel className="h-8 text-xs rounded-lg border border-border bg-background text-foreground m-0">
+                          Cancel
+                        </AlertDialogCancel>
+                        <Button
+                          size="sm"
+                          className="h-8 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-lg px-4"
+                          disabled={!reviewerComment.trim()}
+                          onClick={() => {
+                            handleFlag(currentItem.id);
+                            setIsFlagOpen(false);
+                          }}
+                        >
+                          Flag Entry
+                        </Button>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+
+                {/* ACTION EXECUTE BUTTON & AUTHORIZATION LOCKS */}
+                {WORKFLOW_RULES[currentItem.status].canApprove(
+                  activeUser.id,
+                  currentItem,
+                  activeUser.role
+                ) ? (
+                  <Button
+                    size="sm"
+                    onClick={() => handleApprove(currentItem.id)}
+                    className="h-8 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-4 rounded-lg shadow-sm transition-colors"
+                  >
+                    <CheckCircle2 className="size-3.5 mr-1.5" />
+                    {currentItem.status === "pending_review_1" &&
+                      "Pass L1 Evaluation"}
+                    {currentItem.status === "pending_review_2" &&
+                      "Authorize Production Release"}
+                    {currentItem.status === "questionable" &&
+                      "Resolve and Rescue Token"}
+                    {currentItem.status === "draft" &&
+                      "Submit to Open Pipeline"}
+                  </Button>
+                ) : (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-semibold bg-muted/60 dark:bg-muted/30 border border-border/80 px-3.5 h-8 rounded-lg cursor-not-allowed select-none">
+                          <UserCheck className="size-3.5" /> Authorization
+                          Lockout
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        align="end"
+                        className="p-2.5 max-w-xs border border-border bg-popover text-popover-foreground rounded-xl shadow-md"
+                      >
+                        <p className="text-[11px] leading-normal font-medium">
+                          Your current role is ({activeUser.role}) and you
+                          cannot make changes under {currentItem.status}. Rules
+                          restrict users from performing some actions.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </ScrollArea>
       {/* Action Workspace Bar */}
-      <div className="shrink-0 border-t border-border bg-card/90 dark:bg-background/95 backdrop-blur px-6 py-3 shadow-[0_-4px_12px_-4px_rgba(0,0,0,0.08)] -mt-1 relative z-10">
-        <div className="max-w-3xl mx-auto flex items-center justify-between gap-4 flex-wrap">
-          {/* Left Side: Status / Role Info */}
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground bg-muted/80 dark:bg-muted/40 px-2.5 py-1 rounded-md border border-border/60">
-            <Clock className="size-3 text-indigo-500" />
-            <span>
-              Role Level:{" "}
-              <span className="font-bold text-foreground capitalize">
-                {activeUser.role.replace("_", " ")}
-              </span>
-            </span>
-          </div>
-
-          {/* Right Side: Clean Button Row */}
-          <div className="flex items-center gap-2 ml-auto">
-            {/* REJECT ALERT DIALOG WITH INTERNAL REASON FIELD */}
-            {WORKFLOW_RULES[currentItem.status].canReject(activeUser.role) && (
-              <AlertDialog
-                open={isRejectOpen}
-                onOpenChange={(open) => {
-                  setIsRejectOpen(open);
-                  if (!open) setReviewerComment("");
-                }}
-              >
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 text-xs font-semibold text-destructive dark:text-red-400 hover:bg-destructive/10 px-3 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="size-3.5 mr-1.5" /> Reject
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="bg-background border border-border max-w-md rounded-2xl shadow-xl p-6">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                      <Trash2 className="size-4 text-destructive" /> Reject
-                      Entry Confirmation
-                    </AlertDialogTitle>
-                    <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed pt-1">
-                      Are you certain you want to reject this contribution entry
-                      node ({currentItem.id})? This will drop it out of the
-                      evaluation timeline completely.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-
-                  <div className="my-4 space-y-1.5">
-                    <label
-                      htmlFor="reject-reason"
-                      className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block"
-                    >
-                      Rejection Reason{" "}
-                      <span className="text-destructive">*</span>
-                    </label>
-                    <Textarea
-                      id="reject-reason"
-                      placeholder="Provide specific validation failure reasons or notes..."
-                      value={reviewerComment}
-                      onChange={(e) => setReviewerComment(e.target.value)}
-                      className="min-h-18 text-xs bg-muted/20 text-foreground border-border focus-visible:ring-destructive rounded-lg resize-none"
-                    />
-                  </div>
-
-                  <AlertDialogFooter className="gap-2">
-                    <AlertDialogCancel className="h-8 text-xs rounded-lg border border-border bg-background text-foreground m-0">
-                      Cancel
-                    </AlertDialogCancel>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="h-8 text-xs font-semibold bg-destructive hover:bg-destructive/90 text-white rounded-lg px-4"
-                      disabled={!reviewerComment.trim()}
-                      onClick={() => {
-                        handleReject(currentItem.id);
-                        setIsRejectOpen(false);
-                      }}
-                    >
-                      Confirm Rejection
-                    </Button>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-
-            {/* FLAG CONCERNS ALERT DIALOG WITH INTERNAL REASON FIELD */}
-            {WORKFLOW_RULES[currentItem.status].canFlag(
-              activeUser.id,
-              currentItem,
-              activeUser.role
-            ) && (
-              <AlertDialog
-                open={isFlagOpen}
-                onOpenChange={(open) => {
-                  setIsFlagOpen(open);
-                  if (!open) setReviewerComment("");
-                }}
-              >
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-xs font-semibold border-amber-500/30 dark:border-amber-500/20 text-amber-600 dark:text-amber-400 bg-background hover:bg-amber-500/5 px-3 shadow-none rounded-lg transition-colors"
-                  >
-                    <AlertTriangle className="size-3.5 mr-1.5" /> Flag Concerns
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="bg-background border border-border max-w-md rounded-2xl shadow-xl p-6">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                      <AlertTriangle className="size-4 text-amber-500" /> Flag
-                      Contentious Items
-                    </AlertDialogTitle>
-                    <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed pt-1">
-                      Are you sure you want to flag concerns regarding this
-                      item? It will step back to questionable status awaiting
-                      remediation guidelines.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-
-                  <div className="my-4 space-y-1.5">
-                    <label
-                      htmlFor="flag-reason"
-                      className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block"
-                    >
-                      Flag Reasoning Summary{" "}
-                      <span className="text-amber-600">*</span>
-                    </label>
-                    <Textarea
-                      id="flag-reason"
-                      placeholder="Describe linguistic concerns, formatting discrepancies, or dialect errors..."
-                      value={reviewerComment}
-                      onChange={(e) => setReviewerComment(e.target.value)}
-                      className="min-h-18 text-xs bg-muted/20 text-foreground border-border focus-visible:ring-amber-500 rounded-lg resize-none"
-                    />
-                  </div>
-
-                  <AlertDialogFooter className="gap-2">
-                    <AlertDialogCancel className="h-8 text-xs rounded-lg border border-border bg-background text-foreground m-0">
-                      Cancel
-                    </AlertDialogCancel>
-                    <Button
-                      size="sm"
-                      className="h-8 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-lg px-4"
-                      disabled={!reviewerComment.trim()}
-                      onClick={() => {
-                        handleFlag(currentItem.id);
-                        setIsFlagOpen(false);
-                      }}
-                    >
-                      Flag Entry
-                    </Button>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-
-            {/* ACTION EXECUTE BUTTON & AUTHORIZATION LOCKS */}
-            {WORKFLOW_RULES[currentItem.status].canApprove(
-              activeUser.id,
-              currentItem,
-              activeUser.role
-            ) ? (
-              <Button
-                size="sm"
-                onClick={() => handleApprove(currentItem.id)}
-                className="h-8 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-4 rounded-lg shadow-sm transition-colors"
-              >
-                <CheckCircle2 className="size-3.5 mr-1.5" />
-                {currentItem.status === "pending_review_1" &&
-                  "Pass L1 Evaluation"}
-                {currentItem.status === "pending_review_2" &&
-                  "Authorize Production Release"}
-                {currentItem.status === "questionable" &&
-                  "Resolve and Rescue Token"}
-                {currentItem.status === "draft" && "Submit to Open Pipeline"}
-              </Button>
-            ) : (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-semibold bg-muted/60 dark:bg-muted/30 border border-border/80 px-3.5 h-8 rounded-lg cursor-not-allowed select-none">
-                      <UserCheck className="size-3.5" /> Authorization Lockout
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    align="end"
-                    className="p-2.5 max-w-xs border border-border bg-popover text-popover-foreground rounded-xl shadow-md"
-                  >
-                    <p className="text-[11px] leading-normal font-medium">
-                      Your current role is ({activeUser.role}) and you cannot
-                      make changes under {currentItem.status}. Rules restrict
-                      users from performing some actions.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-          </div>
-        </div>
-      </div>
     </>
   );
 }

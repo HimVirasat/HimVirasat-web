@@ -6,17 +6,27 @@ import { Shield, Users, UserCog } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { DashboardService } from "@/lib/services/admin/dashboard-service";
-
+import { DashboardToolbar } from "@/components/admin/dashboard-toolbar";
 export default function DashboardPage() {
-  const { data: stats, isLoading } = useQuery({
+  const {
+    data: stats,
+    isLoading,
+    isRefetching,
+    refetch,
+  } = useQuery({
     queryKey: ["dashboard"],
     queryFn: DashboardService.getStats,
   });
 
   return (
     <div className="space-y-6 p-6">
-      <div>
+      <div className="space-y-4">
         <h1 className="text-3xl font-bold">Dashboard</h1>
+
+        <DashboardToolbar
+          refreshing={isRefetching}
+          onRefresh={() => refetch()}
+        />
 
         <p className="text-muted-foreground">
           Overview of the HimVirasat moderation platform.

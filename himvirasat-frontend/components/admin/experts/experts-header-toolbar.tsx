@@ -33,7 +33,7 @@ export function ExpertsToolbar({
       <ButtonGroup aria-label="Expert actions">
         <Button variant="outline" onClick={onRefresh} disabled={refreshing}>
           <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
-          {refreshing ? "Refreshing..." : "Refresh"}
+          {refreshing ? "Refresh" : "Refresh"}
         </Button>
 
         <ButtonGroupSeparator />

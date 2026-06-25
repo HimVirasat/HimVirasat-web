@@ -57,10 +57,7 @@ export function getExpertColumns(
       accessorKey: "created_at",
       header: "Created",
 
-      cell: ({ row }) =>
-        new Date(
-          row.original.created_at
-        ).toLocaleDateString(),
+      cell: ({ row }) => new Date(row.original.created_at).toLocaleDateString(),
     },
     {
       id: "actions",

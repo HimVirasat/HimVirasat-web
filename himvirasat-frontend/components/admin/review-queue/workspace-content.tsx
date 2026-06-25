@@ -238,9 +238,9 @@ export default function WorkspaceContent({
                         />
                       ) : (
                         <p className="text-base font-bold text-foreground select-all">
-                          "{currentItem.example_sentence}"
+                          {`"${currentItem.example_sentence}"`}
                         </p>
-                      )}
+                      )}{" "}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2.5 border-t border-indigo-500/20 dark:border-indigo-500/10">
                       <div className="space-y-1">

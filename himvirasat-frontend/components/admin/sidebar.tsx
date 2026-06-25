@@ -4,13 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
-import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  Database,
-  Settings,
-} from "lucide-react";
+import { LayoutDashboard, Users, Check, Send, Settings } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -59,9 +53,14 @@ const SUPER_ADMIN_ITEMS = [
     icon: Users,
   },
   {
-    title: "Datasets",
-    url: "/admin/dashboard/datasets",
-    icon: Database,
+    title: "Review Queue",
+    url: "/admin/dashboard/review-queue",
+    icon: Check,
+  },
+  {
+    title: "Submissions",
+    url: "/admin/dashboard/submissions/",
+    icon: Send,
   },
   {
     title: "Settings",
@@ -82,6 +81,16 @@ const LANGUAGE_HEAD_ITEMS = [
     icon: Users,
   },
   {
+    title: "Review Queue",
+    url: "/admin/dashboard/review-queue",
+    icon: Check,
+  },
+  {
+    title: "Submissions",
+    url: "/admin/dashboard/submissions/",
+    icon: Send,
+  },
+  {
     title: "Settings",
     url: "/admin/dashboard/settings",
     icon: Settings,
@@ -93,6 +102,16 @@ const LANGUAGE_EXPERT_ITEMS = [
     title: "Dashboard",
     url: "/admin/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Review Queue",
+    url: "/admin/dashboard/review-queue",
+    icon: Check,
+  },
+  {
+    title: "Submissions",
+    url: "/admin/dashboard/submissions/",
+    icon: Send,
   },
   {
     title: "Settings",

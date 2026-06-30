@@ -1,3 +1,4 @@
+import { BackgroundDecor } from "@/components/layout/background-decor";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -18,13 +19,9 @@ const actionButtonClass =
 export default function Home() {
   return (
     <div className="relative min-h-screen overflow-hidden">
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/mountains1.png')" }}
-      />
-      <div className="absolute inset-0 bg-white/60 dark:bg-black/85" />
+      <BackgroundDecor />
 
-      <main className="relative mx-auto min-h-screen max-w-4xl px-6 py-24 sm:px-12">
+      <main className="relative z-10 mx-auto min-h-screen max-w-4xl px-6 py-24 sm:px-12">
         <div className="flex flex-col items-center text-center">
           <Image
             src="/virasat.png"

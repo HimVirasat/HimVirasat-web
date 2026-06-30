@@ -1,16 +1,14 @@
+import { BackgroundDecor } from "@/components/layout/background-decor";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { TeamSection } from "@/components/about/team-section";
 export default function AboutPage() {
   return (
-    <div className="relative min-h-screen">
-      <div
-        className="fixed inset-0 bg-cover bg-center -z-10"
-        style={{ backgroundImage: "url('/mountains1.png')" }}
-      />
-      <div className="fixed inset-0 bg-white/70 dark:bg-black/85 -z-10" />
+    <div className="relative min-h-screen overflow-hidden">
+  <BackgroundDecor />
 
+  <main className="relative z-10 max-w-4xl mx-auto px-6 py-24 sm:py-32">
       <main className="max-w-5xl mx-auto px-6 py-24 sm:py-32">
         <header className="space-y-4">
           <span className="text-emerald-600 dark:text-emerald-400 font-bold tracking-widest uppercase text-xs">

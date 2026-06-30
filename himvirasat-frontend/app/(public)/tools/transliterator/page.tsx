@@ -1,25 +1,11 @@
-import Image from "next/image";
+import { BackgroundDecor } from "@/components/layout/background-decor";
 import Transliterator from "@/components/transliterator/Transliterator";
 
 export default function TransliteratorPage() {
   return (
     <div className="relative min-h-screen overflow-hidden text-slate-900 dark:text-slate-100">
-      {/* Background */}
-      <div className="absolute inset-0">
-        <Image
-          src="/mountains1.png"
-          alt="Mountain background"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
-      </div>
+      <BackgroundDecor overlayClassName="bg-white/60 dark:bg-black/85" />
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-white/60 dark:bg-black/85" />
-
-      {/* Content */}
       <main className="relative z-10 min-h-screen flex items-center justify-center px-6 pt-20">
         <div className="w-full max-w-6xl">
           <span className="uppercase tracking-widest text-xs opacity-70 font-semibold">
@@ -39,7 +25,6 @@ export default function TransliteratorPage() {
             <Transliterator />
           </div>
 
-          {/* Font Support Note */}
           <p className="mt-6 text-xs opacity-60 max-w-xl leading-relaxed">
             Tankri characters may not display correctly on some systems due to
             limited font support. If characters appear as blank boxes, please

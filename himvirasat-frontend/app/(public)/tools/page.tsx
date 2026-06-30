@@ -1,25 +1,11 @@
-import Image from "next/image";
+import { BackgroundDecor } from "@/components/layout/background-decor";
 import DialectLink from "@/components/vocabulary/DialectLink";
 
 export default function ToolsPage() {
   return (
     <div className="relative min-h-screen overflow-hidden text-slate-900 dark:text-slate-100">
-      {/* Background */}
-      <div className="absolute inset-0">
-        <Image
-          src="/mountains1.png"
-          alt="Mountain background"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
-      </div>
+      <BackgroundDecor overlayClassName="bg-white/60 dark:bg-black/85" />
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-white/60 dark:bg-black/85" />
-
-      {/* Content */}
       <main className="relative z-10 min-h-screen flex items-center">
         <div className="max-w-5xl px-6 sm:px-10">
           <span className="uppercase tracking-widest text-xs opacity-70 font-semibold">
@@ -33,7 +19,6 @@ export default function ToolsPage() {
             datasets, and language preservation tasks.
           </p>
 
-          {/* Tools Grid */}
           <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-xl">
             <DialectLink
               href="/tools/transliterator"

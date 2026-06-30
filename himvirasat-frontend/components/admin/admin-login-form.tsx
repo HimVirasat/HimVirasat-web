@@ -42,14 +42,16 @@ export function AdminLoginForm() {
         toast.error(response.message ?? "Authentication failed");
         return;
       }
-      console.log(response.user);
+      // console.log(response.user);
 
       if (response.user?.role === "super_admin") {
-        toast.success("Logged in as Super Admin");
+        toast.success("Logged in as Super Admin", { duration: 5000 });
       }
-
+      if (response.user?.role === "language_head") {
+        toast.success("Logged in as Language Head", { duration: 5000 });
+      }
       if (response.user?.role === "language_expert") {
-        toast.success("Logged in as Language Expert");
+        toast.success("Logged in as Language Expert", { duration: 5000 });
       }
 
       router.push("/admin/dashboard");

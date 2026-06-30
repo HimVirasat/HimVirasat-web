@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const schema = z.object({
-  PORT: z.string().default("3000"),
+  PORT: z.string(),
 
   SUPABASE_URL: z.string(),
 
@@ -12,6 +12,7 @@ const schema = z.object({
 
   JWT_SECRET: z.string(),
   JWT_EXPIRES_IN: z.string(),
+  FRONTEND_URL: z.string().optional(),
 });
 
 export const env = schema.parse(process.env);

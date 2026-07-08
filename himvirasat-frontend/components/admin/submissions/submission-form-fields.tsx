@@ -1,252 +1,356 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { Contribution } from "@/types/admin/FSM/contribution-rules";
+import type { ElementType, ReactNode } from "react";
 import {
+  BookOpen,
+  Languages,
   MapPin,
+  Quote,
+  SpellCheck,
   Tags,
   Type,
-  Languages,
-  SpellCheck,
-  BookOpen,
+  FileText,
+  PenTool,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import { SubmissionFormValues } from "@/types/admin/FSM/contribution-rules";
 
 interface FormFieldsProps {
-  values: Partial<Contribution>;
-  onChange: (field: keyof Contribution, value: any) => void;
+  values: SubmissionFormValues;
+  dialects: string[];
+  categories: string[];
+  partsOfSpeech: string[];
+  onChange: <K extends keyof SubmissionFormValues>(
+    field: K,
+    value: SubmissionFormValues[K]
+  ) => void;
 }
 
-export function SubmissionFormFields({ values, onChange }: FormFieldsProps) {
-  // Container no longer manages internal padding or heights—just borders and shared background
-  const structuralInputGroup =
-    "w-full bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 focus-within:border-neutral-900 dark:focus-within:border-neutral-100 focus-within:ring-1 focus-within:ring-neutral-900 dark:focus-within:ring-neutral-100 transition-all duration-150 rounded-xl overflow-hidden flex items-center";
+const inputClass =
+  "h-10 rounded-md border-border bg-background text-sm shadow-none";
 
-  // Base style completely flushes edge-to-edge and sets native padding to fill the background space
-  const inputStyle =
-    "w-full border-none bg-transparent shadow-none outline-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-neutral-400 dark:placeholder:text-neutral-600 text-neutral-900 dark:text-neutral-100";
+const textareaClass =
+  "min-h-28 rounded-md border-border bg-background text-sm leading-relaxed shadow-none resize-y";
 
-  const availableDialects = ["Kangri", "Mandeali", "Kullui"];
-
+export function SubmissionFormFields({
+  values,
+  dialects,
+  categories,
+  partsOfSpeech,
+  onChange,
+}: FormFieldsProps) {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start bg-transparent">
-      {/* LEFT COLUMN: Metadata & Classification Context */}
-      <div className="lg:col-span-5 space-y-6 bg-transparent">
-        <div>
-          <h2 className="text-xs uppercase tracking-wider font-mono text-neutral-900 dark:text-neutral-100 font-bold">
-            01 / Taxonomy
-          </h2>
-          <p className="text-xs text-muted-foreground mt-1">
-            Index the structural location of this token.
-          </p>
-        </div>
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="space-y-12">
+        {/* Core Section - All Fields Mandatory */}
+        <FormSection
+          eyebrow="Section 1"
+          title="Core Lexical Fields"
+          description="All parameters in this primary segment are fully required to form a viable lexical resource entry."
+        >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Dialect" required icon={Languages}>
+              <Select
+                value={values.dialect}
+                onValueChange={(value) => onChange("dialect", value)}
+              >
+                <SelectTrigger className={cn(inputClass, "w-full")}>
+                  <SelectValue placeholder="Choose dialect" />
+                </SelectTrigger>
+                <SelectContent>
+                  {dialects.map((dialect) => (
+                    <SelectItem key={dialect} value={dialect}>
+                      {dialect}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
 
-        {/* Dialect Selector Segment */}
-        <div className="space-y-2">
-          <Label className="text-xs font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 flex items-center gap-1.5">
-            <Languages className="size-3.5 text-neutral-400 dark:text-neutral-500" />
-            Target Dialect <span className="text-destructive">*</span>
-          </Label>
-          <div className="flex flex-wrap gap-2 pt-1">
-            {availableDialects.map((dialect) => {
-              const isSelected = values.dialect === dialect;
-              return (
-                <button
-                  key={dialect}
-                  type="button"
-                  onClick={() => onChange("dialect", dialect)}
-                  className={cn(
-                    "px-4 py-2 text-xs font-semibold rounded-xl border transition-all duration-150 outline-none",
-                    isSelected
-                      ? "bg-neutral-900 dark:bg-neutral-100 border-neutral-900 dark:border-neutral-100 text-white dark:text-neutral-950 shadow-xs"
-                      : "bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:border-neutral-400 dark:hover:border-neutral-600"
-                  )}
-                >
-                  {dialect}
-                </button>
-              );
-            })}
+            <Field label="Word in Devanagari" required icon={Type}>
+              <Input
+                className={cn(inputClass, "font-semibold")}
+                placeholder="उदाहरणात्मक शब्द"
+                value={values.word_devanagari}
+                onChange={(event) =>
+                  onChange("word_devanagari", event.target.value)
+                }
+              />
+            </Field>
+
+            <Field label="Category" required icon={Tags}>
+              <Select
+                value={values.category}
+                onValueChange={(value) => onChange("category", value)}
+              >
+                <SelectTrigger className={cn(inputClass, "w-full")}>
+                  <SelectValue placeholder="Choose category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <Field label="Part of Speech" required icon={FileText}>
+              <Select
+                value={values.part_of_speech}
+                onValueChange={(value) => onChange("part_of_speech", value)}
+              >
+                <SelectTrigger className={cn(inputClass, "w-full")}>
+                  <SelectValue placeholder="Select Part of Speech" />
+                </SelectTrigger>
+                <SelectContent>
+                  {partsOfSpeech.map((pos) => (
+                    <SelectItem key={pos} value={pos}>
+                      {pos}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
           </div>
-        </div>
 
-        {/* Category Inputs */}
-        <div className="space-y-2">
-          <Label
-            htmlFor="category"
-            className="text-xs font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-1.5"
-          >
-            <Tags className="size-3.5 text-neutral-400 dark:text-neutral-500" />{" "}
-            Category
-          </Label>
-          <div className={structuralInputGroup}>
+          <Field label="Region" required icon={MapPin}>
             <Input
-              id="category"
-              className={cn("h-11 px-4 text-xs font-medium", inputStyle)}
-              placeholder="e.g., Flora, Kinship, Architecture"
-              value={values.category || ""}
-              onChange={(e) => onChange("category", e.target.value)}
+              className={inputClass}
+              placeholder="e.g., Palampur, Karsog, Bharmour"
+              value={values.region}
+              onChange={(event) => onChange("region", event.target.value)}
             />
-          </div>
-        </div>
+          </Field>
 
-        {/* Geographic Sub-Region Info */}
-        <div className="space-y-2">
-          <Label
-            htmlFor="region"
-            className="text-xs font-semibold text-neutral-900 dark:text-neutral-100 flex items-center gap-1.5"
-          >
-            <MapPin className="size-3.5 text-neutral-400 dark:text-neutral-500" />{" "}
-            Linguistic Region
-          </Label>
-          <div className={structuralInputGroup}>
-            <Input
-              id="region"
-              className={cn("h-11 px-4 text-xs font-medium", inputStyle)}
-              placeholder="e.g., Upper Mandi Valley, Chamba Border"
-              value={values.region || ""}
-              onChange={(e) => onChange("region", e.target.value)}
+          <Field label="Meaning in Hindi" required icon={BookOpen}>
+            <Textarea
+              className={cn(textareaClass, "min-h-20")}
+              placeholder="शब्द का हिंदी में स्पष्ट अर्थ और संदर्भ लिखें।"
+              value={values.meaning_hindi}
+              onChange={(event) =>
+                onChange("meaning_hindi", event.target.value)
+              }
             />
+          </Field>
+
+          <Field
+            label="Sentence using that word in Pahadi (Devanagari)"
+            required
+            icon={Quote}
+          >
+            <Textarea
+              className={cn(textareaClass, "min-h-20")}
+              placeholder="पहाड़ी वाक्य (देवनागरी लिपि में)"
+              value={values.example_sentence}
+              onChange={(event) =>
+                onChange("example_sentence", event.target.value)
+              }
+            />
+          </Field>
+
+          <Field label="Sentence Meaning in Hindi" required icon={BookOpen}>
+            <Textarea
+              className={cn(textareaClass, "min-h-20")}
+              placeholder="ऊपर लिखे गए पहाड़ी वाक्य का हिंदी अनुवाद"
+              value={values.example_sentence_hindi_meaning}
+              onChange={(event) =>
+                onChange("example_sentence_hindi_meaning", event.target.value)
+              }
+            />
+          </Field>
+        </FormSection>
+
+        {/* Advanced Section - Optional Fields */}
+        <FormSection
+          eyebrow="Section 2"
+          title="Advanced Metadata Fields"
+          description="Phonetics, secondary script variants, and transliterations. These can be left blank."
+        >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field
+              label="Word in Latin"
+              helper="Take care of phonetics syntax."
+              icon={SpellCheck}
+            >
+              <Input
+                className={cn(inputClass, "font-mono")}
+                placeholder="e.g., pāṇī"
+                value={values.word_latin}
+                onChange={(event) => onChange("word_latin", event.target.value)}
+              />
+            </Field>
+
+            <Field label="Word in Takri" icon={PenTool}>
+              <Input
+                className={inputClass}
+                placeholder="𑚧mfeatures"
+                value={values.word_takri}
+                onChange={(event) => onChange("word_takri", event.target.value)}
+              />
+            </Field>
           </div>
-        </div>
+
+          <Field label="Sentence in Latin" icon={Quote}>
+            <Textarea
+              className={cn(textareaClass, "min-h-20")}
+              placeholder="Write the phonetic Romanised version of the Pahadi example sentence."
+              value={values.example_sentence_latin}
+              onChange={(event) =>
+                onChange("example_sentence_latin", event.target.value)
+              }
+            />
+          </Field>
+
+          <Field label="Sentence in Takri" icon={Quote}>
+            <Textarea
+              className={cn(textareaClass, "min-h-20")}
+              placeholder="Write the historical Takri script transcription of the example sentence."
+              value={values.example_sentence_takri}
+              onChange={(event) =>
+                onChange("example_sentence_takri", event.target.value)
+              }
+            />
+          </Field>
+        </FormSection>
       </div>
 
-      {/* RIGHT COLUMN: The Composition Desk */}
-      <div className="lg:col-span-7 space-y-8 bg-transparent">
-        {/* Phonetics Split Box */}
+      {/* Dynamic Checklist Tracker Box */}
+      <aside className="lg:sticky lg:top-6 h-fit rounded-lg border bg-muted/20 p-4">
         <div className="space-y-4">
           <div>
-            <h2 className="text-xs uppercase tracking-wider font-mono text-neutral-900 dark:text-neutral-100 font-bold">
-              02 / Additional Fields
-            </h2>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Core Requirement Checklist
+            </p>
+            <h3 className="mt-1 text-sm font-bold text-foreground">
+              Core Section Readiness
+            </h3>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              All Core configurations must illuminate green before submitting
+              your record to evaluation.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="word_devanagari"
-                className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5"
-              >
-                <Type className="size-3 text-neutral-400 dark:text-neutral-500" />{" "}
-                Native Devanagari <span className="text-destructive">*</span>
-              </Label>
-              <div className={structuralInputGroup}>
-                <Input
-                  id="word_devanagari"
-                  className={cn(
-                    "h-11 px-4 text-sm font-bold tracking-wide",
-                    inputStyle
-                  )}
-                  placeholder="पानी"
-                  value={values.word_devanagari || ""}
-                  onChange={(e) => onChange("word_devanagari", e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="word_latin"
-                className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5"
-              >
-                <SpellCheck className="size-3 text-neutral-400 dark:text-neutral-500" />{" "}
-                Latin Transliteration
-              </Label>
-              <div className={structuralInputGroup}>
-                <Input
-                  id="word_latin"
-                  className={cn(
-                    "h-11 px-4 text-xs italic font-medium tracking-wide",
-                    inputStyle
-                  )}
-                  placeholder="pānī"
-                  value={values.word_latin || ""}
-                  onChange={(e) => onChange("word_latin", e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label
-              htmlFor="ipa"
-              className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5"
-            >
-              <span className="text-[10px] bg-neutral-200 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-300 px-1.5 py-0.5 rounded font-mono select-none">
-                IPA
-              </span>{" "}
-              International Phonetic Alphabet
-            </Label>
-            <div className={structuralInputGroup}>
-              <Input
-                id="ipa"
-                className={cn(
-                  "h-11 px-4 font-mono text-xs tracking-wider",
-                  inputStyle
-                )}
-                placeholder="/pɑːniː/"
-                value={values.ipa || ""}
-                onChange={(e) => onChange("ipa", e.target.value)}
-              />
-            </div>
+          <div className="space-y-2 text-xs">
+            <ReadinessItem
+              label="Dialect Choice"
+              complete={Boolean(values.dialect)}
+            />
+            <ReadinessItem
+              label="Word (Devanagari)"
+              complete={Boolean(values.word_devanagari)}
+            />
+            <ReadinessItem
+              label="Category Selected"
+              complete={Boolean(values.category)}
+            />
+            <ReadinessItem
+              label="Part of Speech Set"
+              complete={Boolean(values.part_of_speech)}
+            />
+            <ReadinessItem
+              label="Region Inputted"
+              complete={Boolean(values.region.trim())}
+            />
+            <ReadinessItem
+              label="Hindi Meaning Given"
+              complete={Boolean(values.meaning_hindi.trim())}
+            />
+            <ReadinessItem
+              label="Pahadi Phrase"
+              complete={Boolean(values.example_sentence.trim())}
+            />
+            <ReadinessItem
+              label="Phrase translation"
+              complete={Boolean(values.example_sentence_hindi_meaning.trim())}
+            />
           </div>
         </div>
+      </aside>
+    </div>
+  );
+}
 
-        {/* Semantics & Narrative Context Fields */}
-        <div className="space-y-4 pt-2">
-          <div>
-            <h2 className="text-xs uppercase tracking-wider font-mono text-neutral-900 dark:text-neutral-100 font-bold">
-              03 / Semantic Architecture
-            </h2>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label
-              htmlFor="meaning"
-              className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5"
-            >
-              <BookOpen className="size-3.5 text-neutral-400 dark:text-neutral-500" />{" "}
-              Definitional Scope <span className="text-destructive">*</span>
-            </Label>
-            <div className={structuralInputGroup}>
-              <Textarea
-                id="meaning"
-                className={cn(
-                  "min-h-27.5 text-xs leading-relaxed resize-none p-4",
-                  inputStyle
-                )}
-                placeholder="Dissect semantics, connotations, archaic applications, and native idioms..."
-                value={values.meaning || ""}
-                onChange={(e) => onChange("meaning", e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label
-              htmlFor="example_sentence"
-              className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5"
-            >
-              <Type className="size-3.5 text-neutral-400 dark:text-neutral-500" />{" "}
-              Structural Oral Example{" "}
-              <span className="text-destructive">*</span>
-            </Label>
-            <div className={structuralInputGroup}>
-              <Textarea
-                id="example_sentence"
-                className={cn(
-                  "min-h-21.25 text-xs leading-relaxed font-medium tracking-wide resize-none p-4",
-                  inputStyle
-                )}
-                placeholder="Transcribe how this vocabulary element is spoken organically within sentences..."
-                value={values.example_sentence || ""}
-                onChange={(e) => onChange("example_sentence", e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
+function FormSection({
+  eyebrow,
+  title,
+  description,
+  children,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="space-y-5">
+      <div className="border-b pb-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {eyebrow}
+        </p>
+        <h2 className="mt-1 text-base font-bold text-foreground">{title}</h2>
+        <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+          {description}
+        </p>
       </div>
+      <div className="space-y-4">{children}</div>
+    </section>
+  );
+}
+
+function Field({
+  label,
+  required = false,
+  helper,
+  icon: Icon,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  helper?: string;
+  icon?: ElementType;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+        {Icon && <Icon className="size-3.5 text-muted-foreground" />}
+        {label}
+        {required && <span className="text-destructive">*</span>}
+      </Label>
+      {children}
+      {helper && <p className="text-[11px] text-muted-foreground">{helper}</p>}
+    </div>
+  );
+}
+
+function ReadinessItem({
+  label,
+  complete,
+}: {
+  label: string;
+  complete: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-md border bg-background px-3 py-2">
+      <span className="font-medium text-foreground">{label}</span>
+      <span
+        className={cn(
+          "size-2 rounded-full",
+          complete ? "bg-emerald-500" : "bg-muted-foreground/30"
+        )}
+      />
     </div>
   );
 }

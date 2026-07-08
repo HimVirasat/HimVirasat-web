@@ -163,22 +163,22 @@ export default function WorkspaceContent({
             <div className="space-y-4">
               {(currentItem.status === "flagged" ||
                 currentItem.status === "rejected") && (
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 flex items-start gap-3 text-xs">
-                  <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                  <div className="space-y-1">
-                    <span className="font-bold uppercase tracking-wider text-[10px] text-amber-600 dark:text-amber-400">
-                      {currentItem.status === "flagged"
-                        ? "Active Flag"
-                        : "Rejected Entry"}
-                    </span>
-                    <p className="text-foreground font-medium">
-                      {currentItem.status === "flagged"
-                        ? currentItem.flag_reason
-                        : currentItem.rejected_reason}
-                    </p>
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 flex items-start gap-3 text-xs">
+                    <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <span className="font-bold uppercase tracking-wider text-[10px] text-amber-600 dark:text-amber-400">
+                        {currentItem.status === "flagged"
+                          ? "Active Flag"
+                          : "Rejected Entry"}
+                      </span>
+                      <p className="text-foreground font-medium">
+                        {currentItem.status === "flagged"
+                          ? currentItem.flag_reason
+                          : currentItem.rejected_reason}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono font-medium bg-muted text-muted-foreground px-2 py-0.5 rounded border border-border/40">
@@ -334,9 +334,8 @@ export default function WorkspaceContent({
                         />
                       ) : (
                         <p className="text-base font-bold text-foreground select-all">
-                          "{currentItem.example_sentence}"
-                        </p>
-                      )}
+                          {"\""}{currentItem.example_sentence}{"\""}
+                        </p>)}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2.5 border-t border-indigo-500/20 dark:border-indigo-500/10">
                       <FieldValue

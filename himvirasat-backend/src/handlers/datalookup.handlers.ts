@@ -38,7 +38,7 @@ export async function getDialectsHandler(_req: Request, res: Response) {
 /**
  * Fetches all categories options from the database
  */
-export async function getCategoriesHandler(req: Request, res: Response) {
+export async function getCategoriesHandler(_req: Request, res: Response) {
   try {
     const { data, error } = await supabase
       .from("categories")
@@ -71,7 +71,7 @@ export async function getCategoriesHandler(req: Request, res: Response) {
 /**
  * Fetches all parts of speech classifications from the database
  */
-export async function getPartsOfSpeechHandler(req: Request, res: Response) {
+export async function getPartsOfSpeechHandler(_req: Request, res: Response) {
   try {
     const { data, error } = await supabase
       .from("parts_of_speech")

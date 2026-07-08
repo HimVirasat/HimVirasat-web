@@ -1,93 +1,145 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Contribution,
+  ContributionHistoryEvent,
   ContributionStatus,
+  ReviewComment,
   SystemRole,
+  getOpenReviewCommentCount,
 } from "@/types/admin/FSM/contribution-rules";
-
-// IMPORT YOUR MEMORY DATASET HERE
 import { sharedMockDataset } from "@/types/admin/FSM/mockstore";
-
-// Component Imports
-import QueueSidebar from "@/components/admin/review-queue/queue-sidebar";
+import QueueSidebar, {
+  QueueFilter,
+} from "@/components/admin/review-queue/queue-sidebar";
 import WorkspaceHeader from "@/components/admin/review-queue/workspace-header";
 import WorkspaceContent from "@/components/admin/review-queue/workspace-content";
 
+export type ActiveUser = {
+  id: string;
+  username: string;
+  role: SystemRole;
+};
+
+const createId = (prefix: string) =>
+  `${prefix}-${Date.now().toString(36)}-${Math.random()
+    .toString(36)
+    .slice(2, 7)}`;
+
+const now = () => new Date().toISOString();
+
+const makeHistoryEvent = (
+  activeUser: ActiveUser,
+  type: ContributionHistoryEvent["type"],
+  message: string
+): ContributionHistoryEvent => ({
+  id: createId("HE"),
+  type,
+  actor_id: activeUser.id,
+  actor_name: activeUser.username,
+  message,
+  created_at: now(),
+});
+
 export default function ReviewQueueDashboardPage() {
-  const [activeUser, setActiveUser] = useState({
+  const [activeUser, setActiveUser] = useState<ActiveUser>({
     id: "usr_expert_77",
     username: "Jasper Dahl",
-    role: "language_expert" as SystemRole,
+    role: "language_expert",
   });
-
-  // State initialized completely from our shared global memory module
   const [items, setItems] = useState<Contribution[]>(sharedMockDataset);
-
   const [selectedId, setSelectedId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [queueTab, setQueueTab] = useState<"pipeline" | "my_submissions">(
-    "pipeline"
-  );
-  const [filterStatus, setFilterStatus] = useState<ContributionStatus | "all">(
-    "all"
-  );
-  const [reviewerComment, setReviewerComment] = useState("");
-  const [workspaceTab, setWorkspaceTab] = useState<"content" | "activity">(
-    "content"
-  );
+  const [queueFilter, setQueueFilter] = useState<QueueFilter>("under_review");
+  const [workspaceTab, setWorkspaceTab] = useState<
+    "content" | "comments" | "activity"
+  >("content");
   const [isEditMode, setIsEditMode] = useState(false);
   const [editForm, setEditForm] = useState<Partial<Contribution>>({});
 
-  // Dynamic initialization for the selected item id on mount
-  useEffect(() => {
-    if (items.length > 0 && !selectedId) {
-      setSelectedId(items[0].id);
-    }
-  }, [items, selectedId]);
-
-  // Keep the global shared dataset in sync when mutations happen
   const syncWithGlobalStore = (updatedItems: Contribution[]) => {
     setItems(updatedItems);
-    sharedMockDataset.length = 0; // Clear array contents without losing reference
-    sharedMockDataset.push(...updatedItems); // Repopulate with updated items
+    sharedMockDataset.length = 0;
+    sharedMockDataset.push(...updatedItems);
   };
 
+  const statusCounts = useMemo(
+    () =>
+      items.reduce(
+        (counts, item) => ({
+          ...counts,
+          [item.status]: counts[item.status] + 1,
+        }),
+        {
+          // draft: 0,
+          under_review: 0,
+          approved: 0,
+          flagged: 0,
+          rejected: 0,
+        } satisfies Record<ContributionStatus, number>
+      ),
+    [items]
+  );
+
   const queueFilteredItems = useMemo(() => {
+    const normalizedSearch = searchQuery.trim().toLowerCase();
+
     return items.filter((item) => {
-      const matchesQueue =
-        queueTab === "my_submissions"
-          ? item.contributor_id === activeUser.id
-          : item.contributor_id !== activeUser.id;
+      const matchesFilter =
+        queueFilter === "my_submissions"
+          ? item.contributor_id === activeUser.id && item.status !== "approved"
+          : item.status === queueFilter;
 
-      const matchesStatus =
-        filterStatus === "all" ? true : item.status === filterStatus;
+      const searchable = [
+        item.id,
+        item.word_devanagari,
+        item.word_latin,
+        item.dialect,
+        item.category,
+        item.contributor_name,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
 
-      const matchesSearch =
-        item.word_devanagari
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        (item.word_latin &&
-          item.word_latin.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        item.dialect.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.id.toLowerCase().includes(searchQuery.toLowerCase());
-
-      return matchesQueue && matchesStatus && matchesSearch;
+      return matchesFilter && searchable.includes(normalizedSearch);
     });
-  }, [items, queueTab, filterStatus, searchQuery, activeUser.id]);
+  }, [activeUser.id, items, queueFilter, searchQuery]);
 
-  const currentItem = useMemo(() => {
-    return (
-      items.find((i) => i.id === selectedId) || queueFilteredItems[0] || null
+  const currentItem = useMemo(
+    () => items.find((item) => item.id === selectedId) ?? null,
+    [items, selectedId]
+  );
+
+  useEffect(() => {
+    if (queueFilteredItems.length === 0) {
+      setSelectedId("");
+      return;
+    }
+
+    const selectionStillVisible = queueFilteredItems.some(
+      (item) => item.id === selectedId
     );
-  }, [items, selectedId, queueFilteredItems]);
+
+    if (!selectionStillVisible) {
+      setSelectedId(queueFilteredItems[0].id);
+    }
+  }, [queueFilteredItems, selectedId]);
+
+  const updateContribution = (
+    id: string,
+    updater: (item: Contribution) => Contribution
+  ) => {
+    syncWithGlobalStore(
+      items.map((item) => (item.id === id ? updater(item) : item))
+    );
+  };
 
   const handleSelectItem = (id: string) => {
     setSelectedId(id);
-    setReviewerComment("");
     setIsEditMode(false);
   };
 
@@ -98,83 +150,166 @@ export default function ReviewQueueDashboardPage() {
   };
 
   const saveInlineEdits = () => {
-    if (!currentItem || !editForm.word_devanagari) return;
-    const updated = items.map((item) =>
-      item.id === currentItem.id
-        ? ({
-            ...item,
-            ...editForm,
-            updated_at: new Date().toISOString(),
-          } as Contribution)
-        : item
-    );
-    syncWithGlobalStore(updated);
+    if (!currentItem || !editForm.word_devanagari?.trim()) return;
+
+    updateContribution(currentItem.id, (item) => ({
+      ...item,
+      ...editForm,
+      history: [
+        makeHistoryEvent(activeUser, "edited", "Updated contribution fields."),
+        ...item.history,
+      ],
+      updated_at: now(),
+    }));
     setIsEditMode(false);
   };
 
+  const handleAddComment = (id: string, fieldName: string, message: string) => {
+    const comment: ReviewComment = {
+      id: createId("RC"),
+      author_id: activeUser.id,
+      author_name: activeUser.username,
+      field_name: fieldName === "General" ? null : fieldName,
+      message,
+      status: "open",
+      created_at: now(),
+      resolved_at: null,
+      resolved_by: null,
+    };
+
+    updateContribution(id, (item) => ({
+      ...item,
+      review_comments: [comment, ...item.review_comments],
+      history: [
+        makeHistoryEvent(
+          activeUser,
+          "comment_added",
+          `Commented on ${comment.field_name ?? "the entry"}.`
+        ),
+        ...item.history,
+      ],
+      updated_at: now(),
+    }));
+  };
+
+  const handleCommentStatusChange = (
+    contributionId: string,
+    commentId: string,
+    action: "accepted" | "resolved" | "rejected"
+  ) => {
+    const status = action === "accepted" ? "resolved" : action;
+    const eventType =
+      action === "accepted"
+        ? "comment_accepted"
+        : action === "rejected"
+          ? "comment_rejected"
+          : "comment_resolved";
+
+    updateContribution(contributionId, (item) => ({
+      ...item,
+      review_comments: item.review_comments.map((comment) =>
+        comment.id === commentId
+          ? {
+              ...comment,
+              status,
+              resolved_at: now(),
+              resolved_by: activeUser.id,
+            }
+          : comment
+      ),
+      history: [
+        makeHistoryEvent(
+          activeUser,
+          eventType,
+          action === "accepted"
+            ? "Accepted review suggestion."
+            : `Marked review comment as ${status}.`
+        ),
+        ...item.history,
+      ],
+      updated_at: now(),
+    }));
+  };
+
   const handleApprove = (id: string) => {
-    const updated = items.map((item) => {
-      if (item.id !== id) return item;
-      let nextStatus: ContributionStatus = item.status;
-      let l1 = item.level1_reviewer_id;
-      let l2 = item.level2_reviewer_id;
-
-      if (item.status === "pending_review_1") {
-        nextStatus = "pending_review_2";
-        l1 = activeUser.id;
-      } else if (item.status === "pending_review_2") {
-        nextStatus = "fully_approved";
-        l2 = activeUser.id;
-      } else if (item.status === "questionable" || item.status === "draft") {
-        nextStatus = "pending_review_1";
-      }
-
-      return {
-        ...item,
-        status: nextStatus,
-        level1_reviewer_id: l1,
-        level2_reviewer_id: l2,
-        updated_at: new Date().toISOString(),
-      };
-    });
-
-    syncWithGlobalStore(updated);
-    setReviewerComment("");
+    updateContribution(id, (item) => ({
+      ...item,
+      status: "approved",
+      flag_reason: null,
+      flagged_by: null,
+      approved_by: activeUser.username,
+      approved_at: now(),
+      history: [
+        makeHistoryEvent(
+          activeUser,
+          "approved",
+          getOpenReviewCommentCount(item) > 0
+            ? "Approved with authority override for unresolved comments."
+            : "Approved after review requirements were satisfied."
+        ),
+        ...item.history,
+      ],
+      updated_at: now(),
+    }));
+    setQueueFilter("approved");
   };
 
-  const handleFlag = (id: string) => {
-    if (!reviewerComment.trim()) {
-      alert(
-        "Verification reasoning summary is required inside the logs panel before flagging entries."
-      );
-      return;
-    }
-    const updated = items.map((item) =>
-      item.id === id
-        ? ({
-            ...item,
-            status: "questionable",
-            questionable_by: activeUser.username,
-            questionable_reason: reviewerComment,
-            updated_at: new Date().toISOString(),
-          } as Contribution)
-        : item
-    );
-
-    syncWithGlobalStore(updated);
-    setReviewerComment("");
+  const handleSubmitForReview = (id: string) => {
+    updateContribution(id, (item) => ({
+      ...item,
+      status: "under_review",
+      history: [
+        makeHistoryEvent(activeUser, "submitted", "Submitted for review."),
+        ...item.history,
+      ],
+      updated_at: now(),
+    }));
+    setQueueFilter("under_review");
   };
 
-  const handleReject = (id: string) => {
-    if (!reviewerComment.trim()) {
-      alert(
-        "Verification reasoning summary is required inside the logs panel before rejecting entries."
-      );
-      return;
-    }
-    const updated = items.filter((item) => item.id !== id);
-    syncWithGlobalStore(updated);
-    setReviewerComment("");
+  const handleFlag = (id: string, reason: string) => {
+    updateContribution(id, (item) => ({
+      ...item,
+      status: "flagged",
+      flag_reason: reason,
+      flagged_by: activeUser.username,
+      history: [
+        makeHistoryEvent(activeUser, "flagged", `Flagged entry: ${reason}`),
+        ...item.history,
+      ],
+      updated_at: now(),
+    }));
+    setQueueFilter("flagged");
+  };
+
+  const handleRemoveFlag = (id: string) => {
+    updateContribution(id, (item) => ({
+      ...item,
+      status: "under_review",
+      flag_reason: null,
+      flagged_by: null,
+      history: [
+        makeHistoryEvent(activeUser, "flag_removed", "Removed active flag."),
+        ...item.history,
+      ],
+      updated_at: now(),
+    }));
+    setQueueFilter("under_review");
+  };
+
+  const handleReject = (id: string, reason: string) => {
+    updateContribution(id, (item) => ({
+      ...item,
+      status: "rejected",
+      rejected_reason: reason,
+      rejected_by: activeUser.username,
+      history: [
+        makeHistoryEvent(activeUser, "rejected", `Rejected entry: ${reason}`),
+        ...item.history,
+      ],
+      updated_at: now(),
+    }));
+    setQueueFilter("rejected");
   };
 
   return (
@@ -186,12 +321,12 @@ export default function ReviewQueueDashboardPage() {
           </div>
           <div>
             <h1 className="text-sm font-bold tracking-tight text-foreground flex items-center gap-1.5">
-              Linguistic Verification Pipeline
+              Linguistic Review Queue
               <Badge
                 variant="secondary"
                 className="text-[10px] py-0 px-1.5 font-mono font-normal"
               >
-                v2.4-fsm
+                pr-style
               </Badge>
             </h1>
             <p className="text-[11px] text-muted-foreground">
@@ -208,17 +343,17 @@ export default function ReviewQueueDashboardPage() {
             <SlidersHorizontal className="size-3" /> Test Identity Tier:
           </span>
           {(["language_expert", "language_head", "super_admin"] as const).map(
-            (r) => (
+            (role) => (
               <button
-                key={r}
+                key={role}
                 onClick={() => {
-                  setActiveUser((p) => ({ ...p, role: r }));
+                  setActiveUser((previous) => ({ ...previous, role }));
                   setIsEditMode(false);
                 }}
                 className="text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all capitalize data-[active=true]:bg-background data-[active=true]:text-foreground data-[active=true]:shadow-xs data-[active=true]:border data-[active=true]:text-xs text-muted-foreground hover:text-foreground"
-                data-active={activeUser.role === r}
+                data-active={activeUser.role === role}
               >
-                {r.replace("_", " ")}
+                {role.replace("_", " ")}
               </button>
             )
           )}
@@ -227,10 +362,9 @@ export default function ReviewQueueDashboardPage() {
 
       <div className="flex-1 min-h-0 flex w-full overflow-hidden">
         <QueueSidebar
-          queueTab={queueTab}
-          setQueueTab={setQueueTab}
-          filterStatus={filterStatus}
-          setFilterStatus={setFilterStatus}
+          activeUserId={activeUser.id}
+          queueFilter={queueFilter}
+          setQueueFilter={setQueueFilter}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           queueFilteredItems={queueFilteredItems}
@@ -250,6 +384,7 @@ export default function ReviewQueueDashboardPage() {
                 setIsEditMode={setIsEditMode}
                 startEditing={startEditing}
                 saveInlineEdits={saveInlineEdits}
+                statusCounts={statusCounts}
               />
               <WorkspaceContent
                 currentItem={currentItem}
@@ -258,10 +393,12 @@ export default function ReviewQueueDashboardPage() {
                 isEditMode={isEditMode}
                 editForm={editForm}
                 setEditForm={setEditForm}
-                reviewerComment={reviewerComment}
-                setReviewerComment={setReviewerComment}
+                handleAddComment={handleAddComment}
+                handleCommentStatusChange={handleCommentStatusChange}
                 handleApprove={handleApprove}
+                handleSubmitForReview={handleSubmitForReview}
                 handleFlag={handleFlag}
+                handleRemoveFlag={handleRemoveFlag}
                 handleReject={handleReject}
               />
             </div>
@@ -269,11 +406,11 @@ export default function ReviewQueueDashboardPage() {
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-muted-foreground text-center">
               <ShieldCheck className="size-10 stroke-[1.2] text-muted-foreground/40 mb-2" />
               <h3 className="text-sm font-bold text-foreground/80">
-                Queue Context Unselected
+                No entries in this queue
               </h3>
               <p className="text-xs max-w-xs mt-1 opacity-70">
-                Pick a vocabulary data node item from the active side pipeline
-                index array stack to trace state telemetry flags.
+                Adjust the filter or search term to review another moderation
+                scope.
               </p>
             </div>
           )}

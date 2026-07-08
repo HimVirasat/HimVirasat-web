@@ -93,7 +93,10 @@ export async function getPartsOfSpeechHandler(req: Request, res: Response) {
       data: partsOfSpeech,
     });
   } catch (error) {
-    console.error("Internal catch error inside getPartsOfSpeechHandler:", error);
+    console.error(
+      "Internal catch error inside getPartsOfSpeechHandler:",
+      error,
+    );
     return res.status(500).json({
       success: false,
       message: "Internal server error",

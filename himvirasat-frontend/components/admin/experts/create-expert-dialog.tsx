@@ -27,7 +27,10 @@ interface CreateExpertDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function CreateExpertDialog({ open, onOpenChange }: CreateExpertDialogProps) {
+export function CreateExpertDialog({
+  open,
+  onOpenChange,
+}: CreateExpertDialogProps) {
   const [selectedDialects, setSelectedDialects] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,13 +47,17 @@ export function CreateExpertDialog({ open, onOpenChange }: CreateExpertDialogPro
 
   React.useEffect(() => {
     if (isErrorDialects && open) {
-      toast.error("Failed to load active dialects configuration lookup values.");
+      toast.error(
+        "Failed to load active dialects configuration lookup values."
+      );
     }
   }, [isErrorDialects, open]);
 
   const handleToggleDialect = (dialect: string) => {
     setSelectedDialects((prev) =>
-      prev.includes(dialect) ? prev.filter((d) => d !== dialect) : [...prev, dialect]
+      prev.includes(dialect)
+        ? prev.filter((d) => d !== dialect)
+        : [...prev, dialect]
     );
   };
 
@@ -85,10 +92,14 @@ export function CreateExpertDialog({ open, onOpenChange }: CreateExpertDialogPro
         setSelectedDialects([]);
         onOpenChange(false);
       } else {
-        toast.error(ret.message || "Failed to finalize workflow entity registration.");
+        toast.error(
+          ret.message || "Failed to finalize workflow entity registration."
+        );
       }
     } catch (error) {
-      toast.error(`Unable to create Language Expert: ${error}`, { duration: 5000 });
+      toast.error(`Unable to create Language Expert: ${error}`, {
+        duration: 5000,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -98,7 +109,7 @@ export function CreateExpertDialog({ open, onOpenChange }: CreateExpertDialogPro
     <Dialog
       open={open}
       onOpenChange={(val) => {
-        if (!val) setSelectedDialects([]); 
+        if (!val) setSelectedDialects([]);
         onOpenChange(val);
       }}
     >
@@ -113,22 +124,48 @@ export function CreateExpertDialog({ open, onOpenChange }: CreateExpertDialogPro
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="fullName">Full Name</Label>
-            <Input id="fullName" name="fullName" placeholder="John Doe" required disabled={isSubmitting} />
+            <Input
+              id="fullName"
+              name="fullName"
+              placeholder="John Doe"
+              required
+              disabled={isSubmitting}
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" name="email" placeholder="john@example.com" required disabled={isSubmitting} />
+            <Input
+              id="email"
+              type="email"
+              name="email"
+              placeholder="john@example.com"
+              required
+              disabled={isSubmitting}
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="username">Username</Label>
-            <Input id="username" name="username" placeholder="johndoe" required disabled={isSubmitting} />
+            <Input
+              id="username"
+              name="username"
+              placeholder="johndoe"
+              required
+              disabled={isSubmitting}
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" name="password" placeholder="••••••••" required disabled={isSubmitting} />
+            <Input
+              id="password"
+              type="password"
+              name="password"
+              placeholder="••••••••"
+              required
+              disabled={isSubmitting}
+            />
           </div>
 
           {/* Clean Orchestration Section for Dialect Selection */}
@@ -137,8 +174,12 @@ export function CreateExpertDialog({ open, onOpenChange }: CreateExpertDialogPro
             {isLoadingDialects
               ? renderLoadingState()
               : isErrorDialects
-              ? renderErrorState()
-              : renderDialectSelection(dbDialects, selectedDialects, handleToggleDialect)}
+                ? renderErrorState()
+                : renderDialectSelection(
+                    dbDialects,
+                    selectedDialects,
+                    handleToggleDialect
+                  )}
           </div>
 
           <DialogFooter className="pt-2">
@@ -164,7 +205,6 @@ export function CreateExpertDialog({ open, onOpenChange }: CreateExpertDialogPro
     </Dialog>
   );
 }
-
 
 function renderLoadingState() {
   return (
@@ -228,7 +268,9 @@ function renderDialectSelection(
               }`}
             >
               <span>{dialect}</span>
-              {isChecked && <Check className="size-3 shrink-0 text-green-600 dark:text-green-400" />}
+              {isChecked && (
+                <Check className="size-3 shrink-0 text-green-600 dark:text-green-400" />
+              )}
             </button>
           );
         })}
@@ -236,4 +278,3 @@ function renderDialectSelection(
     </div>
   );
 }
-

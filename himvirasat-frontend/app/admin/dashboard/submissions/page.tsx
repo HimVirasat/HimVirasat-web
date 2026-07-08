@@ -61,13 +61,11 @@ export default function ContributionSubmissionPage() {
     return Math.round((completed / coreRequiredFields.length) * 100);
   }, [formData]);
 
-
-
   // 1. Fetch Dialects Dataset
   const {
     data: dbDialects = [],
     isLoading: isLoadingDialects,
-    isError: isErrorDialects // <-- Destructure the error state flag
+    isError: isErrorDialects, // <-- Destructure the error state flag
   } = useQuery({
     queryKey: ["datalookup", "dialects"],
     queryFn: DataLookupService.getAvailableDialects,
@@ -78,7 +76,7 @@ export default function ContributionSubmissionPage() {
   const {
     data: dbCategories = [],
     isLoading: isLoadingCategories,
-    isError: isErrorCategories // <-- Destructure the error state flag
+    isError: isErrorCategories, // <-- Destructure the error state flag
   } = useQuery({
     queryKey: ["datalookup", "categories"],
     queryFn: DataLookupService.getAvailableCategories,
@@ -89,7 +87,7 @@ export default function ContributionSubmissionPage() {
   const {
     data: dbPartsOfSpeech = [],
     isLoading: isLoadingPOS,
-    isError: isErrorPOS // <-- Destructure the error state flag
+    isError: isErrorPOS, // <-- Destructure the error state flag
   } = useQuery({
     queryKey: ["datalookup", "partsOfSpeech"],
     queryFn: DataLookupService.getAvailablePartsOfSpeech,
@@ -109,7 +107,8 @@ export default function ContributionSubmissionPage() {
   }, [isErrorDialects, isErrorCategories, isErrorPOS]);
 
   // Aggregate states
-  const isDataSyncing = isLoadingDialects || isLoadingCategories || isLoadingPOS;
+  const isDataSyncing =
+    isLoadingDialects || isLoadingCategories || isLoadingPOS;
   const hasSyncFailure = isErrorDialects || isErrorCategories || isErrorPOS;
 
   // Render a fallback layout if things are still loading
@@ -125,12 +124,12 @@ export default function ContributionSubmissionPage() {
       <div className="p-8 text-center text-xs text-red-500 border border-red-200/40 bg-red-500/5 rounded-xl max-w-md mx-auto my-12">
         <p className="font-semibold">System Out of Sync</p>
         <p className="opacity-80 mt-1">
-          Something really bad happened. Please refresh the page or check your connection.
+          Something really bad happened. Please refresh the page or check your
+          connection.
         </p>
       </div>
     );
   }
-
 
   const handleFieldChange = <K extends keyof SubmissionFormValues>(
     field: K,

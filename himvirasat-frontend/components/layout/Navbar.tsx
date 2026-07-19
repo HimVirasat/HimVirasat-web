@@ -60,6 +60,15 @@ export default function Navbar() {
           </span>
         </Link>
         <div className="hidden md:flex items-center gap-4">
+          <Link
+            href="https://github.com/HimVirasat"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="HimVirasat GitHub"
+            className="relative p-2 rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all duration-300"
+          >
+            <SiGithub className="h-5 w-5" />
+          </Link>
           <ul className="flex items-center gap-1">
             {navLinks.map((link) => {
               const isActive =
@@ -87,16 +96,8 @@ export default function Navbar() {
               );
             })}
           </ul>
-         
-          <Link
-            href="https://github.com/HimVirasat"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="HimVirasat GitHub"
-            className="relative p-2 rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all duration-300"
-          >
-            <SiGithub className="h-5 w-5" />
-          </Link>
+
+
 
 
         </div>
@@ -122,27 +123,27 @@ export default function Navbar() {
       >
         <div className="flex flex-col gap-4 text-center">
           {navLinks.map((link) => (
-            
-              <Link
-                key={link.name}
-                href={link.href}
-                onClick={() => setIsOpen(false)}
-                className="text-lg font-medium py-2 hover:text-emerald-600 transition-colors"
-              >
-                {link.name}
-              </Link>
-            
+
+            <Link
+              key={link.name}
+              href={link.href}
+              onClick={() => setIsOpen(false)}
+              className="text-lg font-medium py-2 hover:text-emerald-600 transition-colors"
+            >
+              {link.name}
+            </Link>
+
           ))}
           <Link
-              href="https://github.com/HimVirasat"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setIsOpen(false)}
-              aria-label="HimVirasat GitHub"
+            href="https://github.com/HimVirasat"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setIsOpen(false)}
+            aria-label="HimVirasat GitHub"
 
-              className="flex justify-center pt-2 text-foreground/70 hover:text-foreground transition-colors"
-            >
-              <SiGithub className="h-6 w-6" />
+            className="flex justify-center pt-2 text-foreground/70 hover:text-foreground transition-colors"
+          >
+            <SiGithub className="h-6 w-6" />
           </Link>
         </div>
       </div>

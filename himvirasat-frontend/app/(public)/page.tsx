@@ -101,16 +101,6 @@ export default function Home() {
             </Link>
           </Button>
 
-          <Button asChild className={actionButtonClass}>
-            <Link
-              href="https://github.com/HimVirasat"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <SiGithub className="h-16 w-16 scale-150" />
-              HimVirasat GitHub
-            </Link>
-          </Button>
 
           <Button asChild className={`${actionButtonClass}`}>
             <Link href="/datasets">

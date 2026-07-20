@@ -18,7 +18,7 @@ function getLevenshteinDistance(a: string, b: string): number {
   return matrix[b.length][a.length];
 }
 
-function cleanText(text: string): string {
+export function cleanText(text: string): string {
   return text
     .replace(/\s*\([^)]*\)/g, "") // Remove everything in brackets
     .trim()

@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Copy, Search, MapPin, User } from "lucide-react";
+import { cleanText } from "@/lib/vocabulary/search-vocabulary";
 
 function escapeRegExp(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -111,7 +112,7 @@ export default memo(function VocabularyCard({
             <Button
               size="sm"
               variant="outline"
-              onClick={() => onSearch(entry.word_native)}
+              onClick={() => onSearch(cleanText(entry.word_native))}
             >
               <Search className="h-3.5 w-3.5 mr-1 shrink-0" />
               Search

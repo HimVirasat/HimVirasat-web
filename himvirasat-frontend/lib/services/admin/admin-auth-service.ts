@@ -38,4 +38,23 @@ export class AdminAuthService {
 
     return response.json();
   }
+  static async resetPassword(oldPassword: string, newPassword: string) {
+    const response = await fetch(`${API_URL}/auth/reset-password`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        oldPassword,
+        newPassword,
+      }),
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.message ?? "Failed to reset password");
+    }
+    return result;
+  }
 }

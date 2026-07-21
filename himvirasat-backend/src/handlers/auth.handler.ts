@@ -189,7 +189,10 @@ export async function resetPassword(req: Request, res: Response) {
     }
 
     // Verify old password
-    const isPasswordValid = await bcrypt.compare(oldPassword, user.password_hash);
+    const isPasswordValid = await bcrypt.compare(
+      oldPassword,
+      user.password_hash,
+    );
     if (!isPasswordValid) {
       return res.status(400).json({
         success: false,

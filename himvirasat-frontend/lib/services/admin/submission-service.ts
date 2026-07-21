@@ -40,7 +40,8 @@ export class SubmissionService {
       meaning_english: formData.meaning_english?.trim() || null,
       example_sentence: formData.example_sentence?.trim() || null,
       example_sentence_hindi: formData.example_sentence_hindi?.trim() || null,
-      example_sentence_english: formData.example_sentence_english?.trim() || null,
+      example_sentence_english:
+        formData.example_sentence_english?.trim() || null,
       example_sentence_latin: formData.example_sentence_latin?.trim() || null,
       example_sentence_takri: formData.example_sentence_takri?.trim() || null,
       region: formData.region?.trim() || null,
@@ -64,7 +65,9 @@ export class SubmissionService {
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      throw new Error(data?.error || data?.message || "Failed to post submission");
+      throw new Error(
+        data?.error || data?.message || "Failed to post submission"
+      );
     }
 
     return data?.data ?? data;

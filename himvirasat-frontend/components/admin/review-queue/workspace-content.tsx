@@ -59,7 +59,7 @@ const WorkspaceViewContent = lazy(() => import("./workspace-view-content"));
 const WorkspaceEditContent = lazy(() => import("./workspace-edit-content"));
 
 interface WorkspaceContentProps {
-  currentItem?: Contribution | null; // now optional
+  currentItem?: Contribution | null;
   activeUser: { id: string; username: string; role: SystemRole };
   workspaceTab: "content" | "comments" | "activity";
   isEditMode: boolean;
@@ -84,9 +84,11 @@ const fieldOptions = [
 
 const statusStyles: Record<CommentStatus, string> = {
   open: "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400",
-  resolved: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400",
+  resolved:
+    "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400",
   rejected: "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400",
-  accepted: "bg-teal-500/10 text-teal-600 border-teal-500/20 dark:text-teal-400",
+  accepted:
+    "bg-teal-500/10 text-teal-600 border-teal-500/20 dark:text-teal-400",
 };
 
 const initials = (name: string) =>
@@ -174,6 +176,7 @@ export default function WorkspaceContent({
   setEditForm,
   isLoading = false,
 }: WorkspaceContentProps) {
+  // ---- All hooks must be called unconditionally at the top ----
   const [commentField, setCommentField] = useState("General");
   const [commentMessage, setCommentMessage] = useState("");
   const [flagReason, setFlagReason] = useState("");
@@ -183,7 +186,6 @@ export default function WorkspaceContent({
   const [showContent, setShowContent] = useState(!isLoading);
   const [startTime] = useState(Date.now());
 
-  // Minimum 500ms loading delay
   useEffect(() => {
     if (!isLoading) {
       const elapsed = Date.now() - startTime;
@@ -199,7 +201,16 @@ export default function WorkspaceContent({
   const addCommentMutation = useAddReviewComment();
   const updateCommentMutation = useUpdateCommentStatus();
 
-  // Early return if still loading
+  // useMemo must be called unconditionally as well
+  const latestHistory = useMemo(() => {
+    if (!currentItem) return [];
+    return (currentItem.history || []).sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  }, [currentItem]);
+
+  // ---- Early returns after all hooks ----
   if (!showContent) {
     return (
       <div className="flex-1 flex flex-col min-h-0">
@@ -215,7 +226,6 @@ export default function WorkspaceContent({
     );
   }
 
-  // No item selected and not loading – show placeholder
   if (!currentItem) {
     return (
       <div className="flex-1 flex flex-col min-h-0">
@@ -223,11 +233,12 @@ export default function WorkspaceContent({
           <div className="max-w-3xl mx-auto">
             <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
               <p className="text-sm font-medium">No contribution selected</p>
-              <p className="text-xs mt-1 opacity-70">Select an item from the queue to view details.</p>
+              <p className="text-xs mt-1 opacity-70">
+                Select an item from the queue to view details.
+              </p>
             </div>
           </div>
         </ScrollArea>
-        {/* Action bar disabled */}
         <div className="shrink-0 border-t border-border bg-card/90 px-6 py-3">
           <div className="max-w-3xl mx-auto flex justify-end">
             <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-semibold bg-muted/60 px-3.5 h-8 rounded-lg select-none">
@@ -240,7 +251,7 @@ export default function WorkspaceContent({
     );
   }
 
-  // --- Main content (item exists) ---
+  // ---- Now we have a valid currentItem, compute remaining variables ----
   const rules = WORKFLOW_RULES[currentItem.status] || {
     label: "Draft",
     canComment: () => true,
@@ -252,38 +263,49 @@ export default function WorkspaceContent({
 
   const openCommentCount = getOpenReviewCommentCount(currentItem);
   const isContributor = currentItem.contributor_id === activeUser.id;
-  const canComment = rules.canComment(activeUser.id, currentItem, activeUser.role);
-  const canApprove = rules.canApprove(activeUser.id, currentItem, activeUser.role);
+  const canComment = rules.canComment(
+    activeUser.id,
+    currentItem,
+    activeUser.role
+  );
+  const canApprove = rules.canApprove(
+    activeUser.id,
+    currentItem,
+    activeUser.role
+  );
   const canOverride =
     isAuthorityRole(activeUser.role) &&
     (currentItem.status === "under_review" || currentItem.status === "flagged");
   const approvalLocked =
-    currentItem.status === "under_review" && openCommentCount > 0 && !canApprove;
+    currentItem.status === "under_review" &&
+    openCommentCount > 0 &&
+    !canApprove;
 
-  const latestHistory = useMemo(
-    () =>
-      (currentItem.history || []).sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      ),
-    [currentItem.history]
-  );
-
+  // ---- Helper functions (unchanged) ----
   const submitComment = () => {
     if (!commentMessage.trim()) return;
     addCommentMutation.mutate(
-      { id: currentItem.id, fieldName: commentField, message: commentMessage.trim() },
+      {
+        id: currentItem.id,
+        fieldName: commentField,
+        message: commentMessage.trim(),
+      },
       {
         onSuccess: () => {
           toast.success("Review comment added successfully.");
           setCommentField("General");
           setCommentMessage("");
         },
-        onError: (err: any) => toast.error(err?.message || "Failed to add comment."),
+        onError: (err: any) =>
+          toast.error(err?.message || "Failed to add comment."),
       }
     );
   };
 
-  const handleStatusTransition = (status: ContributionStatus, reason?: string) => {
+  const handleStatusTransition = (
+    status: ContributionStatus,
+    reason?: string
+  ) => {
     statusMutation.mutate(
       { id: currentItem.id, status, reason },
       {
@@ -294,21 +316,27 @@ export default function WorkspaceContent({
           setFlagReason("");
           setRejectReason("");
         },
-        onError: (err: any) => toast.error(err?.message || "Workflow transition failed."),
+        onError: (err: any) =>
+          toast.error(err?.message || "Workflow transition failed."),
       }
     );
   };
 
-  const handleCommentStatusChange = (commentId: string, status: CommentStatus) => {
+  const handleCommentStatusChange = (
+    commentId: string,
+    status: CommentStatus
+  ) => {
     updateCommentMutation.mutate(
       { contributionId: currentItem.id, commentId, status },
       {
         onSuccess: () => toast.success(`Comment status updated to ${status}`),
-        onError: (err: any) => toast.error(err?.message || "Failed to update comment status."),
+        onError: (err: any) =>
+          toast.error(err?.message || "Failed to update comment status."),
       }
     );
   };
 
+  // ---- Main return ----
   return (
     <>
       <ScrollArea className="flex-1 min-h-0 px-8 py-6 bg-transparent">
@@ -316,9 +344,15 @@ export default function WorkspaceContent({
           {workspaceTab === "content" && (
             <Suspense fallback={<ContentSkeleton />}>
               {!isEditMode ? (
-                <WorkspaceViewContent currentItem={currentItem} isLoading={false} />
+                <WorkspaceViewContent
+                  currentItem={currentItem}
+                  isLoading={false}
+                />
               ) : (
-                <WorkspaceEditContent editForm={editForm} setEditForm={setEditForm} />
+                <WorkspaceEditContent
+                  editForm={editForm}
+                  setEditForm={setEditForm}
+                />
               )}
             </Suspense>
           )}
@@ -329,11 +363,18 @@ export default function WorkspaceContent({
                 <Card className="rounded-lg py-0 shadow-none bg-card/50">
                   <CardContent className="p-4 space-y-3">
                     <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                      <MessageSquarePlus className="size-3.5" /> Add Review Comment
+                      <MessageSquarePlus className="size-3.5" /> Add Review
+                      Comment
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2">
-                      <Select value={commentField} onValueChange={setCommentField}>
-                        <SelectTrigger size="sm" className="w-full sm:w-48 bg-background">
+                      <Select
+                        value={commentField}
+                        onValueChange={setCommentField}
+                      >
+                        <SelectTrigger
+                          size="sm"
+                          className="w-full sm:w-48 bg-background"
+                        >
                           <SelectValue placeholder="Field" />
                         </SelectTrigger>
                         <SelectContent>
@@ -355,46 +396,64 @@ export default function WorkspaceContent({
                       <Button
                         size="sm"
                         className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700 text-white min-w-30"
-                        disabled={!commentMessage.trim() || addCommentMutation.isPending}
+                        disabled={
+                          !commentMessage.trim() || addCommentMutation.isPending
+                        }
                         onClick={submitComment}
                       >
                         {addCommentMutation.isPending ? (
                           <Loader2 className="size-3.5 animate-spin mr-1.5" />
                         ) : null}
-                        {addCommentMutation.isPending ? "Posting..." : "Add Comment"}
+                        {addCommentMutation.isPending
+                          ? "Posting..."
+                          : "Add Comment"}
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
               )}
 
-              {!currentItem.review_comments || currentItem.review_comments.length === 0 ? (
+              {!currentItem.review_comments ||
+              currentItem.review_comments.length === 0 ? (
                 <div className="rounded-xl border border-border/50 bg-muted/20 p-6 text-center text-xs text-muted-foreground">
                   No review comments have been added.
                 </div>
               ) : (
                 <div className="space-y-3">
                   {currentItem.review_comments.map((comment) => {
-                    const authorName = comment.users?.username || comment.author_id;
+                    const authorName =
+                      comment.users?.username || comment.author_id;
 
                     return (
-                      <Card key={comment.id} className="rounded-lg py-0 shadow-none">
+                      <Card
+                        key={comment.id}
+                        className="rounded-lg py-0 shadow-none"
+                      >
                         <CardContent className="p-4">
                           <div className="flex items-start gap-3">
                             <Avatar size="sm">
-                              <AvatarFallback>{initials(authorName)}</AvatarFallback>
+                              <AvatarFallback>
+                                {initials(authorName)}
+                              </AvatarFallback>
                             </Avatar>
                             <div className="min-w-0 flex-1 space-y-2">
                               <div className="flex items-start justify-between gap-3">
                                 <div>
-                                  <p className="text-xs font-bold text-foreground">{authorName}</p>
+                                  <p className="text-xs font-bold text-foreground">
+                                    {authorName}
+                                  </p>
                                   <p className="text-[11px] text-muted-foreground">
-                                    {new Date(comment.created_at).toLocaleString()}
+                                    {new Date(
+                                      comment.created_at
+                                    ).toLocaleString()}
                                   </p>
                                 </div>
                                 <Badge
                                   variant="outline"
-                                  className={cn("text-[10px] capitalize", statusStyles[comment.status])}
+                                  className={cn(
+                                    "text-[10px] capitalize",
+                                    statusStyles[comment.status]
+                                  )}
                                 >
                                   {comment.status}
                                 </Badge>
@@ -414,7 +473,12 @@ export default function WorkspaceContent({
                                     size="sm"
                                     className="h-7 text-xs"
                                     disabled={updateCommentMutation.isPending}
-                                    onClick={() => handleCommentStatusChange(comment.id, "accepted")}
+                                    onClick={() =>
+                                      handleCommentStatusChange(
+                                        comment.id,
+                                        "accepted"
+                                      )
+                                    }
                                   >
                                     Accept suggestion
                                   </Button>
@@ -423,7 +487,12 @@ export default function WorkspaceContent({
                                     size="sm"
                                     className="h-7 text-xs"
                                     disabled={updateCommentMutation.isPending}
-                                    onClick={() => handleCommentStatusChange(comment.id, "rejected")}
+                                    onClick={() =>
+                                      handleCommentStatusChange(
+                                        comment.id,
+                                        "rejected"
+                                      )
+                                    }
                                   >
                                     Reject suggestion
                                   </Button>
@@ -432,7 +501,12 @@ export default function WorkspaceContent({
                                     size="sm"
                                     className="h-7 text-xs"
                                     disabled={updateCommentMutation.isPending}
-                                    onClick={() => handleCommentStatusChange(comment.id, "resolved")}
+                                    onClick={() =>
+                                      handleCommentStatusChange(
+                                        comment.id,
+                                        "resolved"
+                                      )
+                                    }
                                   >
                                     Mark resolved
                                   </Button>
@@ -463,7 +537,9 @@ export default function WorkspaceContent({
                         <p className="font-semibold text-foreground">
                           {currentItem.contributor_name}
                         </p>
-                        <p className="text-[11px] text-muted-foreground">Initial Entry</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          Initial Entry
+                        </p>
                       </div>
                     </div>
                     <span className="font-mono text-muted-foreground/80 text-[11px]">
@@ -479,16 +555,24 @@ export default function WorkspaceContent({
                 </h3>
                 <div className="rounded-xl border border-border/40 bg-card/40 divide-y divide-border/40">
                   {latestHistory.map((event) => (
-                    <div key={event.id} className="p-3 flex items-start gap-3 text-xs">
+                    <div
+                      key={event.id}
+                      className="p-3 flex items-start gap-3 text-xs"
+                    >
                       <Clock className="size-3.5 text-muted-foreground mt-0.5" />
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-foreground">{event.message}</p>
+                        <p className="font-medium text-foreground">
+                          {event.message}
+                        </p>
                         <p className="text-[11px] text-muted-foreground mt-0.5">
                           {event.users?.username || event.actor_id} ·{" "}
                           {new Date(event.created_at).toLocaleString()}
                         </p>
                       </div>
-                      <Badge variant="outline" className="text-[10px] capitalize">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] capitalize"
+                      >
                         {event.type.replace("_", " ")}
                       </Badge>
                     </div>
@@ -500,6 +584,7 @@ export default function WorkspaceContent({
         </div>
       </ScrollArea>
 
+      {/* Action Bar */}
       <div className="shrink-0 border-t border-border bg-card/90 dark:bg-background/95 backdrop-blur px-6 py-3 shadow-[0_-4px_12px_-4px_rgba(0,0,0,0.08)] relative z-10">
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground bg-muted/80 dark:bg-muted/40 px-2.5 py-1 rounded-md border border-border/60">
@@ -509,52 +594,58 @@ export default function WorkspaceContent({
               <span className="font-bold text-foreground capitalize">
                 {activeUser.role.replace("_", " ")}
               </span>
-              {openCommentCount > 0 && <span className="ml-2">{openCommentCount} unresolved</span>}
+              {openCommentCount > 0 && (
+                <span className="ml-2">{openCommentCount} unresolved</span>
+              )}
             </span>
           </div>
 
           <div className="flex items-center gap-2 ml-auto">
-            {rules.canReject(activeUser.role) && currentItem.status !== "rejected" && (
-              <ReasonDialog
-                open={isRejectOpen}
-                onOpenChange={setIsRejectOpen}
-                title="Reject Entry"
-                description="Rejecting closes this contribution and records the reason in history."
-                reason={rejectReason}
-                setReason={setRejectReason}
-                reasonLabel="Rejection Reason"
-                isPending={statusMutation.isPending}
-                trigger={
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 text-xs font-semibold text-destructive hover:bg-destructive/10 px-3 rounded-lg"
-                  >
-                    <Trash2 className="size-3.5 mr-1.5" /> Reject
-                  </Button>
-                }
-                actionLabel="Reject Entry"
-                actionClassName="bg-destructive hover:bg-destructive/90 text-white"
-                onConfirm={() => handleStatusTransition("rejected", rejectReason.trim())}
-              />
-            )}
+            {rules.canReject(activeUser.role) &&
+              currentItem.status !== "rejected" && (
+                <ReasonDialog
+                  open={isRejectOpen}
+                  onOpenChange={setIsRejectOpen}
+                  title="Reject Entry"
+                  description="Rejecting closes this contribution and records the reason in history."
+                  reason={rejectReason}
+                  setReason={setRejectReason}
+                  reasonLabel="Rejection Reason"
+                  isPending={statusMutation.isPending}
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-xs font-semibold text-destructive hover:bg-destructive/10 px-3 rounded-lg"
+                    >
+                      <Trash2 className="size-3.5 mr-1.5" /> Reject
+                    </Button>
+                  }
+                  actionLabel="Reject Entry"
+                  actionClassName="bg-destructive hover:bg-destructive/90 text-white"
+                  onConfirm={() =>
+                    handleStatusTransition("rejected", rejectReason.trim())
+                  }
+                />
+              )}
 
-            {rules.canRemoveFlag(activeUser.role) && currentItem.status === "flagged" && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 text-xs bg-background min-w-30"
-                onClick={() => handleStatusTransition("under_review")}
-                disabled={statusMutation.isPending}
-              >
-                {statusMutation.isPending ? (
-                  <Loader2 className="size-3.5 mr-1.5 animate-spin" />
-                ) : (
-                  <ShieldAlert className="size-3.5 mr-1.5" />
-                )}
-                {statusMutation.isPending ? "Updating..." : "Remove Flag"}
-              </Button>
-            )}
+            {rules.canRemoveFlag(activeUser.role) &&
+              currentItem.status === "flagged" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs bg-background min-w-30"
+                  onClick={() => handleStatusTransition("under_review")}
+                  disabled={statusMutation.isPending}
+                >
+                  {statusMutation.isPending ? (
+                    <Loader2 className="size-3.5 mr-1.5 animate-spin" />
+                  ) : (
+                    <ShieldAlert className="size-3.5 mr-1.5" />
+                  )}
+                  {statusMutation.isPending ? "Updating..." : "Remove Flag"}
+                </Button>
+              )}
 
             {rules.canFlag(activeUser.id, currentItem, activeUser.role) &&
               currentItem.status !== "flagged" && (
@@ -578,7 +669,9 @@ export default function WorkspaceContent({
                   }
                   actionLabel="Flag Entry"
                   actionClassName="bg-amber-600 hover:bg-amber-700 text-white"
-                  onConfirm={() => handleStatusTransition("flagged", flagReason.trim())}
+                  onConfirm={() =>
+                    handleStatusTransition("flagged", flagReason.trim())
+                  }
                 />
               )}
 
@@ -594,12 +687,16 @@ export default function WorkspaceContent({
                 ) : (
                   <CheckCircle2 className="size-3.5 mr-1.5" />
                 )}
-                {openCommentCount > 0 && canOverride ? "Override & Approve" : "Approve"}
+                {openCommentCount > 0 && canOverride
+                  ? "Override & Approve"
+                  : "Approve"}
               </Button>
             ) : (
               <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-semibold bg-muted/60 dark:bg-muted/30 border border-border/80 px-3.5 h-8 rounded-lg select-none">
                 <Lock className="size-3.5" />
-                {approvalLocked ? "Resolve comments before approval" : "No review action available"}
+                {approvalLocked
+                  ? "Resolve comments before approval"
+                  : "No review action available"}
               </div>
             )}
           </div>
@@ -637,7 +734,9 @@ function ReasonDialog({
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
       <AlertDialogContent className="bg-background border border-border max-w-md rounded-2xl shadow-xl p-6">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-sm font-bold text-foreground">{title}</AlertDialogTitle>
+          <AlertDialogTitle className="text-sm font-bold text-foreground">
+            {title}
+          </AlertDialogTitle>
           <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed pt-1">
             {description}
           </AlertDialogDescription>
@@ -662,11 +761,16 @@ function ReasonDialog({
           </AlertDialogCancel>
           <Button
             size="sm"
-            className={cn("h-8 text-xs font-semibold rounded-lg px-4 min-w-25", actionClassName)}
+            className={cn(
+              "h-8 text-xs font-semibold rounded-lg px-4 min-w-25",
+              actionClassName
+            )}
             disabled={!reason.trim() || isPending}
             onClick={onConfirm}
           >
-            {isPending ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : null}
+            {isPending ? (
+              <Loader2 className="size-3.5 animate-spin mr-1.5" />
+            ) : null}
             {isPending ? "Executing..." : actionLabel}
           </Button>
         </AlertDialogFooter>

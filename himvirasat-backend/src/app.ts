@@ -11,7 +11,7 @@ import userRoutes from "./routes/user.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import dataLookupRoutes from "./routes/datalookup.routes.js";
 import reviewQueueRoutes from "./routes/reviewqueue.routes.js";
-import submissionRoutes from "./routes/submission.routes.js"
+import submissionRoutes from "./routes/submission.routes.js";
 import { logger } from "./utils/logger.js";
 export const app = express();
 

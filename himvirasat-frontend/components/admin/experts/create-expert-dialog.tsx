@@ -27,7 +27,10 @@ interface CreateExpertDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function CreateExpertDialog({ open, onOpenChange }: CreateExpertDialogProps) {
+export function CreateExpertDialog({
+  open,
+  onOpenChange,
+}: CreateExpertDialogProps) {
   const [selectedDialects, setSelectedDialects] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
@@ -112,23 +115,49 @@ export function CreateExpertDialog({ open, onOpenChange }: CreateExpertDialogPro
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="space-y-1.5">
             <Label htmlFor="fullName">Full Name</Label>
-            <Input id="fullName" name="fullName" placeholder="John Doe" required disabled={isSubmitting} />
+            <Input
+              id="fullName"
+              name="fullName"
+              placeholder="John Doe"
+              required
+              disabled={isSubmitting}
+            />
           </div>
 
           <div className="space-y-1.5">
             <Label htmlFor="email">Email Address</Label>
-            <Input id="email" type="email" name="email" placeholder="john@example.com" required disabled={isSubmitting} />
+            <Input
+              id="email"
+              type="email"
+              name="email"
+              placeholder="john@example.com"
+              required
+              disabled={isSubmitting}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="username">Username</Label>
-              <Input id="username" name="username" placeholder="johndoe" required disabled={isSubmitting} />
+              <Input
+                id="username"
+                name="username"
+                placeholder="johndoe"
+                required
+                disabled={isSubmitting}
+              />
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" name="password" placeholder="••••••••" required disabled={isSubmitting} />
+              <Input
+                id="password"
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                required
+                disabled={isSubmitting}
+              />
             </div>
           </div>
 
@@ -151,9 +180,17 @@ export function CreateExpertDialog({ open, onOpenChange }: CreateExpertDialogPro
                     </span>
                   ) : (
                     selectedDialects.map((dialect) => (
-                      <Badge key={dialect} variant="secondary" className="gap-1 pl-2 pr-1 text-[11px]">
+                      <Badge
+                        key={dialect}
+                        variant="secondary"
+                        className="gap-1 pl-2 pr-1 text-[11px]"
+                      >
                         {dialect}
-                        <button type="button" onClick={() => handleToggleDialect(dialect)} className="rounded-full hover:bg-background p-0.5 cursor-pointer">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleDialect(dialect)}
+                          className="rounded-full hover:bg-background p-0.5 cursor-pointer"
+                        >
                           <X className="size-2.5 text-muted-foreground" />
                         </button>
                       </Badge>
@@ -175,7 +212,9 @@ export function CreateExpertDialog({ open, onOpenChange }: CreateExpertDialogPro
                         }`}
                       >
                         <span>{dialect}</span>
-                        {isChecked && <Check className="size-3 text-emerald-600 dark:text-emerald-400" />}
+                        {isChecked && (
+                          <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
+                        )}
                       </button>
                     );
                   })}
@@ -185,10 +224,19 @@ export function CreateExpertDialog({ open, onOpenChange }: CreateExpertDialogPro
           </div>
 
           <DialogFooter className="pt-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting || isLoadingDialects} className={primaryButtonStyles}>
+            <Button
+              type="submit"
+              disabled={isSubmitting || isLoadingDialects}
+              className={primaryButtonStyles}
+            >
               {isSubmitting ? "Creating..." : "Create Expert"}
             </Button>
           </DialogFooter>

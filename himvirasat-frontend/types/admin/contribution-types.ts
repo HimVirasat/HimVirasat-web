@@ -166,7 +166,8 @@ export const hasOpenReviewComments = (entry: Contribution) =>
   (entry.review_comments ?? []).some((comment) => comment.status === "open");
 
 export const getOpenReviewCommentCount = (entry: Contribution) =>
-  (entry.review_comments ?? []).filter((comment) => comment.status === "open").length;
+  (entry.review_comments ?? []).filter((comment) => comment.status === "open")
+    .length;
 
 const canReview = (userId: string, entry: Contribution, role: SystemRole) =>
   entry.status === "under_review" &&

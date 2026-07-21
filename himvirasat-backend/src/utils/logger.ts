@@ -36,14 +36,20 @@ function log(level: LogLevel, message: string, meta: LogMeta = {}) {
     ...meta,
   };
 
-  const writer = level === "error" ? console.error : level === "warn" ? console.warn : console.log;
+  const writer =
+    level === "error"
+      ? console.error
+      : level === "warn"
+        ? console.warn
+        : console.log;
   writer(JSON.stringify(payload));
 }
 
 export const logger = {
   debug: (message: string, meta?: LogMeta) => log("debug", message, meta),
   info: (message: string, meta?: LogMeta) => log("info", message, meta),
-  warn: (message: string, _historyError: PostgrestError, meta?: LogMeta) => log("warn", message, meta),
+  warn: (message: string, _historyError: PostgrestError, meta?: LogMeta) =>
+    log("warn", message, meta),
   error: (message: string, error?: unknown, meta: LogMeta = {}) =>
     log("error", message, { ...meta, error: formatError(error) }),
 };

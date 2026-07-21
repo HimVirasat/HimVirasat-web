@@ -12,7 +12,12 @@ const validReviewQueueStatuses = new Set<ReviewQueueStatus>([
   "rejected",
 ]);
 
-const validCommentStatuses = new Set(["open", "accepted", "resolved", "rejected"]);
+const validCommentStatuses = new Set([
+  "open",
+  "accepted",
+  "resolved",
+  "rejected",
+]);
 
 const getUserId = (req: AuthenticatedRequest): string | undefined => {
   return req.user?.userId || (req.user as any)?.id;
@@ -39,7 +44,8 @@ const formatContribution = (item: any) => {
   if (!item) return item;
   return {
     ...item,
-    contributor_name: item.users?.full_name || item.users?.username || "Contributor",
+    contributor_name:
+      item.users?.full_name || item.users?.username || "Contributor",
     dialect_name: item.dialects?.name || "Standard",
     category_name: item.categories?.name || "General Vocabulary",
     part_of_speech_name: item.parts_of_speech?.name || "General",
@@ -68,29 +74,32 @@ const sanitizeContributionInput = (input: any) => {
 };
 
 // 1. CREATE Item
-export const createReviewQueueHandler: RequestHandler = async (req, res): Promise<void> => {
+export const createReviewQueueHandler: RequestHandler = async (
+  req,
+  res,
+): Promise<void> => {
   try {
     const authReq = req as AuthenticatedRequest;
     const contributor_id = getUserId(authReq);
 
     if (!contributor_id) {
-      res.status(401).json({ success: false, error: "Authentication missing." });
+      res
+        .status(401)
+        .json({ success: false, error: "Authentication missing." });
       return;
     }
 
     const cleanData = sanitizeContributionInput(req.body);
     const customUUID = randomUUID();
 
-    const { error: insertError } = await supabase
-      .from("contributions")
-      .insert([
-        {
-          ...cleanData,
-          id: customUUID,
-          contributor_id,
-          status: "under_review",
-        },
-      ]);
+    const { error: insertError } = await supabase.from("contributions").insert([
+      {
+        ...cleanData,
+        id: customUUID,
+        contributor_id,
+        status: "under_review",
+      },
+    ]);
 
     if (insertError) throw insertError;
 
@@ -118,7 +127,10 @@ export const createReviewQueueHandler: RequestHandler = async (req, res): Promis
 };
 
 // 2. READ All Items
-export const getReviewQueueHandler: RequestHandler = async (req, res): Promise<void> => {
+export const getReviewQueueHandler: RequestHandler = async (
+  req,
+  res,
+): Promise<void> => {
   const startedAt = performance.now();
   const authReq = req as AuthenticatedRequest;
   const logContext = getRequestLogContext(authReq, res);
@@ -126,9 +138,13 @@ export const getReviewQueueHandler: RequestHandler = async (req, res): Promise<v
   try {
     const { status, dialect_id } = req.query;
     const statusFilter = typeof status === "string" ? status : undefined;
-    const dialectIdFilter = typeof dialect_id === "string" ? dialect_id : undefined;
+    const dialectIdFilter =
+      typeof dialect_id === "string" ? dialect_id : undefined;
 
-    if (statusFilter && !validReviewQueueStatuses.has(statusFilter as ReviewQueueStatus)) {
+    if (
+      statusFilter &&
+      !validReviewQueueStatuses.has(statusFilter as ReviewQueueStatus)
+    ) {
       res.status(400).json({
         success: false,
         error: `Invalid review queue status filter: ${statusFilter}`,
@@ -137,7 +153,9 @@ export const getReviewQueueHandler: RequestHandler = async (req, res): Promise<v
       return;
     }
 
-    let query = supabase.from("contributions").select(CONTRIBUTION_SELECT_QUERY);
+    let query = supabase
+      .from("contributions")
+      .select(CONTRIBUTION_SELECT_QUERY);
 
     if (statusFilter) query = query.eq("status", statusFilter);
     if (dialectIdFilter) query = query.eq("dialect_id", dialectIdFilter);
@@ -163,7 +181,10 @@ export const getReviewQueueHandler: RequestHandler = async (req, res): Promise<v
 };
 
 // 3. READ Single Item by ID
-export const getReviewQueueByIdHandler: RequestHandler = async (req, res): Promise<void> => {
+export const getReviewQueueByIdHandler: RequestHandler = async (
+  req,
+  res,
+): Promise<void> => {
   try {
     const { id } = req.params;
 
@@ -174,16 +195,20 @@ export const getReviewQueueByIdHandler: RequestHandler = async (req, res): Promi
       .single();
 
     if (itemError || !item) {
-      res.status(404).json({ success: false, message: "Review queue item not found" });
+      res
+        .status(404)
+        .json({ success: false, message: "Review queue item not found" });
       return;
     }
 
     const { data: comments, error: commentsError } = await supabase
       .from("contribution_comments")
-      .select(`
+      .select(
+        `
         *,
         users:users!contribution_comments_author_id_fkey(username, full_name)
-      `)
+      `,
+      )
       .eq("contribution_id", id)
       .order("created_at", { ascending: true });
 
@@ -193,10 +218,12 @@ export const getReviewQueueByIdHandler: RequestHandler = async (req, res): Promi
 
     const { data: history, error: historyError } = await supabase
       .from("contribution_history")
-      .select(`
+      .select(
+        `
         *,
         users:users!contribution_history_actor_id_fkey(username, full_name)
-      `)
+      `,
+      )
       .eq("contribution_id", id)
       .order("created_at", { ascending: false });
 
@@ -218,14 +245,19 @@ export const getReviewQueueByIdHandler: RequestHandler = async (req, res): Promi
 };
 
 // 4. UPDATE Core Fields with Granular Field-Level Diffs
-export const updateReviewQueueHandler: RequestHandler = async (req, res): Promise<void> => {
+export const updateReviewQueueHandler: RequestHandler = async (
+  req,
+  res,
+): Promise<void> => {
   try {
     const authReq = req as AuthenticatedRequest;
     const { id } = req.params;
     const actor_id = getUserId(authReq);
 
     if (!actor_id) {
-      res.status(401).json({ success: false, error: "Authentication missing." });
+      res
+        .status(401)
+        .json({ success: false, error: "Authentication missing." });
       return;
     }
 
@@ -236,17 +268,29 @@ export const updateReviewQueueHandler: RequestHandler = async (req, res): Promis
       .single();
 
     if (currentFetchError || !currentData) {
-      res.status(404).json({ success: false, error: "Contribution record not found." });
+      res
+        .status(404)
+        .json({ success: false, error: "Contribution record not found." });
       return;
     }
 
     const cleanUpdates = sanitizeContributionInput(req.body);
 
-    const diffEntries: { field_name: string; old_value: string; new_value: string }[] = [];
+    const diffEntries: {
+      field_name: string;
+      old_value: string;
+      new_value: string;
+    }[] = [];
 
     Object.keys(cleanUpdates).forEach((key) => {
-      const oldVal = currentData[key] !== null && currentData[key] !== undefined ? String(currentData[key]) : "";
-      const newVal = cleanUpdates[key] !== null && cleanUpdates[key] !== undefined ? String(cleanUpdates[key]) : "";
+      const oldVal =
+        currentData[key] !== null && currentData[key] !== undefined
+          ? String(currentData[key])
+          : "";
+      const newVal =
+        cleanUpdates[key] !== null && cleanUpdates[key] !== undefined
+          ? String(cleanUpdates[key])
+          : "";
 
       if (oldVal !== newVal) {
         diffEntries.push({
@@ -258,7 +302,9 @@ export const updateReviewQueueHandler: RequestHandler = async (req, res): Promis
     });
 
     if (diffEntries.length === 0) {
-      res.status(200).json({ success: true, message: "No field changes detected." });
+      res
+        .status(200)
+        .json({ success: true, message: "No field changes detected." });
       return;
     }
 
@@ -279,9 +325,14 @@ export const updateReviewQueueHandler: RequestHandler = async (req, res): Promis
       message: `Updated [${diff.field_name}]: '${diff.old_value || "empty"}' ➔ '${diff.new_value || "empty"}'`,
     }));
 
-    const { error: historyInsertError } = await supabase.from("contribution_history").insert(historyRows);
+    const { error: historyInsertError } = await supabase
+      .from("contribution_history")
+      .insert(historyRows);
     if (historyInsertError) {
-      logger.warn("Failed logging individual field changes to contribution_history", historyInsertError);
+      logger.warn(
+        "Failed logging individual field changes to contribution_history",
+        historyInsertError,
+      );
     }
 
     const { data: refreshedItem, error: fetchError } = await supabase
@@ -292,28 +343,40 @@ export const updateReviewQueueHandler: RequestHandler = async (req, res): Promis
 
     if (fetchError) throw fetchError;
 
-    res.status(200).json({ success: true, data: formatContribution(refreshedItem) });
+    res
+      .status(200)
+      .json({ success: true, data: formatContribution(refreshedItem) });
   } catch (error: any) {
     res.status(400).json({ success: false, error: error.message });
   }
 };
 
 // 5. UPDATE Status Lifecycle
-export const updateReviewQueueStatusHandler: RequestHandler = async (req, res): Promise<void> => {
+export const updateReviewQueueStatusHandler: RequestHandler = async (
+  req,
+  res,
+): Promise<void> => {
   try {
     const authReq = req as AuthenticatedRequest;
     const { id } = req.params;
     const actor_id = getUserId(authReq);
 
     if (!actor_id) {
-      res.status(401).json({ success: false, error: "Authentication missing." });
+      res
+        .status(401)
+        .json({ success: false, error: "Authentication missing." });
       return;
     }
 
-    const { status, reason } = req.body as { status: ReviewQueueStatus; reason?: string };
+    const { status, reason } = req.body as {
+      status: ReviewQueueStatus;
+      reason?: string;
+    };
 
     const statusUpdates: any = { status };
-    let historyType: "flagged" | "flag_removed" | "approved" | "rejected" | "submitted" = "submitted";
+    let historyType:
+      "flagged" | "flag_removed" | "approved" | "rejected" | "submitted" =
+      "submitted";
 
     if (status === "flagged") {
       statusUpdates.flag_reason = reason;
@@ -357,28 +420,41 @@ export const updateReviewQueueStatusHandler: RequestHandler = async (req, res): 
 
     if (fetchError) throw fetchError;
 
-    res.status(200).json({ success: true, data: formatContribution(refreshedItem) });
+    res
+      .status(200)
+      .json({ success: true, data: formatContribution(refreshedItem) });
   } catch (error: any) {
     res.status(400).json({ success: false, error: error.message });
   }
 };
 
 // 6. DELETE Item
-export const deleteReviewQueueHandler: RequestHandler = async (req, res): Promise<void> => {
+export const deleteReviewQueueHandler: RequestHandler = async (
+  req,
+  res,
+): Promise<void> => {
   try {
     const { id } = req.params;
 
-    const { error } = await supabase.from("contributions").delete().eq("id", id);
+    const { error } = await supabase
+      .from("contributions")
+      .delete()
+      .eq("id", id);
     if (error) throw error;
 
-    res.status(200).json({ success: true, message: "Review queue item deleted cleanly." });
+    res
+      .status(200)
+      .json({ success: true, message: "Review queue item deleted cleanly." });
   } catch (error: any) {
     res.status(400).json({ success: false, error: error.message });
   }
 };
 
 // 7. ADD Comment
-export const addReviewQueueCommentHandler: RequestHandler = async (req, res): Promise<void> => {
+export const addReviewQueueCommentHandler: RequestHandler = async (
+  req,
+  res,
+): Promise<void> => {
   const startedAt = performance.now();
   const authReq = req as AuthenticatedRequest;
   const logContext = getRequestLogContext(authReq, res);
@@ -388,16 +464,21 @@ export const addReviewQueueCommentHandler: RequestHandler = async (req, res): Pr
     const author_id = getUserId(authReq);
     const { field_name, message } = req.body;
 
-    const cleanFieldName = field_name && field_name.trim() !== "" ? field_name.trim() : "General";
+    const cleanFieldName =
+      field_name && field_name.trim() !== "" ? field_name.trim() : "General";
     const cleanMessage = message ? message.trim() : "";
 
     if (!author_id) {
-      res.status(401).json({ success: false, error: "Authentication missing." });
+      res
+        .status(401)
+        .json({ success: false, error: "Authentication missing." });
       return;
     }
 
     if (!cleanMessage) {
-      res.status(400).json({ success: false, error: "Comment message cannot be empty." });
+      res
+        .status(400)
+        .json({ success: false, error: "Comment message cannot be empty." });
       return;
     }
 
@@ -412,10 +493,12 @@ export const addReviewQueueCommentHandler: RequestHandler = async (req, res): Pr
           status: "open",
         },
       ])
-      .select(`
+      .select(
+        `
         *,
         users:users!contribution_comments_author_id_fkey(username, full_name)
-      `)
+      `,
+      )
       .single();
 
     if (commentError) {
@@ -445,7 +528,10 @@ export const addReviewQueueCommentHandler: RequestHandler = async (req, res): Pr
 };
 
 // 8. UPDATE Comment Status with Optional Field Acceptance
-export const updateReviewQueueCommentStatusHandler: RequestHandler = async (req, res): Promise<void> => {
+export const updateReviewQueueCommentStatusHandler: RequestHandler = async (
+  req,
+  res,
+): Promise<void> => {
   try {
     const authReq = req as AuthenticatedRequest;
     const actor_id = getUserId(authReq);
@@ -453,12 +539,16 @@ export const updateReviewQueueCommentStatusHandler: RequestHandler = async (req,
     const { status, fieldValueToAccept } = req.body;
 
     if (!actor_id) {
-      res.status(401).json({ success: false, error: "Authentication missing." });
+      res
+        .status(401)
+        .json({ success: false, error: "Authentication missing." });
       return;
     }
 
     if (!validCommentStatuses.has(status)) {
-      res.status(400).json({ success: false, error: `Invalid comment status: ${status}` });
+      res
+        .status(400)
+        .json({ success: false, error: `Invalid comment status: ${status}` });
       return;
     }
 
@@ -472,15 +562,22 @@ export const updateReviewQueueCommentStatusHandler: RequestHandler = async (req,
       .from("contribution_comments")
       .update(patchData)
       .eq("id", commentId)
-      .select("*, users:users!contribution_comments_author_id_fkey(username, full_name)")
+      .select(
+        "*, users:users!contribution_comments_author_id_fkey(username, full_name)",
+      )
       .single();
 
     if (error) throw error;
 
-    const authorName = comment.users?.username || comment.users?.full_name || "contributor";
+    const authorName =
+      comment.users?.username || comment.users?.full_name || "contributor";
     const fieldName = comment.field_name || "General";
 
-    if (status === "accepted" && fieldValueToAccept !== undefined && fieldName !== "General") {
+    if (
+      status === "accepted" &&
+      fieldValueToAccept !== undefined &&
+      fieldName !== "General"
+    ) {
       const { data: currentData } = await supabase
         .from("contributions")
         .select("*")
@@ -513,8 +610,8 @@ export const updateReviewQueueCommentStatusHandler: RequestHandler = async (req,
       status === "accepted"
         ? `comment accepted of ${authorName}`
         : status === "rejected"
-        ? `comment rejected of ${authorName}`
-        : `Marked review comment on [${fieldName}] as ${status}.`;
+          ? `comment rejected of ${authorName}`
+          : `Marked review comment on [${fieldName}] as ${status}.`;
 
     await supabase.from("contribution_history").insert([
       {
@@ -530,7 +627,6 @@ export const updateReviewQueueCommentStatusHandler: RequestHandler = async (req,
     res.status(400).json({ success: false, error: error.message });
   }
 };
-
 
 // import { Response, RequestHandler } from "express";
 // import { randomUUID } from "crypto";

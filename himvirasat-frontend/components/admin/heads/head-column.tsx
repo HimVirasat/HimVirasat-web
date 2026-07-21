@@ -18,7 +18,12 @@ export function getHeadColumns(
       cell: ({ row }) => {
         const item = row.original;
         const initials = item.full_name
-          ? item.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+          ? item.full_name
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .toUpperCase()
+              .slice(0, 2)
           : "LH";
 
         return (
@@ -31,7 +36,9 @@ export function getHeadColumns(
                 {item.full_name}
                 <ShieldCheck className="size-3.5 text-indigo-500" />
               </span>
-              <span className="text-xs text-muted-foreground">@{item.username}</span>
+              <span className="text-xs text-muted-foreground">
+                @{item.username}
+              </span>
             </div>
           </div>
         );
@@ -105,7 +112,11 @@ export function getHeadColumns(
             onClick={() => onRemove(item.id)}
           >
             <Trash2 className="mr-1.5 size-3.5" />
-            {isAlreadyDeleted ? "Deleted" : isDeleting ? "Removing..." : "Remove"}
+            {isAlreadyDeleted
+              ? "Deleted"
+              : isDeleting
+                ? "Removing..."
+                : "Remove"}
           </Button>
         );
       },

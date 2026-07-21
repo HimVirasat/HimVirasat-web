@@ -5,10 +5,12 @@ import { ContributionStatus } from "@/types/admin/contribution-types";
 import {
   useContributionsQueue,
   useContributionDetail,
-  useUpdateContribution
+  useUpdateContribution,
 } from "@/hooks/use-contribution-workflow";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import QueueSidebar, { QueueFilter } from "@/components/admin/review-queue/queue-sidebar";
+import QueueSidebar, {
+  QueueFilter,
+} from "@/components/admin/review-queue/queue-sidebar";
 import WorkspaceHeader from "@/components/admin/review-queue/workspace-header";
 import WorkspaceContent from "@/components/admin/review-queue/workspace-content";
 
@@ -19,15 +21,20 @@ export default function ReviewQueueDashboardPage() {
   const [selectedId, setSelectedId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [queueFilter, setQueueFilter] = useState<QueueFilter>("under_review");
-  const [workspaceTab, setWorkspaceTab] = useState<"content" | "comments" | "activity">("content");
+  const [workspaceTab, setWorkspaceTab] = useState<
+    "content" | "comments" | "activity"
+  >("content");
   const [isEditMode, setIsEditMode] = useState(false);
   const [editForm, setEditForm] = useState<any>({});
 
   // 2. Data Hooks
-  const backendStatusFilter = queueFilter === "my_submissions"
-    ? undefined
-    : (queueFilter as ContributionStatus);
-  const { data: items = [] } = useContributionsQueue({ status: backendStatusFilter });
+  const backendStatusFilter =
+    queueFilter === "my_submissions"
+      ? undefined
+      : (queueFilter as ContributionStatus);
+  const { data: items = [] } = useContributionsQueue({
+    status: backendStatusFilter,
+  });
   const { data: currentItem } = useContributionDetail(selectedId);
 
   // 3. Mutation Hooks
@@ -47,11 +54,14 @@ export default function ReviewQueueDashboardPage() {
   const queueFilteredItems = useMemo(() => {
     const normalizedSearch = searchQuery.trim().toLowerCase();
     return (items ?? []).filter((item) => {
-      const matchesFilter = queueFilter === "my_submissions"
-        ? item.contributor_id === activeUser?.id && item.status !== "approved"
-        : item.status === queueFilter;
+      const matchesFilter =
+        queueFilter === "my_submissions"
+          ? item.contributor_id === activeUser?.id && item.status !== "approved"
+          : item.status === queueFilter;
 
-      const searchable = [item.id, item.word_devanagari, item.word_latin].join(" ").toLowerCase();
+      const searchable = [item.id, item.word_devanagari, item.word_latin]
+        .join(" ")
+        .toLowerCase();
       return matchesFilter && searchable.includes(normalizedSearch);
     });
   }, [items, queueFilter, searchQuery, activeUser?.id]);
@@ -73,7 +83,9 @@ export default function ReviewQueueDashboardPage() {
   if (isLoadingUser) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-background">
-        <p className="text-sm text-muted-foreground animate-pulse">Loading user session...</p>
+        <p className="text-sm text-muted-foreground animate-pulse">
+          Loading user session...
+        </p>
       </div>
     );
   }
@@ -82,7 +94,9 @@ export default function ReviewQueueDashboardPage() {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-background">
         <div className="text-center space-y-2">
-          <p className="text-sm font-medium text-destructive">Unauthorized Access</p>
+          <p className="text-sm font-medium text-destructive">
+            Unauthorized Access
+          </p>
           <p className="text-xs text-muted-foreground">
             No valid login token found. Please log in to view the queue.
           </p>
@@ -98,7 +112,10 @@ export default function ReviewQueueDashboardPage() {
         <span className="text-sm font-semibold">Review Queue</span>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span>
-            User: <strong className="text-foreground font-medium">{activeUser.username || activeUser.email}</strong>
+            User:{" "}
+            <strong className="text-foreground font-medium">
+              {activeUser.username || activeUser.email}
+            </strong>
           </span>
           <span className="rounded bg-muted px-2 py-0.5 text-[10px] font-mono capitalize">
             {activeUser.role}

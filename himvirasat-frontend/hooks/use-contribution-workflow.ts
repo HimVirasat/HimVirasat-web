@@ -1,12 +1,16 @@
 // src/hooks/use-contribution-workflow.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ReviewQueueService } from "@/lib/services/admin/reviewqueue-service";
-import { ContributionStatus, ContributionFilters } from "@/types/admin/contribution-types";
+import {
+  ContributionStatus,
+  ContributionFilters,
+} from "@/types/admin/contribution-types";
 import { toast } from "sonner";
 
 export const workflowKeys = {
   all: ["contributions"] as const,
-  lists: (filters: ContributionFilters) => [...workflowKeys.all, "list", filters] as const,
+  lists: (filters: ContributionFilters) =>
+    [...workflowKeys.all, "list", filters] as const,
   detail: (id: string) => [...workflowKeys.all, "detail", id] as const,
 };
 
@@ -38,7 +42,9 @@ export function useUpdateContribution() {
       ReviewQueueService.update(id, updates),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: workflowKeys.all });
-      queryClient.invalidateQueries({ queryKey: workflowKeys.detail(variables.id) });
+      queryClient.invalidateQueries({
+        queryKey: workflowKeys.detail(variables.id),
+      });
       toast.success("Vocabulary core fields updated securely.");
     },
     onError: (error: any) => {
@@ -50,12 +56,21 @@ export function useUpdateContribution() {
 export function useTransitionStatus() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, status, reason }: { id: string; status: ContributionStatus; reason?: string }) =>
-      ReviewQueueService.updateStatus(id, status, reason),
+    mutationFn: ({
+      id,
+      status,
+      reason,
+    }: {
+      id: string;
+      status: ContributionStatus;
+      reason?: string;
+    }) => ReviewQueueService.updateStatus(id, status, reason),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: workflowKeys.all });
       queryClient.invalidateQueries({ queryKey: workflowKeys.detail(data.id) });
-      toast.success(`Entry successfully transitioned to ${data.status.replace("_", " ")}.`);
+      toast.success(
+        `Entry successfully transitioned to ${data.status.replace("_", " ")}.`
+      );
     },
     onError: (error: any) => {
       toast.error(`Workflow failure: ${error.message}`);
@@ -66,10 +81,19 @@ export function useTransitionStatus() {
 export function useAddReviewComment() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, fieldName, message }: { id: string; fieldName: string; message: string }) =>
-      ReviewQueueService.addComment(id, fieldName, message),
+    mutationFn: ({
+      id,
+      fieldName,
+      message,
+    }: {
+      id: string;
+      fieldName: string;
+      message: string;
+    }) => ReviewQueueService.addComment(id, fieldName, message),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: workflowKeys.detail(variables.id) });
+      queryClient.invalidateQueries({
+        queryKey: workflowKeys.detail(variables.id),
+      });
       toast.success("Review workspace note recorded.");
     },
     onError: (error: any) => {
@@ -80,23 +104,25 @@ export function useAddReviewComment() {
 export function useUpdateCommentStatus() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ 
-      contributionId, 
-      commentId, 
-      status 
-    }: { 
-      contributionId: string; 
-      commentId: string; 
-      status: "open" | "resolved" | "rejected" | "accepted" 
-    }) => 
+    mutationFn: ({
+      contributionId,
+      commentId,
+      status,
+    }: {
+      contributionId: string;
+      commentId: string;
+      status: "open" | "resolved" | "rejected" | "accepted";
+    }) =>
       // Ensure this method exists in your ReviewQueueService!
       ReviewQueueService.updateCommentStatus(contributionId, commentId, status),
     onSuccess: (_, variables) => {
       // Invalidate both the list and the specific detail view to refresh the UI
       queryClient.invalidateQueries({ queryKey: workflowKeys.all });
-      queryClient.invalidateQueries({ queryKey: workflowKeys.detail(variables.contributionId) });
-      
-      // Note: We don't need a toast.success here because the WorkspaceContent 
+      queryClient.invalidateQueries({
+        queryKey: workflowKeys.detail(variables.contributionId),
+      });
+
+      // Note: We don't need a toast.success here because the WorkspaceContent
       // component handles the success toast locally for this specific action.
     },
     onError: (error: any) => {

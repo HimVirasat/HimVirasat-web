@@ -69,7 +69,7 @@ export class UserService {
       // Return detailed backend message or fall back to generic
       throw new Error(
         result.message ||
-        `Delete failed (${response.status}): User likely has assigned reviews or system references.`
+          `Delete failed (${response.status}): User likely has assigned reviews or system references.`
       );
     }
 
@@ -143,7 +143,9 @@ export class UserService {
 
     const result = await response.json();
     if (!response.ok) {
-      throw new Error(result.message ?? "Failed to update language head dialects");
+      throw new Error(
+        result.message ?? "Failed to update language head dialects"
+      );
     }
     return result;
   }

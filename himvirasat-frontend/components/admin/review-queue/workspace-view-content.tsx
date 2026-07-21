@@ -105,7 +105,9 @@ export default function WorkspaceViewContent({
     return (
       <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
         <p className="text-sm font-medium">No contribution selected</p>
-        <p className="text-xs mt-1 opacity-70">Select an item from the queue to view details.</p>
+        <p className="text-xs mt-1 opacity-70">
+          Select an item from the queue to view details.
+        </p>
       </div>
     );
   }
@@ -116,15 +118,20 @@ export default function WorkspaceViewContent({
 
   return (
     <div className="space-y-6">
-      {(currentItem.status === "flagged" || currentItem.status === "rejected") && (
+      {(currentItem.status === "flagged" ||
+        currentItem.status === "rejected") && (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 flex items-start gap-3 text-xs">
           <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <span className="font-bold uppercase tracking-wider text-[10px] text-amber-600 dark:text-amber-400">
-              {currentItem.status === "flagged" ? "Active Flag" : "Rejected Entry"}
+              {currentItem.status === "flagged"
+                ? "Active Flag"
+                : "Rejected Entry"}
             </span>
             <p className="text-foreground font-medium">
-              {currentItem.status === "flagged" ? currentItem.flag_reason : currentItem.rejected_reason}
+              {currentItem.status === "flagged"
+                ? currentItem.flag_reason
+                : currentItem.rejected_reason}
             </p>
           </div>
         </div>
@@ -158,7 +165,9 @@ export default function WorkspaceViewContent({
           <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
             Part of Speech
           </label>
-          <p className="font-bold text-foreground/90">{currentItem.part_of_speech_name || "General"}</p>
+          <p className="font-bold text-foreground/90">
+            {currentItem.part_of_speech_name || "General"}
+          </p>
         </div>
 
         <div className="space-y-1">
@@ -205,13 +214,17 @@ export default function WorkspaceViewContent({
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
               Hindi Cross-Mapping Index
             </label>
-            <p className="font-bold text-foreground/90">{currentItem.meaning_hindi || "-"}</p>
+            <p className="font-bold text-foreground/90">
+              {currentItem.meaning_hindi || "-"}
+            </p>
           </div>
           <div>
             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
               English Equivalent
             </label>
-            <p className="font-bold text-foreground/90">{currentItem.meaning_english || "-"}</p>
+            <p className="font-bold text-foreground/90">
+              {currentItem.meaning_english || "-"}
+            </p>
           </div>
         </div>
       </div>
@@ -228,13 +241,27 @@ export default function WorkspaceViewContent({
               <span className="text-[10px] font-bold tracking-wider text-indigo-600 dark:text-indigo-400 uppercase block">
                 Dialect Execution
               </span>
-              <p className="text-base font-bold text-foreground select-all">&quot;{currentItem.example_sentence}&quot;</p>
+              <p className="text-base font-bold text-foreground select-all">
+                &quot;{currentItem.example_sentence}&quot;
+              </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2.5 border-t border-indigo-500/20 dark:border-indigo-500/10">
-              <DisplayField label="Latinized Sentence" value={currentItem.example_sentence_latin} />
-              <DisplayField label="Takri Sentence" value={currentItem.example_sentence_takri} />
-              <DisplayField label="English Translation" value={currentItem.example_sentence_english} />
-              <DisplayField label="Hindi Translation" value={currentItem.example_sentence_hindi} />
+              <DisplayField
+                label="Latinized Sentence"
+                value={currentItem.example_sentence_latin}
+              />
+              <DisplayField
+                label="Takri Sentence"
+                value={currentItem.example_sentence_takri}
+              />
+              <DisplayField
+                label="English Translation"
+                value={currentItem.example_sentence_english}
+              />
+              <DisplayField
+                label="Hindi Translation"
+                value={currentItem.example_sentence_hindi}
+              />
             </div>
           </div>
         </div>
@@ -242,9 +269,21 @@ export default function WorkspaceViewContent({
 
       {/* Provenance Metadata */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-        <MetaBox icon={User} label="Contributor" value={currentItem.contributor_name} />
-        <MetaBox icon={MapPin} label="Regional Zone" value={currentItem.region || "Statewide Standard"} />
-        <MetaBox icon={Tag} label="Vocabulary Category" value={currentItem.category_name || "General Vocabulary"} />
+        <MetaBox
+          icon={User}
+          label="Contributor"
+          value={currentItem.contributor_name}
+        />
+        <MetaBox
+          icon={MapPin}
+          label="Regional Zone"
+          value={currentItem.region || "Statewide Standard"}
+        />
+        <MetaBox
+          icon={Tag}
+          label="Vocabulary Category"
+          value={currentItem.category_name || "General Vocabulary"}
+        />
       </div>
     </div>
   );
@@ -253,10 +292,18 @@ export default function WorkspaceViewContent({
 // ------------------------------------------------------------------
 // Helper components (unchanged)
 // ------------------------------------------------------------------
-function DisplayField({ label, value }: { label: string; value?: string | null }) {
+function DisplayField({
+  label,
+  value,
+}: {
+  label: string;
+  value?: string | null;
+}) {
   return (
     <div className="space-y-1">
-      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">{label}</label>
+      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
+        {label}
+      </label>
       <p className="font-bold text-foreground/90">{value || "-"}</p>
     </div>
   );
@@ -267,8 +314,12 @@ function MetaBox({ icon: Icon, label, value }: any) {
     <div className="border border-border/50 bg-card/40 dark:bg-card/20 p-2.5 rounded-lg flex items-center gap-2.5">
       <Icon className="size-3.5 text-muted-foreground/70 shrink-0" />
       <div className="min-w-0">
-        <span className="text-[9px] font-medium text-muted-foreground block uppercase">{label}</span>
-        <span className="text-xs font-bold text-foreground block truncate">{value}</span>
+        <span className="text-[9px] font-medium text-muted-foreground block uppercase">
+          {label}
+        </span>
+        <span className="text-xs font-bold text-foreground block truncate">
+          {value}
+        </span>
       </div>
     </div>
   );

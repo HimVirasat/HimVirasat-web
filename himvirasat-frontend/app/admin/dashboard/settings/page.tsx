@@ -10,7 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AdminAuthService } from "@/lib/services/admin/admin-auth-service";
-import { staticPrimaryButtonStyles, staticSecondaryButtonStyles, subtlePrimaryButtonStyles } from "@/lib/constants";
+import {
+  staticPrimaryButtonStyles,
+  staticSecondaryButtonStyles,
+  subtlePrimaryButtonStyles,
+} from "@/lib/constants";
 import {
   Card,
   CardContent,
@@ -96,7 +100,8 @@ export default function SettingsPage() {
 
       if (response.success) {
         toast.success("Password updated successfully", {
-          description: "Your password has been changed. Please use it next time you log in.",
+          description:
+            "Your password has been changed. Please use it next time you log in.",
         });
         // Clear form
         setOldPassword("");
@@ -185,7 +190,10 @@ export default function SettingsPage() {
             >
               {isResetting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                  <Loader2
+                    className="mr-2 h-4 w-4 animate-spin"
+                    aria-hidden="true"
+                  />
                   Updating…
                 </>
               ) : (
@@ -214,7 +222,10 @@ export default function SettingsPage() {
           >
             {isLoggingOut ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                <Loader2
+                  className="mr-2 h-4 w-4 animate-spin"
+                  aria-hidden="true"
+                />
                 Logging out…
               </>
             ) : (

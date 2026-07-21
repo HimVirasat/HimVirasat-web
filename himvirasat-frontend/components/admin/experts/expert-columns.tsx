@@ -36,7 +36,9 @@ export function getExpertColumns(
                 {item.full_name}
                 <UserCheck className="size-3.5 text-emerald-500" />
               </span>
-              <span className="text-xs text-muted-foreground">@{item.username}</span>
+              <span className="text-xs text-muted-foreground">
+                @{item.username}
+              </span>
             </div>
           </div>
         );
@@ -119,7 +121,11 @@ export function getExpertColumns(
             onClick={() => onRemove(item.id)}
           >
             <Trash2 className="mr-1.5 size-3.5" />
-            {isAlreadyDeleted ? "Deleted" : isDeleting ? "Removing..." : "Remove"}
+            {isAlreadyDeleted
+              ? "Deleted"
+              : isDeleting
+                ? "Removing..."
+                : "Remove"}
           </Button>
         );
       },

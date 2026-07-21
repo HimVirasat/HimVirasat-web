@@ -1,7 +1,16 @@
 "use client";
 
 import React from "react";
-import { Inbox, Search, MessageSquare, User, Clock, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
+import {
+  Inbox,
+  Search,
+  MessageSquare,
+  User,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -56,7 +65,7 @@ export default function QueueSidebar({
   );
 
   return (
-    <aside className="w-85 shrink-0 border-r flex flex-col min-h-0 bg-gradient-to-b from-background to-muted/20">
+    <aside className="w-85 shrink-0 border-r flex flex-col min-h-0 bg-linear-to-b from-background to-muted/20">
       {/* Pipeline Filter */}
       <div className="border-b bg-card/30 backdrop-blur-sm px-3 pt-4 pb-3">
         <div className="relative flex justify-between items-center w-full">
@@ -141,7 +150,10 @@ export default function QueueSidebar({
         {isLoading ? (
           <div className="space-y-2">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="rounded-lg bg-card/50 p-4 space-y-3 border">
+              <div
+                key={i}
+                className="rounded-lg bg-card/50 p-4 space-y-3 border"
+              >
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-3 w-full" />
                 <div className="flex justify-between">
@@ -170,8 +182,11 @@ export default function QueueSidebar({
               const shortId = item.id.slice(-6).toUpperCase();
 
               // Contributor name (fallback)
-              const contributorName = item.contributor_name ||
-                (item.contributor_id ? `User ${item.contributor_id.slice(-4)}` : "Unknown");
+              const contributorName =
+                item.contributor_name ||
+                (item.contributor_id
+                  ? `User ${item.contributor_id.slice(-4)}`
+                  : "Unknown");
 
               return (
                 <button
@@ -229,7 +244,10 @@ export default function QueueSidebar({
 
                     <div className="flex items-center gap-2 shrink-0">
                       {totalComments > 0 && (
-                        <Badge variant="outline" className="h-5 gap-1 px-1.5 text-[9px] font-medium border-muted-foreground/20">
+                        <Badge
+                          variant="outline"
+                          className="h-5 gap-1 px-1.5 text-[9px] font-medium border-muted-foreground/20"
+                        >
                           <MessageSquare className="size-3" />
                           {totalComments} ({openComments} open)
                         </Badge>
@@ -264,15 +282,18 @@ const statusBadgeConfig: Record<
 > = {
   under_review: {
     label: "Under Review",
-    className: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+    className:
+      "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
   },
   approved: {
     label: "Approved",
-    className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+    className:
+      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
   },
   flagged: {
     label: "Flagged",
-    className: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+    className:
+      "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
   },
   rejected: {
     label: "Rejected",
@@ -291,10 +312,13 @@ const stageColorMap: Record<QueueFilter, string> = {
 function getNodeActiveClasses(filter: QueueFilter) {
   const color = stageColorMap[filter];
   const map: Record<string, string> = {
-    indigo: "bg-indigo-500 border-indigo-500 ring-2 ring-indigo-500/20 shadow-md shadow-indigo-500/20",
+    indigo:
+      "bg-indigo-500 border-indigo-500 ring-2 ring-indigo-500/20 shadow-md shadow-indigo-500/20",
     blue: "bg-blue-500 border-blue-500 ring-2 ring-blue-500/20 shadow-md shadow-blue-500/20",
-    emerald: "bg-emerald-500 border-emerald-500 ring-2 ring-emerald-500/20 shadow-md shadow-emerald-500/20",
-    amber: "bg-amber-500 border-amber-500 ring-2 ring-amber-500/20 shadow-md shadow-amber-500/20",
+    emerald:
+      "bg-emerald-500 border-emerald-500 ring-2 ring-emerald-500/20 shadow-md shadow-emerald-500/20",
+    amber:
+      "bg-amber-500 border-amber-500 ring-2 ring-amber-500/20 shadow-md shadow-amber-500/20",
     red: "bg-red-500 border-red-500 ring-2 ring-red-500/20 shadow-md shadow-red-500/20",
   };
   return map[color] || map.indigo;

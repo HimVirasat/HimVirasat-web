@@ -61,9 +61,15 @@ export function DataTable<TData>({
                   <TableHead
                     key={header.id}
                     className={`h-11 text-xs font-semibold tracking-wider text-muted-foreground uppercase ${
-                      canSort ? "cursor-pointer select-none hover:text-foreground" : ""
+                      canSort
+                        ? "cursor-pointer select-none hover:text-foreground"
+                        : ""
                     }`}
-                    onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
+                    onClick={
+                      canSort
+                        ? header.column.getToggleSortingHandler()
+                        : undefined
+                    }
                   >
                     <div className="flex items-center gap-1.5">
                       {flexRender(

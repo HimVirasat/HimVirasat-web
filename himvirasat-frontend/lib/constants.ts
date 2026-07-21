@@ -35,7 +35,6 @@ export const staticSecondaryButtonStyles =
   " bg-white/95 text-zinc-900 ring-1 ring-black/10 " +
   "dark:bg-zinc-900 dark:text-zinc-100 dark:ring-white/10";
 
-
 export const subtleActionButtonStyles =
   "rounded-full px-6 font-medium transition-colors duration-200 " +
   "shadow-sm backdrop-blur-sm";

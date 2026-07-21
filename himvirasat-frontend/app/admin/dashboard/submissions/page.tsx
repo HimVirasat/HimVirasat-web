@@ -1,7 +1,13 @@
 "use client";
 
 import { type FormEvent, useMemo, useState, useEffect } from "react";
-import { ArrowLeft, BookMarked, CheckCircle2, Send, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  BookMarked,
+  CheckCircle2,
+  Send,
+  Loader2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +17,10 @@ import {
   SubmissionFormFields,
   MANDATORY_FIELDS,
 } from "@/components/admin/submissions/submission-form-fields";
-import { SubmissionFormValues, WORKFLOW_RULES } from "@/types/admin/contribution-types";
+import {
+  SubmissionFormValues,
+  WORKFLOW_RULES,
+} from "@/types/admin/contribution-types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DataLookupService } from "@/lib/services/admin/datalookup-service";
 import { SubmissionService } from "@/lib/services/admin/submission-service";
@@ -36,13 +45,18 @@ export default function ContributionSubmissionPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const [formData, setFormData] = useState<SubmissionFormValues>(initialFormData);
+  const [formData, setFormData] =
+    useState<SubmissionFormValues>(initialFormData);
 
   // Dynamic progress calculation based on MANDATORY_FIELDS array
   const completion = useMemo(() => {
     const completedCount = MANDATORY_FIELDS.reduce((acc, field) => {
       const val = (formData as Record<string, any>)[field];
-      const isFilled = val !== undefined && val !== null && String(val).trim() !== "" && val !== 0;
+      const isFilled =
+        val !== undefined &&
+        val !== null &&
+        String(val).trim() !== "" &&
+        val !== 0;
       return isFilled ? acc + 1 : acc;
     }, 0);
 
@@ -109,7 +123,8 @@ export default function ContributionSubmissionPage() {
     if (isErrorPOS) toast.error("Failed to load parts of speech.");
   }, [isErrorDialects, isErrorCategories, isErrorPOS]);
 
-  const isDataSyncing = isLoadingDialects || isLoadingCategories || isLoadingPOS;
+  const isDataSyncing =
+    isLoadingDialects || isLoadingCategories || isLoadingPOS;
   const hasSyncFailure = isErrorDialects || isErrorCategories || isErrorPOS;
   const isSubmitting = submissionMutation.isPending;
 
@@ -126,7 +141,12 @@ export default function ContributionSubmissionPage() {
     // Iterate through mandatory fields array to ensure completeness
     for (const field of MANDATORY_FIELDS) {
       const val = (formData as Record<string, any>)[field];
-      if (val === undefined || val === null || String(val).trim() === "" || val === 0) {
+      if (
+        val === undefined ||
+        val === null ||
+        String(val).trim() === "" ||
+        val === 0
+      ) {
         const readableFieldName = field.replace(/_/g, " ").toUpperCase();
         toast.error("Missing Field", {
           description: `Please fulfill mandatory field: ${readableFieldName}`,
@@ -169,7 +189,10 @@ export default function ContributionSubmissionPage() {
 
   return (
     <main className="min-h-screen bg-muted/30 antialiased">
-      <form onSubmit={handleSubmit} className="mx-auto flex min-h-screen w-full max-w-7xl flex-col">
+      <form
+        onSubmit={handleSubmit}
+        className="mx-auto flex min-h-screen w-full max-w-7xl flex-col"
+      >
         {/* Sticky Header */}
         <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur">
           <div className="flex flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
@@ -190,7 +213,10 @@ export default function ContributionSubmissionPage() {
                     <h1 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
                       New Contribution
                     </h1>
-                    <Badge variant="secondary" className="rounded-md text-[10px]">
+                    <Badge
+                      variant="secondary"
+                      className="rounded-md text-[10px]"
+                    >
                       {WORKFLOW_RULES.under_review.label}
                     </Badge>
                   </div>
@@ -218,7 +244,8 @@ export default function ContributionSubmissionPage() {
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="mr-2 size-3.5 animate-spin" /> Submitting...
+                      <Loader2 className="mr-2 size-3.5 animate-spin" />{" "}
+                      Submitting...
                     </>
                   ) : (
                     <>
@@ -258,8 +285,12 @@ export default function ContributionSubmissionPage() {
                         <BookMarked className="size-4 text-indigo-600 dark:text-indigo-400" />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-foreground">Contribution Desk</p>
-                        <p className="text-xs text-muted-foreground">Peer Review Active</p>
+                        <p className="text-sm font-bold text-foreground">
+                          Contribution Desk
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Peer Review Active
+                        </p>
                       </div>
                     </div>
 
@@ -268,11 +299,16 @@ export default function ContributionSubmissionPage() {
                     <div className="space-y-3 text-xs text-muted-foreground">
                       <div className="flex items-start gap-2">
                         <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-emerald-600" />
-                        <p>Mandatory parameters initialize dictionary entries.</p>
+                        <p>
+                          Mandatory parameters initialize dictionary entries.
+                        </p>
                       </div>
                       <div className="flex items-start gap-2">
                         <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-emerald-600" />
-                        <p>Language Experts and Language Heads will review submitted entries.</p>
+                        <p>
+                          Language Experts and Language Heads will review
+                          submitted entries.
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -312,7 +348,8 @@ export default function ContributionSubmissionPage() {
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 size-3.5 animate-spin" /> Submitting...
+                  <Loader2 className="mr-2 size-3.5 animate-spin" />{" "}
+                  Submitting...
                 </>
               ) : (
                 <>

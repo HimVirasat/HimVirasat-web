@@ -45,7 +45,8 @@ export default function LanguageHeadsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Language Heads</h1>
           <p className="text-muted-foreground text-sm">
-            Manage regional administrators overseeing dialect accuracy and validations.
+            Manage regional administrators overseeing dialect accuracy and
+            validations.
           </p>
         </div>
       </div>

@@ -8,7 +8,8 @@ interface MetadataPromptInput {
 }
 
 function buildLinguisticPrompt(input: MetadataPromptInput): string {
-  const { word_devanagari, meaning_hindi, meaning_english, example_sentence } = input;
+  const { word_devanagari, meaning_hindi, meaning_english, example_sentence } =
+    input;
   return `You are an expert linguist specializing in Western Pahadi / Himachali dialects, Devanagari script, Takri script, and IPA phonetics.
 Based on the following lexical entry:
 - Word (Devanagari): ${word_devanagari}
@@ -37,7 +38,10 @@ Respond ONLY with a valid JSON object matching this structure:
  * Safely strips markdown code fences (```json ... ```) and parses JSON
  */
 function parseCleanJSON(rawText: string): Record<string, any> {
-  const cleaned = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
+  const cleaned = rawText
+    .replace(/```json/gi, "")
+    .replace(/```/g, "")
+    .trim();
   return JSON.parse(cleaned);
 }
 
@@ -48,11 +52,17 @@ export async function generateMetadataHandler(req: Request, res: Response) {
     if (!apiKey) {
       return res.status(500).json({
         success: false,
-        message: "OPENROUTER_API_KEY is missing in backend environment variables.",
+        message:
+          "OPENROUTER_API_KEY is missing in backend environment variables.",
       });
     }
 
-    const { word_devanagari, meaning_hindi, meaning_english, example_sentence } = req.body;
+    const {
+      word_devanagari,
+      meaning_hindi,
+      meaning_english,
+      example_sentence,
+    } = req.body;
 
     if (!word_devanagari) {
       return res.status(400).json({
@@ -71,31 +81,35 @@ export async function generateMetadataHandler(req: Request, res: Response) {
     // Default to Claude 3.5 Sonnet if OPENROUTER_MODEL is not set
     const model = process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-sonnet";
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        // Optional site headers for OpenRouter rankings
-        "HTTP-Referer": process.env.SITE_URL || "http://localhost:3000",
-        "X-Title": "Himvirasat Linguistic Generator",
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+          // Optional site headers for OpenRouter rankings
+          "HTTP-Referer": process.env.SITE_URL || "http://localhost:3000",
+          "X-Title": "Himvirasat Linguistic Generator",
+        },
+        body: JSON.stringify({
+          model,
+          temperature: 0.2,
+          response_format: { type: "json_object" },
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a precise linguistic JSON generator for Himachali/Pahadi dialects.",
+            },
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+        }),
       },
-      body: JSON.stringify({
-        model,
-        temperature: 0.2,
-        response_format: { type: "json_object" },
-        messages: [
-          {
-            role: "system",
-            content: "You are a precise linguistic JSON generator for Himachali/Pahadi dialects.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-      }),
-    });
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -116,7 +130,10 @@ export async function generateMetadataHandler(req: Request, res: Response) {
       data: parsedData,
     });
   } catch (error: any) {
-    console.error("Internal catch error inside generateMetadataHandler:", error);
+    console.error(
+      "Internal catch error inside generateMetadataHandler:",
+      error,
+    );
     return res.status(500).json({
       success: false,
       message: error.message || "Failed to generate metadata using OpenRouter",

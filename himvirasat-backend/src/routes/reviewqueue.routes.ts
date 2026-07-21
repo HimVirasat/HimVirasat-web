@@ -8,7 +8,7 @@ import {
   updateReviewQueueStatusHandler,
   deleteReviewQueueHandler,
   addReviewQueueCommentHandler,
-  updateReviewQueueCommentStatusHandler
+  updateReviewQueueCommentStatusHandler,
 } from "../handlers/reviewqueue.handler.js";
 
 const router = Router();
@@ -23,6 +23,10 @@ router.delete("/:id", requireAuth, deleteReviewQueueHandler);
 // Specialized Sub-resource Lifecycle Actions
 router.patch("/:id/status", requireAuth, updateReviewQueueStatusHandler);
 router.post("/:id/comments", requireAuth, addReviewQueueCommentHandler);
-router.patch("/:id/comments/:commentId/status", requireAuth, updateReviewQueueCommentStatusHandler);
+router.patch(
+  "/:id/comments/:commentId/status",
+  requireAuth,
+  updateReviewQueueCommentStatusHandler,
+);
 
 export default router;

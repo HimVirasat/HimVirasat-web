@@ -48,7 +48,9 @@ export function AdminLoginForm() {
 
       const userRole = response.user?.role;
       if (userRole && roleTitles[userRole]) {
-        toast.success(`Logged in as ${roleTitles[userRole]}`, { duration: 5000 });
+        toast.success(`Logged in as ${roleTitles[userRole]}`, {
+          duration: 5000,
+        });
       } else {
         toast.success("Successfully logged in", { duration: 5000 });
       }

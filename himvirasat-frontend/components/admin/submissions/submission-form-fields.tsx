@@ -73,7 +73,12 @@ export function SubmissionFormFields({
   // Helper to check if a specific field is completed
   const isFieldComplete = (field: keyof SubmissionFormValues) => {
     const val = (values as Record<string, any>)[field];
-    return val !== undefined && val !== null && String(val).trim() !== "" && val !== 0;
+    return (
+      val !== undefined &&
+      val !== null &&
+      String(val).trim() !== "" &&
+      val !== 0
+    );
   };
 
   // Trigger Grok AI generation via DataLookupService
@@ -107,7 +112,10 @@ export function SubmissionFormFields({
         onChange("example_sentence_takri" as any, data.example_sentence_takri);
       }
     } catch (err: any) {
-      setGrokError(err.message || "An error occurred while calling the metadata generation service.");
+      setGrokError(
+        err.message ||
+          "An error occurred while calling the metadata generation service."
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -190,7 +198,10 @@ export function SubmissionFormFields({
                     : ""
                 }
                 onValueChange={(val) =>
-                  onChange("part_of_speech_id" as any, val ? Number(val) : undefined)
+                  onChange(
+                    "part_of_speech_id" as any,
+                    val ? Number(val) : undefined
+                  )
                 }
               >
                 <SelectTrigger className={cn(inputClass, "w-full")}>
@@ -265,7 +276,9 @@ export function SubmissionFormFields({
               className={textareaClass}
               placeholder="ऊपर लिखे गए पहाड़ी वाक्य का हिंदी अनुवाद"
               value={values.example_sentence_hindi || ""}
-              onChange={(e) => onChange("example_sentence_hindi", e.target.value)}
+              onChange={(e) =>
+                onChange("example_sentence_hindi", e.target.value)
+              }
             />
           </Field>
         </FormSection>
@@ -343,7 +356,11 @@ export function SubmissionFormFields({
             <Textarea
               className={textareaClass}
               placeholder="Write the phonetic Romanised version of the Pahadi example sentence."
-              value={(values as any).example_sentence_latin || values.example_sentence_english || ""}
+              value={
+                (values as any).example_sentence_latin ||
+                values.example_sentence_english ||
+                ""
+              }
               onChange={(e) => {
                 onChange("example_sentence_latin" as any, e.target.value);
                 onChange("example_sentence_english", e.target.value);
@@ -357,7 +374,9 @@ export function SubmissionFormFields({
               className={textareaClass}
               placeholder="Write the historical Takri script transcription of the example sentence."
               value={(values as any).example_sentence_takri || ""}
-              onChange={(e) => onChange("example_sentence_takri" as any, e.target.value)}
+              onChange={(e) =>
+                onChange("example_sentence_takri" as any, e.target.value)
+              }
             />
           </Field>
         </FormSection>
@@ -374,20 +393,48 @@ export function SubmissionFormFields({
               Core Section Readiness
             </h3>
             <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-              All mandatory fields must be fulfilled before submitting entry for evaluation.
+              All mandatory fields must be fulfilled before submitting entry for
+              evaluation.
             </p>
           </div>
 
           <div className="space-y-1.5 text-xs">
-            <ReadinessItem label="Dialect Choice" complete={isFieldComplete("dialect_id")} />
-            <ReadinessItem label="Word (Devanagari)" complete={isFieldComplete("word_devanagari")} />
-            <ReadinessItem label="Category Selected" complete={isFieldComplete("category_id")} />
-            <ReadinessItem label="Part of Speech Set" complete={isFieldComplete("part_of_speech_id" as any)} />
-            <ReadinessItem label="Region Inputted" complete={isFieldComplete("region")} />
-            <ReadinessItem label="Hindi Meaning Given" complete={isFieldComplete("meaning_hindi")} />
-            <ReadinessItem label="English Meaning Given" complete={isFieldComplete("meaning_english")} />
-            <ReadinessItem label="Pahadi Phrase" complete={isFieldComplete("example_sentence")} />
-            <ReadinessItem label="Phrase Translation (Hindi)" complete={isFieldComplete("example_sentence_hindi")} />
+            <ReadinessItem
+              label="Dialect Choice"
+              complete={isFieldComplete("dialect_id")}
+            />
+            <ReadinessItem
+              label="Word (Devanagari)"
+              complete={isFieldComplete("word_devanagari")}
+            />
+            <ReadinessItem
+              label="Category Selected"
+              complete={isFieldComplete("category_id")}
+            />
+            <ReadinessItem
+              label="Part of Speech Set"
+              complete={isFieldComplete("part_of_speech_id" as any)}
+            />
+            <ReadinessItem
+              label="Region Inputted"
+              complete={isFieldComplete("region")}
+            />
+            <ReadinessItem
+              label="Hindi Meaning Given"
+              complete={isFieldComplete("meaning_hindi")}
+            />
+            <ReadinessItem
+              label="English Meaning Given"
+              complete={isFieldComplete("meaning_english")}
+            />
+            <ReadinessItem
+              label="Pahadi Phrase"
+              complete={isFieldComplete("example_sentence")}
+            />
+            <ReadinessItem
+              label="Phrase Translation (Hindi)"
+              complete={isFieldComplete("example_sentence_hindi")}
+            />
           </div>
         </div>
       </aside>
@@ -464,7 +511,9 @@ function ReadinessItem({
       <span
         className={cn(
           "size-2 rounded-full transition-colors",
-          complete ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-muted-foreground/30"
+          complete
+            ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+            : "bg-muted-foreground/30"
         )}
       />
     </div>

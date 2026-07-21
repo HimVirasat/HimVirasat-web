@@ -9,26 +9,26 @@ import {
   ButtonGroupSeparator,
 } from "@/components/ui/button-group";
 import { cn } from "@/lib/utils";
-import { CreateExpertDialog } from "./create-expert-dialog";
+import { CreateHeadDialog } from "./create-head-dialog";
 
-interface ExpertsToolbarProps {
+interface HeadsToolbarProps {
   refreshing: boolean;
   search: string;
   onSearchChange: (value: string) => void;
   onRefresh: () => void;
 }
 
-export function ExpertsToolbar({
+export function HeadsToolbar({
   refreshing,
   search,
   onSearchChange,
   onRefresh,
-}: ExpertsToolbarProps) {
+}: HeadsToolbarProps) {
   const [open, setOpen] = useState(false);
 
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <ButtonGroup aria-label="Expert management actions">
+      <ButtonGroup aria-label="Head management actions">
         <Button
           variant="outline"
           size="sm"
@@ -54,10 +54,10 @@ export function ExpertsToolbar({
           className="transition-colors hover:bg-muted/60"
         >
           <Plus className="mr-2 size-3.5 shrink-0 text-muted-foreground" />
-          <span>Create Expert</span>
+          <span>Create Head</span>
         </Button>
 
-        <CreateExpertDialog open={open} onOpenChange={setOpen} />
+        <CreateHeadDialog open={open} onOpenChange={setOpen} />
       </ButtonGroup>
 
       <div className="flex h-9 w-full max-w-xs items-center gap-2 rounded-lg border border-border/60 bg-card px-3 shadow-xs transition-colors focus-within:border-ring/50 focus-within:ring-2 focus-within:ring-ring/20">
@@ -65,7 +65,7 @@ export function ExpertsToolbar({
         <input
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search experts..."
+          placeholder="Search language heads..."
           className="flex-1 bg-transparent text-xs text-foreground outline-none placeholder:text-muted-foreground"
         />
       </div>

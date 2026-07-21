@@ -149,3 +149,77 @@ export async function logout(_req: Request, res: Response) {
     .status(200)
     .json({ success: true, message: "Logged out successfully" });
 }
+export async function resetPassword(req: Request, res: Response) {
+  try {
+    const authUser = (req as AuthenticatedRequest).user;
+
+    if (!authUser) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const userId = authUser.userId;
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Old password and new password are required",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be at least 6 characters long",
+      });
+    }
+
+    // Fetch user with password hash
+    const { data: user, error: fetchError } = await supabase
+      .from("users")
+      .select("id, password_hash")
+      .eq("id", userId)
+      .single();
+
+    if (fetchError || !user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Verify old password
+    const isPasswordValid = await bcrypt.compare(oldPassword, user.password_hash);
+    if (!isPasswordValid) {
+      return res.status(400).json({
+        success: false,
+        message: "Incorrect current password",
+      });
+    }
+
+    // Hash new password
+    const saltRounds = 10;
+    const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password in database
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ password_hash: newPasswordHash })
+      .eq("id", userId);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while resetting password",
+    });
+  }
+}

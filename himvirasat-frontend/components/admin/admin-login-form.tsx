@@ -2,15 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
 import { ShieldCheck, Loader2 } from "lucide-react";
-
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
-
 import { Input } from "@/components/ui/input";
-
 import {
   Card,
   CardContent,
@@ -18,21 +15,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
 import { AdminAuthService } from "@/lib/services/admin/admin-auth-service";
 
 export function AdminLoginForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [username, setUsername] = useState("");
-
   const [password, setPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     setLoading(true);
 
     try {
@@ -42,22 +36,26 @@ export function AdminLoginForm() {
         toast.error(response.message ?? "Authentication failed");
         return;
       }
-      // console.log(response.user);
 
-      if (response.user?.role === "super_admin") {
-        toast.success("Logged in as Super Admin", { duration: 5000 });
-      }
-      if (response.user?.role === "language_head") {
-        toast.success("Logged in as Language Head", { duration: 5000 });
-      }
-      if (response.user?.role === "language_expert") {
-        toast.success("Logged in as Language Expert", { duration: 5000 });
+      // Immediately refetch the user query so components react to the active session
+      await queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+
+      const roleTitles: Record<string, string> = {
+        super_admin: "Super Admin",
+        language_head: "Language Head",
+        language_expert: "Language Expert",
+      };
+
+      const userRole = response.user?.role;
+      if (userRole && roleTitles[userRole]) {
+        toast.success(`Logged in as ${roleTitles[userRole]}`, { duration: 5000 });
+      } else {
+        toast.success("Successfully logged in", { duration: 5000 });
       }
 
       router.push("/admin/dashboard");
     } catch (error) {
       console.error(error);
-
       toast.error(error instanceof Error ? error.message : "Login failed");
     } finally {
       setLoading(false);

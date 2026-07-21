@@ -1,4 +1,4 @@
-import { Response, RequestHandler } from "express";
+import { RequestHandler } from "express";
 import { supabase } from "../services/supabase.js";
 import { logger } from "../utils/logger.js";
 import { AuthenticatedRequest } from "../middlewares/auth.middleware.js";

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, lazy, Suspense } from "react";
+import React, { useMemo, useState, lazy, Suspense, useEffect } from "react";
 import { toast } from "sonner";
 import {
   Clock,
@@ -55,17 +55,17 @@ import {
   useUpdateCommentStatus,
 } from "@/hooks/use-contribution-workflow";
 
-// Lazy-loaded sub-components
 const WorkspaceViewContent = lazy(() => import("./workspace-view-content"));
 const WorkspaceEditContent = lazy(() => import("./workspace-edit-content"));
 
 interface WorkspaceContentProps {
-  currentItem: Contribution;
+  currentItem?: Contribution | null; // now optional
   activeUser: { id: string; username: string; role: SystemRole };
   workspaceTab: "content" | "comments" | "activity";
   isEditMode: boolean;
   editForm: Partial<Contribution>;
   setEditForm: React.Dispatch<React.SetStateAction<Partial<Contribution>>>;
+  isLoading?: boolean;
 }
 
 const fieldOptions = [
@@ -97,6 +97,74 @@ const initials = (name: string) =>
     .slice(0, 2)
     .toUpperCase();
 
+// ------------------------------------------------------------------
+// Skeleton loaders for each tab
+// ------------------------------------------------------------------
+const ContentSkeleton = () => (
+  <div className="space-y-6 animate-pulse">
+    <div className="space-y-2">
+      <Skeleton className="h-8 w-1/4" />
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-3/4" />
+    </div>
+    <div className="space-y-3">
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-2/3" />
+    </div>
+    <div className="border-t border-border/40 pt-4 space-y-3">
+      <Skeleton className="h-6 w-1/3" />
+      <Skeleton className="h-20 w-full" />
+    </div>
+  </div>
+);
+
+const CommentsSkeleton = () => (
+  <div className="space-y-4 animate-pulse">
+    <Skeleton className="h-24 w-full rounded-xl" />
+    {[1, 2, 3].map((i) => (
+      <div key={i} className="flex gap-3">
+        <Skeleton className="size-10 rounded-full" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-1/4" />
+          <Skeleton className="h-3 w-3/4" />
+          <Skeleton className="h-3 w-1/2" />
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+const ActivitySkeleton = () => (
+  <div className="space-y-4 animate-pulse">
+    <div className="space-y-2">
+      <Skeleton className="h-4 w-1/6" />
+      <Skeleton className="h-16 w-full rounded-xl" />
+    </div>
+    <div className="space-y-2">
+      <Skeleton className="h-4 w-1/6" />
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="flex items-start gap-3">
+          <Skeleton className="size-4 rounded-full" />
+          <div className="flex-1 space-y-1">
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const tabSkeletons = {
+  content: <ContentSkeleton />,
+  comments: <CommentsSkeleton />,
+  activity: <ActivitySkeleton />,
+};
+
+// ------------------------------------------------------------------
+// Main component
+// ------------------------------------------------------------------
 export default function WorkspaceContent({
   currentItem,
   activeUser,
@@ -104,6 +172,7 @@ export default function WorkspaceContent({
   isEditMode,
   editForm,
   setEditForm,
+  isLoading = false,
 }: WorkspaceContentProps) {
   const [commentField, setCommentField] = useState("General");
   const [commentMessage, setCommentMessage] = useState("");
@@ -111,11 +180,67 @@ export default function WorkspaceContent({
   const [rejectReason, setRejectReason] = useState("");
   const [isFlagOpen, setIsFlagOpen] = useState(false);
   const [isRejectOpen, setIsRejectOpen] = useState(false);
+  const [showContent, setShowContent] = useState(!isLoading);
+  const [startTime] = useState(Date.now());
+
+  // Minimum 500ms loading delay
+  useEffect(() => {
+    if (!isLoading) {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, 500 - elapsed);
+      const timer = setTimeout(() => setShowContent(true), remaining);
+      return () => clearTimeout(timer);
+    } else {
+      setShowContent(false);
+    }
+  }, [isLoading, startTime]);
 
   const statusMutation = useTransitionStatus();
   const addCommentMutation = useAddReviewComment();
   const updateCommentMutation = useUpdateCommentStatus();
 
+  // Early return if still loading
+  if (!showContent) {
+    return (
+      <div className="flex-1 flex flex-col min-h-0">
+        <ScrollArea className="flex-1 px-8 py-6">
+          <div className="max-w-3xl mx-auto">{tabSkeletons[workspaceTab]}</div>
+        </ScrollArea>
+        <div className="shrink-0 border-t border-border bg-card/90 px-6 py-3">
+          <div className="max-w-3xl mx-auto flex justify-end">
+            <Skeleton className="h-8 w-32" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // No item selected and not loading – show placeholder
+  if (!currentItem) {
+    return (
+      <div className="flex-1 flex flex-col min-h-0">
+        <ScrollArea className="flex-1 px-8 py-6">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+              <p className="text-sm font-medium">No contribution selected</p>
+              <p className="text-xs mt-1 opacity-70">Select an item from the queue to view details.</p>
+            </div>
+          </div>
+        </ScrollArea>
+        {/* Action bar disabled */}
+        <div className="shrink-0 border-t border-border bg-card/90 px-6 py-3">
+          <div className="max-w-3xl mx-auto flex justify-end">
+            <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-semibold bg-muted/60 px-3.5 h-8 rounded-lg select-none">
+              <Lock className="size-3.5" />
+              No item selected
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Main content (item exists) ---
   const rules = WORKFLOW_RULES[currentItem.status] || {
     label: "Draft",
     canComment: () => true,
@@ -189,17 +314,9 @@ export default function WorkspaceContent({
       <ScrollArea className="flex-1 min-h-0 px-8 py-6 bg-transparent">
         <div className="max-w-3xl space-y-6">
           {workspaceTab === "content" && (
-            <Suspense
-              fallback={
-                <div className="space-y-4">
-                  <Skeleton className="h-8 w-1/3" />
-                  <Skeleton className="h-24 w-full" />
-                  <Skeleton className="h-12 w-2/3" />
-                </div>
-              }
-            >
+            <Suspense fallback={<ContentSkeleton />}>
               {!isEditMode ? (
-                <WorkspaceViewContent currentItem={currentItem} />
+                <WorkspaceViewContent currentItem={currentItem} isLoading={false} />
               ) : (
                 <WorkspaceEditContent editForm={editForm} setEditForm={setEditForm} />
               )}
@@ -492,6 +609,9 @@ export default function WorkspaceContent({
   );
 }
 
+// ------------------------------------------------------------------
+// ReasonDialog (unchanged)
+// ------------------------------------------------------------------
 function ReasonDialog({
   open,
   onOpenChange,

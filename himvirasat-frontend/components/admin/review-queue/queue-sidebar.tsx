@@ -56,7 +56,7 @@ export default function QueueSidebar({
   );
 
   return (
-    <aside className="w-85 shrink-0 border-r flex flex-col min-h-0 bg-gradient-to-b from-background to-muted/20">
+    <aside className="w-85 shrink-0 border-r flex flex-col min-h-0 bg-linear-to-b from-background to-muted/20">
       {/* Pipeline Filter */}
       <div className="border-b bg-card/30 backdrop-blur-sm px-3 pt-4 pb-3">
         <div className="relative flex justify-between items-center w-full">

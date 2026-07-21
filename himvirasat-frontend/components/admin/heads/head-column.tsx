@@ -3,38 +3,33 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trash2, UserCheck } from "lucide-react";
-import type { LanguageExpert } from "@/types/admin/user";
-import { EditableDialectsCell } from "../data-table//editable-dialects-cell";
+import { Trash2, ShieldCheck } from "lucide-react";
+import type { LanguageHead } from "@/types/admin/user";
+import { EditableDialectsCell } from "../data-table/editable-dialects-cell";
 
-export function getExpertColumns(
-  onRemove: (expertId: string) => void,
+export function getHeadColumns(
+  onRemove: (headId: string) => void,
   deletingId: string | null
-): ColumnDef<LanguageExpert>[] {
+): ColumnDef<LanguageHead>[] {
   return [
     {
       accessorKey: "full_name",
-      header: "Language Expert",
+      header: "Language Head",
       cell: ({ row }) => {
         const item = row.original;
         const initials = item.full_name
-          ? item.full_name
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-              .toUpperCase()
-              .slice(0, 2)
-          : "LE";
+          ? item.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+          : "LH";
 
         return (
           <div className="flex items-center gap-3">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-xs font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-indigo-500/10 text-xs font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
               {initials}
             </div>
             <div className="flex flex-col">
               <span className="font-semibold text-foreground flex items-center gap-1.5">
                 {item.full_name}
-                <UserCheck className="size-3.5 text-emerald-500" />
+                <ShieldCheck className="size-3.5 text-indigo-500" />
               </span>
               <span className="text-xs text-muted-foreground">@{item.username}</span>
             </div>
@@ -53,22 +48,13 @@ export function getExpertColumns(
     },
     {
       accessorKey: "dialects",
-      header: "Dialects",
+      header: "Managed Dialects",
       cell: ({ row }) => (
         <EditableDialectsCell
           userId={row.original.id}
           currentDialects={row.original.dialects}
-          type="expert"
+          type="head"
         />
-      ),
-    },
-    {
-      accessorKey: "points",
-      header: "Points",
-      cell: ({ row }) => (
-        <span className="font-mono text-xs font-medium">
-          {row.original.points ?? 0}
-        </span>
       ),
     },
     {

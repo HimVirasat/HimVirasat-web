@@ -1,9 +1,7 @@
 "use client";
 
 import { DataTable } from "@/components/admin/data-table/data-table";
-
 import { getExpertColumns } from "./expert-columns";
-
 import type { LanguageExpert } from "@/types/admin/user";
 
 interface ExpertTableProps {
@@ -12,6 +10,7 @@ interface ExpertTableProps {
   globalFilter: string;
   onRemove: (expertId: string) => void;
 }
+
 export function ExpertTable({
   experts,
   deletingId,

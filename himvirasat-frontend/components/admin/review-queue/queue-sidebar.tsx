@@ -84,8 +84,8 @@ export default function QueueSidebar({
         {isLoading
           ? renderLoadingState()
           : queueFilteredItems.length === 0
-          ? renderEmptyState()
-          : renderQueueList(
+            ? renderEmptyState()
+            : renderQueueList(
               queueFilteredItems,
               selectedId,
               queueFilter,
@@ -129,10 +129,10 @@ function renderPipelineConnector(idx: number, activeStageIndex: number, queueFil
         idx === 1
           ? "left-[10%] right-[70%]"
           : idx === 2
-          ? "left-[30%] right-[50%]"
-          : idx === 3
-          ? "left-[50%] right-[30%]"
-          : "left-[70%] right-[10%]",
+            ? "left-[30%] right-[50%]"
+            : idx === 3
+              ? "left-[50%] right-[30%]"
+              : "left-[70%] right-[10%]",
         isSegmentActive ? getActiveLineClasses(activeTone) : "bg-neutral-200 dark:bg-neutral-800"
       )}
     />
@@ -220,7 +220,7 @@ function renderQueueList(
                 {item.word_devanagari}
               </span>
               <span className="text-[10px] font-mono text-muted-foreground opacity-80 shrink-0">
-                ...{shortId}
+                {shortId}
               </span>
             </div>
 

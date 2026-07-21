@@ -18,6 +18,18 @@ export interface LanguageExpert {
   points: number;
 }
 
+export interface LanguageHead {
+  id: string;
+  username: string;
+  full_name: string;
+  email: string | null;
+  role: "language_expert";
+  dialects: string[];
+  is_active: boolean;
+  created_at: string;
+  points: number;
+}
+
 export interface DashboardStats {
   languageExpertsCount: number;
   languageHeadsCount: number;

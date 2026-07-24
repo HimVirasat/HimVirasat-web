@@ -10,6 +10,7 @@
     "dev:backend": "pnpm --filter himvirasat-backend dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "format": "pnpm -r format"
   }
 }

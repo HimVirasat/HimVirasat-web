@@ -1,17 +1,138 @@
 # Local Development Setup
 
-This guide takes a clean machine from zero to a running HimVirasat monorepo.
+This guide will take you from a clean machine to a fully running HimVirasat development environment.
 
-## 1. Prerequisites
+---
 
-Install these first:
+# Quick Start
+
+If you just want to get the project running:
+
+```bash
+git clone <repo-url>
+cd HimVirasat-web
+
+pnpm install
+
+cp himvirasat-backend/.env.example himvirasat-backend/.env
+cp himvirasat-frontend/.env.example himvirasat-frontend/.env.local
+
+pnpm dev
+```
+
+The application will be available at:
+
+- Frontend: http://localhost:3000
+- Backend: http://localhost:3002
+
+---
+
+# Workspace Commands
+
+Run all commands from the repository root.
+
+## Install dependencies for the entire monorepo
+
+```bash
+pnpm install
+```
+
+This installs dependencies for:
+
+- `himvirasat-frontend`
+- `himvirasat-backend`
+- `packages/shared`
+
+---
+
+## Start everything
+
+```bash
+pnpm dev
+```
+
+This will:
+
+- Build the shared package
+- Start the backend
+- Start the frontend
+
+---
+
+## Start only the frontend
+
+```bash
+pnpm dev:frontend
+```
+
+---
+
+## Start only the backend
+
+```bash
+pnpm dev:backend
+```
+
+---
+
+## Build everything
+
+```bash
+pnpm build
+```
+
+---
+
+## Build only the backend
+
+```bash
+pnpm --filter himvirasat-backend build
+```
+
+---
+
+## Build only the frontend
+
+```bash
+pnpm --filter himvirasat-frontend build
+```
+
+---
+
+## Build only the shared package
+
+```bash
+pnpm --filter @himvirasat/shared build
+```
+
+---
+
+## Run type checking
+
+```bash
+pnpm typecheck
+```
+
+---
+
+## Run linting
+
+```bash
+pnpm lint
+```
+
+---
+
+# Prerequisites
+
+Install the following software before continuing.
 
 - Node.js 20 or newer
 - pnpm 11.3.0
 - Git
-- A Supabase project for backend API development
+- A Supabase project
 
-Check your versions:
+Verify your installation:
 
 ```bash
 node --version
@@ -19,48 +140,53 @@ pnpm --version
 git --version
 ```
 
-If pnpm is missing, install it with Corepack:
+If pnpm is missing:
 
 ```bash
 corepack enable
 corepack prepare pnpm@11.3.0 --activate
 ```
 
-## 2. Clone The Repository
+---
+
+# Clone the Repository
 
 ```bash
 git clone <repo-url>
 cd HimVirasat-web
 ```
 
-Run all pnpm commands from the repository root, not from `himvirasat-frontend` or `himvirasat-backend`.
+All pnpm commands in this guide should be executed from the repository root.
 
-## 3. Understand The Workspace
+---
 
-The repo is a pnpm workspace:
+# Repository Structure
 
 ```text
 HimVirasat-web/
-├── himvirasat-frontend/   # Next.js app, runs on port 3000
-├── himvirasat-backend/    # Express API, runs on port 3002
-├── packages/shared/       # Shared TypeScript package
-├── package.json           # Root monorepo scripts
-└── pnpm-workspace.yaml    # Workspace package list and pnpm build approvals
+├── himvirasat-frontend/      # Next.js frontend
+├── himvirasat-backend/       # Express backend
+├── packages/
+│   └── shared/               # Shared types and utilities
+├── package.json
+└── pnpm-workspace.yaml
 ```
 
-The shared package is consumed as:
+The frontend and backend both depend on the shared workspace package:
 
 ```json
 "@himvirasat/shared": "workspace:*"
 ```
 
-If you add it manually in zsh, quote the `*`:
+If you ever add the dependency manually while using zsh, quote the workspace version:
 
 ```bash
 pnpm add '@himvirasat/shared@workspace:*' --filter himvirasat-frontend
 ```
 
-## 4. Install Dependencies
+---
+
+# Install Dependencies
 
 From the repository root:
 
@@ -68,150 +194,214 @@ From the repository root:
 pnpm install
 ```
 
-This installs dependencies for the frontend, backend, and shared package. Native dependency build approvals are stored in `pnpm-workspace.yaml`, so pnpm should run the required install scripts automatically.
+This installs every workspace package in one command.
 
-## 5. Configure Environment Variables
+You never need to run `pnpm install` separately inside the frontend or backend folders.
 
-### Backend
+---
 
-Create a backend env file:
+# Configure Environment Variables
+
+## Backend
+
+Create the backend environment file:
 
 ```bash
 cp himvirasat-backend/.env.example himvirasat-backend/.env
 ```
 
-Fill in the values:
+Example configuration:
 
-```bash
+```env
 PORT=3002
-SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
 FRONTEND_URL=http://localhost:3000
-JWT_SECRET=use-a-long-random-secret
+
+JWT_SECRET=replace-with-a-random-secret
 JWT_EXPIRES_IN=7d
 ```
 
-Optional LLM variables, needed only for routes that call OpenRouter:
+Optional OpenRouter configuration:
 
-```bash
-OPENROUTER_API_KEY=your-openrouter-key
+```env
+OPENROUTER_API_KEY=your-key
 OPENROUTER_MODEL=anthropic/claude-3.5-sonnet
 SITE_URL=http://localhost:3000
 ```
 
-### Frontend
+---
 
-Create a frontend env file:
+## Frontend
+
+Create the frontend environment file:
 
 ```bash
 cp himvirasat-frontend/.env.example himvirasat-frontend/.env.local
 ```
 
-Default local value:
+Example:
 
-```bash
+```env
 NEXT_PUBLIC_API_URL=http://localhost:3002
 ```
 
-## 6. Build Shared Code
+---
 
-The shared package builds to `packages/shared/dist`.
+# Running the Project
 
-```bash
-pnpm --filter @himvirasat/shared build
-```
-
-During active shared-package development, run this in a separate terminal:
+## Start the entire application
 
 ```bash
-pnpm --filter @himvirasat/shared dev
+pnpm dev
 ```
 
-## 7. Run The Project Locally
+This command automatically:
 
-Use two terminals from the repository root.
+- Builds the shared package
+- Starts the backend
+- Starts the frontend
 
-Terminal 1, backend:
-
-```bash
-pnpm dev:backend
-```
-
-Backend URL:
-
-```text
-http://localhost:3002
-```
-
-Health check:
-
-```text
-http://localhost:3002/health
-```
-
-Terminal 2, frontend:
-
-```bash
-pnpm dev:frontend
-```
-
-Frontend URL:
+Frontend:
 
 ```text
 http://localhost:3000
 ```
 
-## 8. Verify The Setup
+Backend:
 
-Confirm pnpm sees every workspace package:
-
-```bash
-pnpm -r list --depth -1
+```text
+http://localhost:3002
 ```
 
-Run TypeScript checks:
+Health endpoint:
 
-```bash
-pnpm typecheck
+```text
+http://localhost:3002/health
 ```
 
-Run production builds:
+---
+
+## Running individual services
+
+### Backend only
+
+```bash
+pnpm dev:backend
+```
+
+### Frontend only
+
+```bash
+pnpm dev:frontend
+```
+
+---
+
+# Building
+
+## Build everything
 
 ```bash
 pnpm build
 ```
 
-Run package-specific commands when needed:
+This recursively builds every workspace package.
+
+---
+
+## Build backend
 
 ```bash
-pnpm --filter himvirasat-frontend typecheck
 pnpm --filter himvirasat-backend build
+```
+
+The backend build automatically builds the shared package first.
+
+---
+
+## Build frontend
+
+```bash
+pnpm --filter himvirasat-frontend build
+```
+
+---
+
+## Build shared package
+
+```bash
 pnpm --filter @himvirasat/shared build
 ```
 
-## 9. Common Development Commands
+---
+
+# Useful Commands
+
+List all workspace packages:
 
 ```bash
-pnpm dev:frontend      # Start Next.js on port 3000
-pnpm dev:backend       # Start Express API on port 3002
-pnpm typecheck         # Typecheck workspace packages that define typecheck
-pnpm build             # Build frontend, backend, and shared package
-pnpm lint              # Run workspace lint scripts
+pnpm -r list --depth -1
 ```
 
-## 10. Troubleshooting
+Type check every package:
 
-### zsh: no matches found: @himvirasat/shared@workspace:*
+```bash
+pnpm typecheck
+```
 
-zsh treats `*` as a glob. Quote the dependency spec:
+Lint every package:
+
+```bash
+pnpm lint
+```
+
+Type check only the frontend:
+
+```bash
+pnpm --filter himvirasat-frontend typecheck
+```
+
+Build only the backend:
+
+```bash
+pnpm --filter himvirasat-backend build
+```
+
+Build only the frontend:
+
+```bash
+pnpm --filter himvirasat-frontend build
+```
+
+Build only the shared package:
+
+```bash
+pnpm --filter @himvirasat/shared build
+```
+
+---
+
+# Troubleshooting
+
+## zsh: no matches found: @himvirasat/shared@workspace:*
+
+zsh expands `*` as a wildcard.
+
+Use quotes:
 
 ```bash
 pnpm add '@himvirasat/shared@workspace:*' --filter himvirasat-frontend
 ```
 
-### No projects matched the filters
+---
 
-Make sure you are at the repository root and that the package name is correct:
+## No projects matched the filters
+
+Make sure you are in the repository root.
+
+Verify workspace package names:
 
 ```bash
 pnpm -r list --depth -1
@@ -225,9 +415,17 @@ himvirasat-backend
 @himvirasat/shared
 ```
 
-### Backend exits with missing environment variables
+---
 
-Check that `himvirasat-backend/.env` exists and includes:
+## Backend exits because environment variables are missing
+
+Ensure:
+
+```
+himvirasat-backend/.env
+```
+
+exists and contains:
 
 ```text
 PORT
@@ -237,86 +435,125 @@ JWT_SECRET
 JWT_EXPIRES_IN
 ```
 
-### Frontend cannot reach the backend
+---
 
-Check:
+## Frontend cannot connect to the backend
+
+Verify:
 
 - Backend is running on `http://localhost:3002`
-- `himvirasat-frontend/.env.local` contains `NEXT_PUBLIC_API_URL=http://localhost:3002`
+- `NEXT_PUBLIC_API_URL=http://localhost:3002`
 - Browser requests are not blocked by CORS
 
-### pnpm reports ignored build scripts
+---
 
-The approved native packages are listed in root `pnpm-workspace.yaml` under `allowBuilds`. If new native dependencies are added later, approve them intentionally:
+## pnpm reports ignored build scripts
+
+Approved native builds are listed in:
+
+```text
+pnpm-workspace.yaml
+```
+
+If new native dependencies are introduced:
 
 ```bash
 pnpm approve-builds
 pnpm install
 ```
 
-### `/etc/profile` prints `^M` or parse errors
+---
 
-That is a machine shell configuration issue caused by Windows-style line endings in `/etc/profile`. It is not caused by this repo. Fix the file line endings or ask your system administrator to convert `/etc/profile` to Unix line endings.
+## `/etc/profile` shows `^M` or parse errors
 
-## 11. Clean Start
+This is caused by Windows line endings in your shell configuration.
 
-If local dependencies get into a bad state, remove generated install artifacts and reinstall:
+It is unrelated to this repository.
+
+Convert `/etc/profile` to Unix line endings.
+
+---
+
+# Clean Installation
+
+If dependencies become corrupted:
 
 ```bash
-rm -rf node_modules himvirasat-frontend/node_modules himvirasat-backend/node_modules packages/shared/node_modules
+rm -rf \
+node_modules \
+himvirasat-frontend/node_modules \
+himvirasat-backend/node_modules \
+packages/shared/node_modules
+
 pnpm install
 pnpm build
 ```
 
-Do not delete `pnpm-lock.yaml` unless you intentionally want to refresh dependency resolutions.
+Avoid deleting `pnpm-lock.yaml` unless you intentionally want to regenerate dependency versions.
 
-## 12. Deployment Notes
+---
 
-### Vercel Frontend
+# Deployment
 
-The frontend depends on `@himvirasat/shared`, so Vercel must build the shared package before `next build`.
+## Frontend (Vercel)
 
-The frontend project includes `himvirasat-frontend/vercel.json` with:
+The frontend depends on the shared workspace package.
+
+Build command:
 
 ```bash
 cd .. && pnpm install --frozen-lockfile
-cd .. && pnpm --filter @himvirasat/shared build && pnpm --filter himvirasat-frontend build
+cd .. && pnpm --filter @himvirasat/shared build
+pnpm --filter himvirasat-frontend build
 ```
 
-Keep the Vercel project root directory set to:
+Project Root Directory:
 
 ```text
 himvirasat-frontend
 ```
 
-Set this frontend environment variable in Vercel:
+Environment variable:
 
-```text
-NEXT_PUBLIC_API_URL=https://your-render-backend-url
+```env
+NEXT_PUBLIC_API_URL=https://your-backend-url
 ```
 
-### Render Backend
+---
 
-The safest Render setup is to build from the monorepo root and use pnpm filters.
+## Backend (Render)
 
-Render dashboard settings:
+Recommended configuration:
+
+Root Directory:
 
 ```text
-Root Directory: .
-Build Command: pnpm install --frozen-lockfile && pnpm --filter himvirasat-backend build
-Start Command: pnpm --filter himvirasat-backend start
+.
 ```
 
-The backend build script also builds `@himvirasat/shared` first, so the backend does not start with missing shared package `dist` files.
+Build Command:
 
-Required Render environment variables:
+```bash
+pnpm install --frozen-lockfile
+pnpm --filter himvirasat-backend build
+```
+
+Start Command:
+
+```bash
+pnpm --filter himvirasat-backend start
+```
+
+The backend build automatically builds the shared package before compiling the backend.
+
+Required environment variables:
 
 ```text
 SUPABASE_URL
 SUPABASE_SERVICE_ROLE_KEY
 JWT_SECRET
 JWT_EXPIRES_IN=7d
-FRONTEND_URL=https://your-vercel-frontend-url
+FRONTEND_URL=https://your-frontend-url
 ```
 
-Render injects `PORT` automatically for web services.
+Render automatically injects the `PORT` environment variable.

@@ -13,7 +13,7 @@ const getUserId = (req: AuthenticatedRequest): string | undefined => {
 // POST /submissions
 export const createSubmissionHandler: RequestHandler = async (
   req,
-  res
+  res,
 ): Promise<void> => {
   const startedAt = performance.now();
   const authReq = req as AuthenticatedRequest;
@@ -85,7 +85,7 @@ export const createSubmissionHandler: RequestHandler = async (
     if (historyError) {
       logger.warn(
         "Failed to write initial contribution history record",
-        historyError
+        historyError,
       );
     }
 

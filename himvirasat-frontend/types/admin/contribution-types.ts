@@ -5,10 +5,7 @@
 export type SystemRole = "language_expert" | "language_head" | "super_admin";
 
 export type ContributionStatus =
-  | "under_review"
-  | "flagged"
-  | "approved"
-  | "rejected";
+  "under_review" | "flagged" | "approved" | "rejected";
 
 export type CommentStatus = "open" | "accepted" | "resolved" | "rejected";
 

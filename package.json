@@ -1,0 +1,12 @@
+{
+  "name": "himvirasat",
+  "private": true,
+  "packageManager": "pnpm@11.3.0",
+  "scripts": {
+    "dev:frontend": "pnpm --filter himvirasat-frontend dev",
+    "dev:backend": "pnpm --filter himvirasat-backend dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck"
+  }
+}

@@ -23,11 +23,7 @@ import {
 } from "@/types/admin/contribution-types";
 
 export type QueueFilter =
-  | "my_submissions"
-  | "under_review"
-  | "approved"
-  | "flagged"
-  | "rejected";
+  "my_submissions" | "under_review" | "approved" | "flagged" | "rejected";
 
 interface QueueSidebarProps {
   activeUserId: string;

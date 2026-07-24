@@ -12,6 +12,7 @@ import dashboardRoutes from "./routes/dashboard.routes.js";
 import dataLookupRoutes from "./routes/datalookup.routes.js";
 import reviewQueueRoutes from "./routes/reviewqueue.routes.js";
 import submissionRoutes from "./routes/submission.routes.js";
+import { env } from "./config/env.js";
 import { logger } from "./utils/logger.js";
 export const app = express();
 
@@ -43,6 +44,7 @@ app.use(morgan("dev"));
 const allowedOrigins = [
   "http://localhost:3000",
   "https://him-virasat.vercel.app",
+  env.FRONTEND_URL,
 ].filter((origin): origin is string => Boolean(origin));
 app.use(
   cors({

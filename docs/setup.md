@@ -269,3 +269,54 @@ pnpm build
 ```
 
 Do not delete `pnpm-lock.yaml` unless you intentionally want to refresh dependency resolutions.
+
+## 12. Deployment Notes
+
+### Vercel Frontend
+
+The frontend depends on `@himvirasat/shared`, so Vercel must build the shared package before `next build`.
+
+The frontend project includes `himvirasat-frontend/vercel.json` with:
+
+```bash
+cd .. && pnpm install --frozen-lockfile
+cd .. && pnpm --filter @himvirasat/shared build && pnpm --filter himvirasat-frontend build
+```
+
+Keep the Vercel project root directory set to:
+
+```text
+himvirasat-frontend
+```
+
+Set this frontend environment variable in Vercel:
+
+```text
+NEXT_PUBLIC_API_URL=https://your-render-backend-url
+```
+
+### Render Backend
+
+The safest Render setup is to build from the monorepo root and use pnpm filters.
+
+Render dashboard settings:
+
+```text
+Root Directory: .
+Build Command: pnpm install --frozen-lockfile && pnpm --filter himvirasat-backend build
+Start Command: pnpm --filter himvirasat-backend start
+```
+
+The backend build script also builds `@himvirasat/shared` first, so the backend does not start with missing shared package `dist` files.
+
+Required Render environment variables:
+
+```text
+SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+JWT_SECRET
+JWT_EXPIRES_IN=7d
+FRONTEND_URL=https://your-vercel-frontend-url
+```
+
+Render injects `PORT` automatically for web services.

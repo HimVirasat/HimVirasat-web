@@ -1,129 +1,397 @@
-import Image from "next/image";
 import Link from "next/link";
-import {
-  HeartIcon,
-  PencilSquareIcon,
-  ArrowDownTrayIcon,
-} from "@heroicons/react/24/outline";
+
+import { ArrowRow } from "@/components/mistral/arrow-row";
+import { DialectMarquee } from "@/components/mistral/dialect-marquee";
+import { Eyebrow } from "@/components/mistral/eyebrow";
+import { Hero } from "@/components/mistral/hero";
+import { InkBand } from "@/components/mistral/ink-band";
+import { PixelIcon, type PixelIconName } from "@/components/mistral/pixel-icon";
+import { RuledCell, RuledGrid } from "@/components/mistral/ruled-grid";
+import { SectionHeading } from "@/components/mistral/section-heading";
+import { StickyRailSection } from "@/components/mistral/sticky-rail-section";
+import { TakriMosaic } from "@/components/mistral/takri-mosaic";
 import { Button } from "@/components/ui/button";
-import { SiGithub } from "@icons-pack/react-simple-icons";
-const actionButtonClass =
-  "h-14 w-60 gap-3 rounded-full px-6 text-sm font-medium " +
-  "bg-white/95 text-gray-900 " +
-  "dark:bg-zinc-900 dark:text-zinc-100 " +
-  "shadow-sm ring-1 ring-black/10 dark:ring-white/10 " +
-  "backdrop-blur-sm transition " +
-  "hover:bg-white dark:hover:bg-zinc-800 hover:shadow-md";
+import { dialectsConfig } from "@/lib/dialects/dialect-config";
+import { site } from "@/lib/site";
+import { devToTankri } from "@/lib/transliteration/devToTankri";
+
+const shell = "mx-auto w-full max-w-content px-6 lg:px-10";
+
+/*
+ * TODO(copy): these are the honest, checkable claims we can make today —
+ * each points at a feature that actually exists. Replace with dated news
+ * entries once the project has any.
+ */
+/* The Mandeali item is promoted into the hero's right column, so it is
+   deliberately absent here rather than shown twice. */
+const FEATURED = [
+  {
+    label: "Devanagari and Takri, both directions",
+    description: "Convert between the two scripts in the browser.",
+    href: "/tools/transliterator",
+  },
+  {
+    label: "Translation datasets are public",
+    description: "Versioned, downloadable, free to use in research.",
+    href: "/datasets",
+  },
+];
+
+/* Real Hindi words, transliterated live by the site's own converter. */
+const SCRIPT_SAMPLES = [
+  { deva: "पहाड़", gloss: "mountain" },
+  { deva: "घर", gloss: "house" },
+  { deva: "पानी", gloss: "water" },
+  { deva: "रास्ता", gloss: "path" },
+  { deva: "विरासत", gloss: "heritage" },
+  { deva: "हिमाचल", gloss: "Himachal" },
+];
+
+const ARCHIVE: Array<{
+  icon: PixelIconName;
+  title: string;
+  description: string;
+  href: string;
+}> = [
+  {
+    icon: "book",
+    title: "Vocabulary",
+    description: "Living dictionaries, searchable by dialect and by word.",
+    href: "/vocabulary",
+  },
+  {
+    icon: "stack",
+    title: "Datasets",
+    description: "Open Hindi to dialect translation pairs, versioned.",
+    href: "/datasets",
+  },
+  {
+    icon: "swap",
+    title: "Transliterator",
+    description: "Devanagari to Takri and back, entirely in the browser.",
+    href: "/tools/transliterator",
+  },
+  {
+    icon: "map",
+    title: "Dialects",
+    description: "One archive per dialect, opened as contributors arrive.",
+    href: "/vocabulary",
+  },
+  {
+    icon: "quill",
+    title: "Contribute",
+    description: "Write sentences in your dialect. No technical skill needed.",
+    href: "/contribute",
+  },
+  {
+    icon: "people",
+    title: "Community",
+    description: "Built in the open by people from across Himachal.",
+    href: "/about",
+  },
+];
+
+/* TODO(copy): confirm the framing of these four with the maintainers. */
+const REASONS = [
+  {
+    title: "Nobody else is collecting this",
+    body: "Himachali dialects sit outside every major language dataset. If they are not written down here, they are not written down anywhere.",
+  },
+  {
+    title: "No technical skill required",
+    body: "Write an everyday sentence in your dialect and its Hindi translation. That is the whole contribution.",
+  },
+  {
+    title: "Open from the first line",
+    body: "Every word collected is published under an open licence, free for researchers and model builders alike.",
+  },
+  {
+    title: "Two scripts, one record",
+    body: "Entries carry both Devanagari and Takri, so the older script stays legible to the next generation.",
+  },
+];
+
+const WAYS = [
+  {
+    title: "Contribute words",
+    body: "Add vocabulary and parallel sentences in the dialect you grew up speaking.",
+    href: "/contribute",
+    cta: "Start contributing",
+  },
+  {
+    title: "Verify submissions",
+    body: "Native speakers review what others have written and confirm spelling, sense and usage.",
+    href: "/contribute",
+    cta: "Join the review",
+  },
+  {
+    title: "Build with the data",
+    body: "Download the datasets and use them in research, tooling, or multilingual models.",
+    href: "/datasets",
+    cta: "Browse datasets",
+  },
+];
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/mountains1.png')" }}
-      />
-      <div className="absolute inset-0 bg-white/60 dark:bg-black/85" />
+    <>
+      {/* ── Hero ─────────────────────────────────────────────────────── */}
+      <Hero />
 
-      <main className="relative mx-auto min-h-screen max-w-4xl px-6 py-24 sm:px-12">
-        <div className="flex flex-col items-center text-center">
-          <Image
-            src="/virasat.png"
-            alt="HimVirasat logo"
-            width={84}
-            height={84}
-            priority
-            className="rounded-2xl"
-          />
+      {/* ── Featured ─────────────────────────────────────────────────── */}
+      <section className={`${shell} py-20 md:py-28`}>
+        <Eyebrow size="lg" className="mb-6">
+          Featured
+        </Eyebrow>
+        <ul className="border-border flex flex-col border-t">
+          {FEATURED.map((item) => (
+            <li key={item.href} className="border-border border-b">
+              <ArrowRow
+                href={item.href}
+                label={item.label}
+                description={item.description}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
 
-          <h1 className="mt-6 bg-linear-to-r from-emerald-700 via-green-700 to-amber-600 bg-clip-text text-5xl font-semibold tracking-tight text-transparent">
-            HimVirasat
-          </h1>
+      {/* ── Dialect marquee ──────────────────────────────────────────── */}
+      <DialectMarquee />
 
-          <p className="mt-4 max-w-2xl text-lg leading-8 text-zinc-800 dark:text-zinc-200">
-            A community-driven initiative to preserve Himachal Pradesh’s
-            languages, dialects, traditions, and cultural memory — and bring
-            them into the digital age.
-          </p>
+      {/* ── Dialect strip ────────────────────────────────────────────── */}
+      <section className="border-border border-b">
+        <div className={`${shell} py-10`}>
+          <Eyebrow className="mb-6">Dialects in the archive</Eyebrow>
+          {/* Two columns, not four: the hairlines are drawn by a 1px gap
+              over the container colour, so any cell short of a full row
+              would render as a solid grey block. Cell count here is
+              dialectsConfig.length + 1. */}
+          <div className="bg-border grid gap-px sm:grid-cols-2">
+            {dialectsConfig.map((dialect) => (
+              <Link
+                key={dialect.id}
+                href={`/vocabulary/${dialect.id}`}
+                className="ruled-cell hover:bg-secondary flex flex-col gap-1 px-5 py-6 transition-colors"
+              >
+                <span className="text-title">{dialect.title}</span>
+                {dialect.nativeName && (
+                  <span lang="hi" className="font-deva text-muted-foreground">
+                    {dialect.nativeName}
+                  </span>
+                )}
+                <span className="text-body-sm text-muted-foreground">
+                  {dialect.subtitle}
+                </span>
+              </Link>
+            ))}
+            {/* Only published dialects are listed above. Six more are open
+                for collection but have no vocabulary behind them yet, so
+                they are named on /contribute rather than here. */}
+            <Link
+              href="/contribute"
+              className="ruled-cell hover:bg-secondary flex flex-col gap-1 px-5 py-6 transition-colors"
+            >
+              <span className="text-title text-muted-foreground">
+                Six more collecting
+              </span>
+              <span className="text-body-sm text-muted-foreground">
+                Kangri, Kullvi, Mahasuvi, Kinnauri and more are open for
+                contributions.
+              </span>
+            </Link>
+          </div>
         </div>
+      </section>
 
-        <section className="mt-16 rounded-2xl bg-white/80 p-8 shadow-lg backdrop-blur dark:bg-zinc-900/70">
-          <h2 className="text-2xl font-semibold text-emerald-800 dark:text-emerald-400">
-            Open Translation Datasets for Himachali Dialects
+      {/* ── Script showcase ──────────────────────────────────────────── */}
+      <section className={`${shell} py-20 md:py-28`}>
+        <SectionHeading
+          eyebrow="Two scripts"
+          title="Devanagari today, Takri kept alive."
+          description="Takri was the working script of the western Himalaya before Devanagari displaced it. Every entry in the archive carries both."
+        />
+        <RuledGrid cols="2-3" className="mt-14">
+          {SCRIPT_SAMPLES.map((sample) => (
+            <RuledCell key={sample.deva} className="p-8">
+              <Eyebrow>{sample.gloss}</Eyebrow>
+              <p
+                lang="hi"
+                className="font-deva mt-5 text-4xl leading-none"
+              >
+                {sample.deva}
+              </p>
+              <p
+                aria-hidden
+                className="font-takri text-verdant mt-4 text-4xl leading-none"
+              >
+                {devToTankri(sample.deva)}
+              </p>
+            </RuledCell>
+          ))}
+        </RuledGrid>
+        <div className="mt-10 flex justify-center">
+          <Button asChild variant="secondary">
+            <Link href="/tools/transliterator">Open the transliterator</Link>
+          </Button>
+        </div>
+      </section>
+
+      {/* ── Six-up archive grid ──────────────────────────────────────── */}
+      <section className={`${shell} py-20 md:py-28`}>
+        <SectionHeading
+          eyebrow="The archive"
+          title="Everything in one place."
+        />
+        <RuledGrid cols="2-3" className="mt-14">
+          {ARCHIVE.map((item) => (
+            <Link
+              key={item.title}
+              href={item.href}
+              className="ruled-cell hover:bg-secondary group flex flex-col p-8 transition-colors"
+            >
+              <PixelIcon name={item.icon} className="text-verdant size-7" />
+              <h3 className="text-title mt-5">{item.title}</h3>
+              <p className="text-body-sm text-muted-foreground mt-2 flex-1">
+                {item.description}
+              </p>
+              <PixelIcon
+                name="chevron-right"
+                className="text-muted-foreground mt-6 size-4 transition-transform duration-300 group-hover:translate-x-1"
+              />
+            </Link>
+          ))}
+        </RuledGrid>
+      </section>
+
+      {/* ── Deep dives ───────────────────────────────────────────────── */}
+      <StickyRailSection
+        eyebrow="Vocabulary"
+        railTitle="Living dictionaries, one dialect at a time."
+        railFooter="Search by word, by sense, or by dialect."
+      >
+        <div className="border-border flex flex-col gap-6 border-b px-6 py-16 lg:px-12 lg:py-24">
+          <h2 className="text-display-md max-w-2xl text-balance">
+            A word survives if somebody writes it down.
           </h2>
-
-          <p className="mt-4 text-base leading-7 text-zinc-700 dark:text-zinc-300">
-            We are building open, structured Hindi ↔ Himachali dialect
-            translation datasets by collecting parallel sentences written by
-            native speakers. Contributors simply write everyday sentences in
-            their dialect along with Hindi translations. No technical knowledge
-            required.
+          <p className="text-body-lg text-muted-foreground max-w-2xl">
+            Each dialect gets its own searchable archive: the word, how it is
+            said, what it means, and the Hindi it maps to. Entries come from
+            native speakers and are reviewed by native speakers.
           </p>
+          <div>
+            <Button asChild variant="secondary">
+              <Link href="/vocabulary">Search the vocabulary</Link>
+            </Button>
+          </div>
+        </div>
+      </StickyRailSection>
 
-          <p className="mt-4 text-base leading-7 text-zinc-700 dark:text-zinc-300">
-            These datasets will be freely available for research and used to
-            fine-tune multilingual AI models, ensuring Himachali languages are
-            not left behind in the digital age.
+      <StickyRailSection
+        eyebrow="Datasets"
+        railTitle="Open translation data, versioned and free."
+        railFooter="Published for research and model training."
+      >
+        <div className="border-border flex flex-col gap-6 border-b px-6 py-16 lg:px-12 lg:py-24">
+          <h2 className="text-display-md max-w-2xl text-balance">
+            Himachali dialects belong in the models too.
+          </h2>
+          <p className="text-body-lg text-muted-foreground max-w-2xl">
+            Contributions are compiled into structured Hindi to dialect
+            translation pairs and published openly, so that the languages of
+            Himachal are represented wherever multilingual systems are built.
           </p>
-        </section>
+          <div>
+            <Button asChild variant="secondary">
+              <Link href="/datasets">Browse the datasets</Link>
+            </Button>
+          </div>
+        </div>
+      </StickyRailSection>
 
-        <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:flex-wrap sm:justify-center">
-          <Button asChild className={actionButtonClass}>
-            <Link
-              href="https://discord.gg/PgJWcFXRTB"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Image
-                src="/virasat.png"
-                alt="HimVirasat Discord"
-                width={36}
-                height={36}
-                className="rounded-full"
-              />
-              HimVirasat Discord
-            </Link>
-          </Button>
+      <StickyRailSection
+        eyebrow="Tools"
+        railTitle="Script tooling that runs in the browser."
+        railFooter="No account, no upload, no server round trip."
+      >
+        <div className="border-border flex flex-col gap-6 border-b px-6 py-16 lg:px-12 lg:py-24">
+          <h2 className="text-display-md max-w-2xl text-balance">
+            Read Takri without learning Takri first.
+          </h2>
+          <p className="text-body-lg text-muted-foreground max-w-2xl">
+            The transliterator maps Devanagari to Takri and back, character by
+            character, so older manuscripts and inscriptions stay approachable
+            to anyone who can read Hindi.
+          </p>
+          <div>
+            <Button asChild variant="secondary">
+              <Link href="/tools/transliterator">Open the transliterator</Link>
+            </Button>
+          </div>
+        </div>
+      </StickyRailSection>
 
-          <Button asChild className={actionButtonClass}>
-            <Link
-              href="https://discord.gg/wHjT3vMAVx"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Image
-                src="/hpdiscord.png"
-                alt="Himachal Pradesh Discord"
-                width={36}
-                height={36}
-                className="rounded-full"
-              />
-              HP Discord Community
-            </Link>
-          </Button>
+      {/* ── Why contribute ───────────────────────────────────────────── */}
+      <section className={`${shell} py-20 md:py-28`}>
+        <SectionHeading eyebrow="Why contribute" title="Four honest reasons." />
+        <RuledGrid cols="2-4" className="mt-14">
+          {REASONS.map((reason) => (
+            <RuledCell key={reason.title} className="p-8">
+              <h3 className="text-title text-balance">{reason.title}</h3>
+              <p className="text-body-sm text-muted-foreground mt-3">
+                {reason.body}
+              </p>
+            </RuledCell>
+          ))}
+        </RuledGrid>
+      </section>
 
-          <Button asChild className={`${actionButtonClass}`}>
-            <Link href="/datasets">
-              <ArrowDownTrayIcon className="h-16 w-16 scale-150" /> Datasets
-            </Link>
+      {/* ── Ways to help ─────────────────────────────────────────────── */}
+      <InkBand>
+        <div className={`${shell} py-20 md:py-28`}>
+          <SectionHeading
+            eyebrow="Ways to help"
+            title="Three ways in, whatever you bring."
+            className="mb-14"
+          />
+          <div className="bg-ink-border grid gap-px sm:grid-cols-3">
+            {WAYS.map((way) => (
+              <div key={way.title} className="bg-ink flex flex-col p-8 lg:p-10">
+                <h3 className="text-title">{way.title}</h3>
+                <p className="text-body-sm mt-3 flex-1 text-muted-foreground">
+                  {way.body}
+                </p>
+                <div className="mt-8">
+                  <Button asChild variant="secondary">
+                    <Link href={way.href}>{way.cta}</Link>
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </InkBand>
+
+      {/* ── Closing ──────────────────────────────────────────────────── */}
+      <section className={`${shell} py-24 md:py-32`}>
+        <SectionHeading
+          as="h2"
+          title="Preserve your mother tongue."
+          description={`${site.name} is an open effort. The archive grows only as fast as people write into it.`}
+        />
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+          <Button asChild size="lg">
+            <Link href="/contribute">Start contributing</Link>
           </Button>
-          <Button asChild className={`${actionButtonClass}`}>
-            <Link href="/contribute">
-              <HeartIcon className="h-16 w-16 scale-150 text-red-500 fill-red-500" />
-              <span>Contribute</span>
-            </Link>
-          </Button>
-          <Button asChild className={`${actionButtonClass}`}>
-            <Link href="/vocabulary">
-              <PencilSquareIcon className="h-16 w-16 scale-150" />
-              Vocabulary
-            </Link>
+          <Button asChild size="lg" variant="secondary">
+            <a href={site.links.repo} target="_blank" rel="noreferrer">
+              Read the source
+            </a>
           </Button>
         </div>
-        <footer className="mt-20 text-center text-md text-black dark:text-zinc-400">
-          HimVirasat is an open, community-driven effort to preserve Himachal’s
-          heritage for future generations.
-        </footer>
-      </main>
-    </div>
+      </section>
+
+      <TakriMosaic variant="band" seed={19} />
+    </>
   );
 }

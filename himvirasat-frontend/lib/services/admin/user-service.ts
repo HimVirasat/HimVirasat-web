@@ -1,10 +1,9 @@
+import { API_URL } from "@/lib/constants";
 import type {
   DeleteLanguageExpertResponse,
   LanguageExpert,
   LanguageHead,
 } from "@/types/admin/user";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export interface CreateLanguageExpertRequest {
   fullName: string;

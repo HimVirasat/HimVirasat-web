@@ -2,7 +2,6 @@ import { API_URL } from "@/lib/constants";
 
 export class AdminAuthService {
   static async login(username: string, password: string) {
-    console.log(API_URL);
     const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       credentials: "include",

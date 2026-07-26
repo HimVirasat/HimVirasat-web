@@ -9,3 +9,8 @@ coverage/
 !.env.example
 !**/.env.example
 .pnpm-debug.log*
+
+# The Vercel link lives at the repo root now: vercel.json does `cd ..`, so
+# the deployment root has to be the workspace root with the project's Root
+# Directory pointing at himvirasat-frontend.
+.vercel

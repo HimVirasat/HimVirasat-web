@@ -1,48 +1,58 @@
-import Image from "next/image";
-import DialectLink from "@/components/vocabulary/DialectLink";
+import type { Metadata } from "next";
+
+import { PixelIcon } from "@/components/mistral/pixel-icon";
+import { RuledGrid } from "@/components/mistral/ruled-grid";
+import { SectionHeading } from "@/components/mistral/section-heading";
+import { ToolCard } from "@/components/tools/tool-card";
+import { site } from "@/lib/site";
+import { devToTankri } from "@/lib/transliteration/devToTankri";
+
+export const metadata: Metadata = {
+  title: "Language Tools",
+};
 
 export default function ToolsPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden text-slate-900 dark:text-slate-100">
-      {/* Background */}
-      <div className="absolute inset-0">
-        <Image
-          src="/mountains1.png"
-          alt="Mountain background"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
+    <div className="mx-auto w-full max-w-content px-6 py-20 md:py-28 lg:px-10">
+      <SectionHeading
+        as="h1"
+        align="left"
+        eyebrow="Tools"
+        nativeEcho={devToTankri("उपकरण")}
+        title="Language tools"
+        description="Utilities for working with scripts, datasets, and the day-to-day tasks of language preservation."
+      />
+
+      <RuledGrid cols={2} className="mt-14">
+        <ToolCard
+          href="/tools/transliterator"
+          title="Transliterator"
+          description="Convert between Devanagari and Takri, the script once used across Himachal."
+          glyph="𑚀"
         />
-      </div>
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-white/60 dark:bg-black/85" />
-
-      {/* Content */}
-      <main className="relative z-10 min-h-screen flex items-center">
-        <div className="max-w-5xl px-6 sm:px-10">
-          <span className="uppercase tracking-widest text-xs opacity-70 font-semibold">
-            Tools
+        <a
+          href={`${site.links.repo}/issues`}
+          target="_blank"
+          rel="noreferrer"
+          className="ruled-cell hover:bg-secondary group flex h-full flex-col p-8 transition-colors"
+        >
+          <span
+            aria-hidden
+            className="bg-secondary border-border mb-6 grid size-14 place-items-center border border-dashed"
+          >
+            <PixelIcon name="plus" className="text-muted-foreground" />
           </span>
-
-          <h1 className="mt-2 text-4xl md:text-5xl font-semibold">Tools</h1>
-
-          <p className="mt-4 text-lg max-w-xl opacity-80 leading-relaxed">
-            Utility tools to assist contributors in working with scripts,
-            datasets, and language preservation tasks.
+          <h2 className="text-title">Propose a tool</h2>
+          <p className="text-body-sm text-muted-foreground mt-2 flex-1">
+            Open an issue on GitHub with your idea.
           </p>
-
-          {/* Tools Grid */}
-          <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-xl">
-            <DialectLink
-              href="/tools/transliterator"
-              title="Transliterator"
-              subtitle="Convert between Devanagari and Tankri scripts."
-            />
-          </div>
-        </div>
-      </main>
+          <PixelIcon
+            name="arrow-up-right"
+            className="text-muted-foreground mt-6 size-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+          />
+        </a>
+      </RuledGrid>
     </div>
   );
 }

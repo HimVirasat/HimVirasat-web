@@ -3,130 +3,753 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ═══════════════════════════════════════════════════════════════════════
+   Warm off-white canvas, hairline-ruled grids, near-zero shadow, flame
+   accent ramp. Structure comes from 1px rules, not from fills or
+   elevation. Colour is decoration, never the only carrier of meaning.
+   ═══════════════════════════════════════════════════════════════════ */
+
 @theme inline {
+  /* ── Fonts ─────────────────────────────────────────────────────────
+     Inter carries body copy, Geist the display sizes, Space Mono
+     the uppercase eyebrows. Devanagari and Takri are content faces and
+     are never used for chrome. */
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji";
+  --font-display:
+    var(--font-geist), var(--font-inter), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-space-mono), ui-monospace, monospace;
+  --font-deva: var(--font-noto-serif-deva), Georgia, serif;
+  --font-takri: var(--font-noto-takri), sans-serif;
+
+  /* ── Type scale ────────────────────────────────────────────────────
+     Tracking is in em so it stays proportional across the ramp: -0.01em
+     on display sizes, +0.01/+0.02em on the small UI sizes. */
+  --text-display-xl: 3.5rem;
+  --text-display-xl--line-height: 1.05;
+  --text-display-xl--letter-spacing: -0.01em;
+  --text-display-xl--font-weight: 500;
+
+  --text-display-lg: 2.75rem;
+  --text-display-lg--line-height: 1.08;
+  --text-display-lg--letter-spacing: -0.01em;
+  --text-display-lg--font-weight: 500;
+
+  --text-display-md: 2rem;
+  --text-display-md--line-height: 1.15;
+  --text-display-md--letter-spacing: -0.01em;
+  --text-display-md--font-weight: 500;
+
+  --text-title: 1.5rem;
+  --text-title--line-height: 1.25;
+  --text-title--letter-spacing: -0.01em;
+  --text-title--font-weight: 500;
+
+  --text-label: 1rem;
+  --text-label--line-height: 1.5;
+  --text-label--letter-spacing: 0.01em;
+  --text-label--font-weight: 500;
+
+  --text-nav: 0.875rem;
+  --text-nav--line-height: 1.4;
+  --text-nav--letter-spacing: 0.02em;
+  --text-nav--font-weight: 500;
+
+  --text-body-lg: 1.25rem;
+  --text-body-lg--line-height: 1.6;
+  --text-body-lg--letter-spacing: -0.02em;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.6;
+  --text-body--letter-spacing: -0.01em;
+
+  --text-body-sm: 0.8125rem;
+  --text-body-sm--line-height: 1.55;
+
+  --text-eyebrow: 0.6875rem;
+  --text-eyebrow--line-height: 1.4;
+
+  --text-eyebrow-lg: 0.8125rem;
+  --text-eyebrow-lg--line-height: 1.4;
+
+  /* ── Containers and rhythm ─────────────────────────────────────────
+     1728px outer shell, 1360px ruled content band, 1024px prose. */
+  --container-shell: 108rem;
+  --container-content: 85rem;
+  --container-prose: 64rem;
+  --spacing-section: 10rem;
+
+  /* ── shadcn contract, re-pointed ───────────────────────────────────
+     The ui/ primitives read these, so changing them here restyles the
+     whole surface area including the admin dashboard. */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* ── Surfaces beyond the shadcn contract ───────────────────────────
+     `surface-3` is the deepest warm tint (mosaic neutrals, table zebra).
+     `ink` is the full-bleed dark band; it stays dark in both themes. */
+  --color-surface-3: var(--surface-3);
+  --color-ink: #0a0a0c;
+  --color-ink-foreground: #fbfbf8;
+  --color-ink-border: #26262b;
+  --color-hairline-strong: var(--hairline-strong);
+
+  /* ── Deodar ramp ───────────────────────────────────────────────────
+     Himachal in three registers: forest green, glacial blue-green, and
+     the earth browns of kath-kuni timber. Fill-only — the ramp spans
+     both light and dark values, so glyphs sitting on a tile pick their
+     ink per tone (see components/mistral/takri-mosaic.tsx). When a green
+     must carry text, use `text-verdant`: the one theme-aware step, dark
+     enough for the cream canvas and light enough for the near-black. */
+  --color-pine-100: #7fb69b;
+  --color-pine-300: #4e9578;
+  --color-pine-500: #2e7358;
+  --color-pine-700: #1c5341;
+  --color-pine-900: #0f3a2e;
+
+  /* Glacial melt — the cool counterpoint, and the snow on the mark. */
+  --color-glacier-300: #7ec6c6;
+  --color-glacier-500: #3e9ca3;
+
+  /* Timber and slate — used sparingly, and for warning states. */
+  --color-clay-400: #a98363;
+  --color-clay-600: #6e4e36;
+
+  --color-verdant: var(--verdant);
+
+  /* ── Radii ─────────────────────────────────────────────────────────
+     Derived from --radius: sm 4 · md 6 · lg 8 · xl 12. Mosaic tiles and
+     ruled cells stay square and opt out entirely. */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
 }
 
+/* ── Light: warm off-white ──────────────────────────────────────────── */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.5rem;
+
+  --background: #fbfbf8;
+  --foreground: #07070b;
+  --card: #fbfbf8;
+  --card-foreground: #07070b;
+  --popover: #ffffff;
+  --popover-foreground: #07070b;
+
+  /* Primary action is near-black, not a brand colour. */
+  --primary: #07070b;
+  --primary-foreground: #fbfbf8;
+  --secondary: #f5f4ef;
+  --secondary-foreground: #07070b;
+  --muted: #f5f4ef;
+  --muted-foreground: #5a5a63;
+  --accent: #f5f4ef;
+  --accent-foreground: #07070b;
+  --destructive: #e51300;
+
+  /* Hairlines carry all the structure. */
+  --border: #e4e3de;
+  --input: #e4e3de;
+  --ring: #3e9ca3;
+
+  --surface-3: #ebe9e0;
+  --hairline-strong: #c9c9c4;
+  /* pine-700 — 8.4:1 on the cream canvas. */
+  --verdant: #1c5341;
+
+  /* Mosaic snow tones. Kept separate from the surface palette so the tiles
+     do not follow the canvas when the theme goes dark. Seven steps, not
+     three: the mosaic caps every colour at two tiles per frame, and the
+     `band` variant carries thirteen neutral tiles — three tones could only
+     ever cover six. All stay light enough for near-black glyph ink. */
+  --mosaic-1: #f5f4ef;
+  --mosaic-2: #ebe9e0;
+  --mosaic-3: #e2e0d6;
+  --mosaic-4: #d8d5c9;
+  --mosaic-5: #c9c9c4;
+  --mosaic-6: #bcbcb5;
+  --mosaic-7: #aeaea6;
+
+  --chart-1: #2e7358;
+  --chart-2: #3e9ca3;
+  --chart-3: #7fb69b;
+  --chart-4: #a98363;
+  --chart-5: #7ec6c6;
+
+  --sidebar: #fbfbf8;
+  --sidebar-foreground: #07070b;
+  --sidebar-primary: #07070b;
+  --sidebar-primary-foreground: #fbfbf8;
+  --sidebar-accent: #f5f4ef;
+  --sidebar-accent-foreground: #07070b;
+  --sidebar-border: #e4e3de;
+  --sidebar-ring: #3e9ca3;
 }
 
+/* ── Dark: neutral near-black, same structure ───────────────────────── */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #0a0a0c;
+  --foreground: #fbfbf8;
+  --card: #0a0a0c;
+  --card-foreground: #fbfbf8;
+  --popover: #121215;
+  --popover-foreground: #fbfbf8;
+
+  --primary: #fbfbf8;
+  --primary-foreground: #0a0a0c;
+  --secondary: #121215;
+  --secondary-foreground: #fbfbf8;
+  --muted: #121215;
+  --muted-foreground: #9b9ba3;
+  --accent: #1a1a1e;
+  --accent-foreground: #fbfbf8;
+  --destructive: #ff5229;
+
+  --border: #26262b;
+  --input: #26262b;
+  --ring: #7ec6c6;
+
+  --surface-3: #1a1a1e;
+  --hairline-strong: #34343a;
+  /* pine-700 is only 1.7:1 here — step to the light end of the ramp. */
+  --verdant: #7fb69b;
+
+  /* Mosaic tiles stay light in both themes, so the block always reads as
+     snow-and-forest rather than dissolving into the canvas. */
+  --mosaic-1: #fbfbf8;
+  --mosaic-2: #f2f1ec;
+  --mosaic-3: #e9e8e1;
+  --mosaic-4: #dcdbd4;
+  --mosaic-5: #cfcec6;
+  --mosaic-6: #c2c1b8;
+  --mosaic-7: #b4b3aa;
+
+  --sidebar: #08080a;
+  --sidebar-foreground: #fbfbf8;
+  --sidebar-primary: #fbfbf8;
+  --sidebar-primary-foreground: #0a0a0c;
+  --sidebar-accent: #121215;
+  --sidebar-accent-foreground: #fbfbf8;
+  --sidebar-border: #26262b;
+  --sidebar-ring: #7ec6c6;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
+  /* Hide the page scrollbar (scrolling still works) and stop full-bleed
+     mosaics from creating sideways overflow. */
+  html {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  html::-webkit-scrollbar {
+    display: none;
+  }
+  html,
   body {
-    @apply bg-background text-foreground;
+    overflow-x: clip;
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    letter-spacing: -0.01em;
+  }
+
+  /* Must be @apply, not `font-family: var(--font-display)` — `@theme
+     inline` inlines its values into the generated utilities instead of
+     emitting :root custom properties, so the raw var() is empty here. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background-color: #7ec6c6;
+    color: #07070b;
   }
 }
+
+/* ── Ink band ────────────────────────────────────────────────────────
+   Full-bleed dark section. Re-themes its children so shadcn primitives
+   nested inside pick up the right hairline and muted values. Identical
+   in light and dark themes by design. */
+.surface-ink {
+  --background: #0a0a0c;
+  --foreground: #fbfbf8;
+  --card: #0a0a0c;
+  --card-foreground: #fbfbf8;
+  --popover: #121215;
+  --popover-foreground: #fbfbf8;
+  --primary: #fbfbf8;
+  --primary-foreground: #0a0a0c;
+  --secondary: #121215;
+  --secondary-foreground: #fbfbf8;
+  --muted: #121215;
+  --muted-foreground: #9b9ba3;
+  --accent: #1a1a1e;
+  --accent-foreground: #fbfbf8;
+  --border: #26262b;
+  --input: #26262b;
+  --surface-3: #1a1a1e;
+  --hairline-strong: #34343a;
+  --mosaic-1: #fbfbf8;
+  --mosaic-2: #f2f1ec;
+  --mosaic-3: #e9e8e1;
+  --mosaic-4: #dcdbd4;
+  --mosaic-5: #cfcec6;
+  --mosaic-6: #c2c1b8;
+  --mosaic-7: #b4b3aa;
+  background-color: #0a0a0c;
+  color: #fbfbf8;
+}
+
+/* Hairlines inside a ruled grid are drawn by a 1px gap over the
+   container's border colour (see components/mistral/ruled-grid.tsx), so
+   cells need an opaque background to sit on top of it. */
+.ruled-cell {
+  background-color: var(--background);
+}
+
+/* ── Quiet link ──────────────────────────────────────────────────────
+   No underline at rest; the row tints on hover instead. */
+@utility link-quiet {
+  text-decoration-line: none;
+  transition: color 0.2s ease;
+  &:hover {
+    color: var(--foreground);
+  }
+}
+
+/* ── Pixel-arrow row ─────────────────────────────────────────────────
+   List and menu rows slide a pixel arrow in from the left while the
+   label shifts right, over 300ms with a 50ms delay. Used by the
+   mega-menu and every ruled link list. */
+@utility row-arrow {
+  & [data-arrow] {
+    transform: translateX(-2.5rem);
+    transition: transform 0.3s ease 0.05s;
+  }
+  & [data-arrow-label] {
+    transition: transform 0.3s ease 0.05s;
+  }
+  &:hover [data-arrow],
+  &:focus-visible [data-arrow] {
+    transform: translateX(0);
+  }
+  &:hover [data-arrow-label],
+  &:focus-visible [data-arrow-label] {
+    transform: translateX(1.75rem);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    & [data-arrow],
+    & [data-arrow-label] {
+      transition: none;
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Motion
+   Short distances, few durations, one curve. Reveals move 4px over 200ms;
+   entrances land in 500ms; only ambient loops run longer. Everything is
+   disabled wholesale under prefers-reduced-motion at the end of this file.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Scroll reveal (JS-gated so no-JS users always see content) ─────── */
+html.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 0.2s ease-in-out,
+    transform 0.2s ease-in-out;
+  transition-delay: var(--reveal-delay, 0ms);
+}
+html.js [data-reveal][data-revealed="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Block entrance ──────────────────────────────────────────────────
+   Tiles fall in and settle: land, squash to 95%, overshoot to 102%, rest.
+   The squash is what stops a grid of falling squares reading as a slide. */
+@keyframes tile-fall {
+  0% {
+    opacity: 0;
+    transform: translateY(-200px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(0) scaleY(0.95);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+/* Rotated tiles scale in instead of falling — a diamond dropping from
+   above reads as debris, where scaling reads as placement. */
+@keyframes tile-scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── Mosaic ambient loop ─────────────────────────────────────────────
+   Every tile is a four-sided prism. It turns a quarter at a time, and
+   each face carries its own colour *and* its own content — so a tile can
+   come back round with a different letter, a different motif, or nothing
+   at all.
+
+   No perspective, and therefore no translateZ on the faces. Under
+   orthographic projection a face rotated ±90° is edge-on and has zero
+   width whatever its depth, so the four faces need no Z offset to sit on
+   a prism. That removes the container-query units this would otherwise
+   need to know half a tile's width, and it guarantees the turn can never
+   overshoot its cell — which matters, because tiles butt together with
+   no gap.
+
+   This replaces a `background-color` keyframe. That animated a paint
+   property on every tile; this animates a transform on one element per
+   tile. Same count, compositor instead of paint. */
+/* A tile holds each face for almost a quarter of the loop and turns for
+   about 3% of it. That is what keeps the mosaic still: with the tiles'
+   start offsets spread evenly across a quarter-loop, turns fire one at a
+   time and only 4 x tiles x 0.03 of them overlap — about three or four in
+   the hero at any moment, the rest motionless.
+
+   Two axes and two directions, chosen per tile from the seed, so a turn
+   can go left, right, up or down. */
+@keyframes tile-turn-y {
+  0%,
+  22% {
+    transform: rotateY(0deg);
+  }
+  25%,
+  47% {
+    transform: rotateY(-90deg);
+  }
+  50%,
+  72% {
+    transform: rotateY(-180deg);
+  }
+  75%,
+  97% {
+    transform: rotateY(-270deg);
+  }
+  100% {
+    transform: rotateY(-360deg);
+  }
+}
+
+@keyframes tile-turn-x {
+  0%,
+  22% {
+    transform: rotateX(0deg);
+  }
+  25%,
+  47% {
+    transform: rotateX(-90deg);
+  }
+  50%,
+  72% {
+    transform: rotateX(-180deg);
+  }
+  75%,
+  97% {
+    transform: rotateX(-270deg);
+  }
+  100% {
+    transform: rotateX(-360deg);
+  }
+}
+
+/* Size containment so a face can address the tile's own width in `cqw`,
+   which is how it finds the half-tile depth it has to sit at. Safe here:
+   the tile is sized by the grid and `aspect-square`, never by what is
+   inside it. The containment is on the tile rather than on the cube, so
+   it cannot flatten the cube's 3D context. */
+.mosaic-tile {
+  container-type: size;
+}
+
+.mosaic-cube {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.mosaic-face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  /* The face 180° away is turned away from the viewer; without this you
+     see it mirrored through the one in front. */
+  backface-visibility: hidden;
+}
+
+@keyframes mosaic-diamond {
+  0% {
+    rotate: 45deg;
+  }
+  50% {
+    rotate: 135deg;
+  }
+  100% {
+    rotate: 45deg;
+  }
+}
+
+/* Default mosaic: tiles fall in, and the prism turns.
+   `tile-fall` is the reference's block-entrance, scoped in their stylesheet
+   to the bento and markitecture sections — NOT the hero. It is correct for
+   the archive grid and wrong for the hero band, which is why the hero opts
+   out below. */
+[data-mosaic][data-revealed="true"] .mosaic-tile {
+  animation: tile-fall 0.5s ease-in backwards;
+  animation-delay: calc(var(--i, 0) * 30ms);
+}
+
+[data-mosaic][data-revealed="true"] .mosaic-tile[data-kind="diamond"] {
+  animation-name: tile-scale-in;
+}
+
+/* Hero mosaic: no entrance on the tiles at all. The reference fades the
+   whole container in and the tile motion is a continuous loop. */
+[data-mosaic="hero"][data-revealed="true"] .mosaic-tile,
+[data-mosaic="hero"][data-revealed="true"] .mosaic-tile[data-kind="diamond"] {
+  animation: none;
+}
+
+/* `--turn-slot` is the tile's position in a shuffled, evenly spaced queue,
+   as a fraction of one quarter-loop — a tile's own turns are a quarter
+   apart, so spreading offsets over a quarter covers the whole cycle
+   uniformly. The delay is negative, so every tile is already somewhere in
+   its cycle on the first frame rather than all starting together.
+
+   The easing applies per segment. Between two keyframes holding the same
+   angle it does nothing; across a turn it gives the ease-in-out. */
+[data-mosaic][data-revealed="true"] .mosaic-cube {
+  animation: tile-turn-y var(--mosaic-loop, 48s) ease-in-out infinite;
+  animation-delay: calc(var(--mosaic-loop, 48s) / -4 * var(--turn-slot, 0));
+}
+
+[data-mosaic][data-revealed="true"] .mosaic-cube[data-axis="x"] {
+  animation-name: tile-turn-x;
+}
+
+[data-mosaic][data-revealed="true"] .mosaic-cube[data-dir="reverse"] {
+  animation-direction: reverse;
+}
+
+[data-mosaic][data-revealed="true"] .mosaic-diamond {
+  animation: mosaic-diamond var(--mosaic-loop, 48s) ease-in-out infinite;
+}
+
+/* Stop the loop once a mosaic leaves the viewport. A CSS animation runs
+   whether or not anything can see it, so without this every mosaic on the
+   page is turning from the moment it loads and the page never goes idle.
+
+   The attribute is written straight to the node by an IntersectionObserver
+   rather than through React state, so scrolling past a mosaic costs no
+   re-render. Absent attribute means running, so a browser without
+   IntersectionObserver — or markup before hydration — behaves as before. */
+[data-mosaic][data-in-view="false"] .mosaic-tile,
+[data-mosaic][data-in-view="false"] .mosaic-cube,
+[data-mosaic][data-in-view="false"] .mosaic-diamond {
+  animation-play-state: paused;
+}
+
+/* ── Headline character rise ─────────────────────────────────────────
+   Characters slide up from behind a per-line mask, rather than fading.
+   The reference splits the title into lines/words/chars, clips each line,
+   and tweens every character from y:100% to 0 on a stagger that grows
+   with character index and carries a random multiplier — so the line
+   resolves left to right but unevenly, never as a mechanical sweep.
+
+   Delays are seeded, not random, so SSR and the client agree. */
+@keyframes char-rise {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* The mask. Nothing outside the line box is ever visible, which is what
+   makes characters appear to emerge from the baseline rather than fly in. */
+.hero-line {
+  display: block;
+  overflow: hidden;
+  /* Descenders need headroom or the mask clips them; the reference uses
+     the same 1.15 factor on its measured line height. */
+  padding-bottom: 0.15em;
+  margin-bottom: -0.15em;
+}
+
+.hero-char {
+  display: inline-block;
+  white-space: pre;
+  animation: char-rise 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+  animation-delay: var(--char-delay, 0ms);
+}
+
+/* `grow`: the line box itself opens from nothing, so the block builds
+   downward while the characters rise inside it. */
+@keyframes line-grow {
+  from {
+    max-height: 0;
+  }
+  to {
+    max-height: 1.3em;
+  }
+}
+
+.hero-line-grow {
+  animation: line-grow 0.5s ease-in-out backwards;
+  animation-delay: var(--line-delay, 0ms);
+}
+
+/* The hero used to pin its first screen with a `.hero-pin` sticky rule
+   while a second screen scrolled over it. The hero is now a scrubbed GSAP
+   timeline that owns its own sticky container, so that rule is gone. */
+
+/* ── Menu unroll ─────────────────────────────────────────────────────
+   Panels unroll downward rather than fading in place. */
+@keyframes unroll-in {
+  0% {
+    opacity: 0;
+    max-height: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    max-height: 40rem;
+  }
+}
+
+.animate-unroll-in {
+  animation: unroll-in 0.5s forwards ease-in-out;
+  overflow: hidden;
+}
+
+/* ── Small-element entrance ──────────────────────────────────────────
+   The only overshoot in the system, reserved for chips and badges. */
+@keyframes pop-in {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-pop-in {
+  animation: pop-in 0.3s forwards ease-in-out;
+}
+
+/* ── Scroll cue ──────────────────────────────────────────────────────
+   Three stacked chevrons pulsing in sequence. */
+@keyframes arrow-cue {
+  0%,
+  40% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  60%,
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.animate-arrow-cue {
+  animation: arrow-cue 2s linear infinite;
+}
+
+/* ── Marquee ─────────────────────────────────────────────────────────
+   The track holds the sequence twice and moves exactly -50%, so the wrap
+   is seamless. */
+@keyframes marquee-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee-scroll var(--marquee-duration, 40s) linear infinite;
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
 @keyframes fade-slide {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -135,28 +758,60 @@
 }
 
 .animate-fade-slide {
-  animation: fade-slide 0.4s ease-out forwards;
+  animation: fade-slide 0.2s ease-in-out forwards;
 }
 
-@import "tailwindcss";
-@import "tw-animate-css";
-
-@utility glass {
-  background-color: oklch(from var(--background) l c h / 40%);
-  backdrop-filter: blur(12px) saturate(150%);
-  -webkit-backdrop-filter: blur(12px) saturate(150%);
-  border: 1px solid var(--border);
+/* Mosaic entering the hero: a plain fade, held back just long enough for
+   the headline's first words to land first. */
+.hero-fade-in {
+  animation: fade-in 0.6s 0.3s ease-in-out both;
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+@keyframes fade-in {
+  from {
+    opacity: 0;
   }
-  body {
-    @apply bg-background text-foreground;
+  to {
+    opacity: 1;
   }
 }
 
-@utility text-brand {
-  @apply bg-linear-to-r from-emerald-700 via-green-700 to-amber-600 bg-clip-text text-transparent;
+/* ── Reduced motion ──────────────────────────────────────────────────
+   Everything above resolves to its end state. Ambient loops stop rather
+   than freezing mid-phase, which would leave tiles on an arbitrary
+   colour; `animation: none` returns them to their painted fill. */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  [data-mosaic] .mosaic-tile,
+  [data-mosaic] .mosaic-cube,
+  [data-mosaic] .mosaic-diamond,
+  .animate-unroll-in,
+  .animate-pop-in,
+  .animate-arrow-cue,
+  .animate-fade-slide,
+  .marquee-track,
+  .hero-char,
+  .hero-line-grow,
+  .hero-fade-in {
+    animation: none !important;
+  }
+  /* The marquee is the one loop that leaves content off-screen when it
+     stops, because the track is translated. Reset it so the first copy
+     of the list is the one showing. */
+  .marquee-track {
+    transform: none !important;
+  }
+  /* The mask exists only to hide characters mid-rise; with no rise it
+     would still clip descenders, so it is released too. */
+  .hero-line {
+    overflow: visible;
+  }
+  .animate-unroll-in {
+    max-height: none;
+    opacity: 1;
+  }
 }

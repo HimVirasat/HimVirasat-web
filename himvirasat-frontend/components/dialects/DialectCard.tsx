@@ -1,30 +1,65 @@
 import Link from "next/link";
 
+import { Eyebrow } from "@/components/mistral/eyebrow";
+import { PixelIcon } from "@/components/mistral/pixel-icon";
+import { Button } from "@/components/ui/button";
+
 type DialectCardProps = {
   name: string;
   formUrl: string;
 };
 
-export default function DialectCard({ name, formUrl }: DialectCardProps) {
-  return (
-    <div className="rounded-2xl bg-white/90 p-6 shadow dark:bg-zinc-900/80">
-      <h3 className="text-lg font-semibold text-emerald-700 dark:text-emerald-400">
-        {name}
-      </h3>
+/** Dialect → district, only where the mapping is unambiguous. */
+const DISTRICT_MAP: Array<[pattern: string, district: string]> = [
+  ["kangri", "Kangra"],
+  ["mandeali", "Mandi"],
+  ["mandyali", "Mandi"],
+  ["kullvi", "Kullu"],
+  ["kulluvi", "Kullu"],
+  ["kinnauri", "Kinnaur"],
+  ["sirmauri", "Sirmaur"],
+  ["chambeali", "Chamba"],
+  ["chameali", "Chamba"],
+  ["mahasuvi", "Shimla hills"],
+];
 
-      <p className="mt-2 text-sm leading-6 text-zinc-700 dark:text-zinc-300">
+export default function DialectCard({ name, formUrl }: DialectCardProps) {
+  const lowerName = name.toLowerCase();
+  const district = DISTRICT_MAP.find(([pattern]) =>
+    lowerName.includes(pattern),
+  )?.[1];
+  const hasVocabulary = lowerName.includes("mandeali");
+
+  return (
+    <article className="ruled-cell flex h-full flex-col p-8">
+      <h3 className="text-title">{name}</h3>
+      {district && <Eyebrow className="mt-2">{district}</Eyebrow>}
+
+      <p className="text-body-sm text-muted-foreground mt-4">
         Contribute everyday sentences and Hindi translations in the {name}{" "}
         dialect.
       </p>
 
-      <Link
-        href={formUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-4 inline-block rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-      >
-        Contribute to {name}
-      </Link>
-    </div>
+      {hasVocabulary && (
+        <p className="mt-4">
+          <Link
+            href="/vocabulary/mandeali"
+            className="text-verdant text-body-sm link-quiet inline-flex items-center gap-1"
+          >
+            Vocabulary live
+            <PixelIcon name="chevron-right" className="size-3.5" />
+          </Link>
+        </p>
+      )}
+
+      <div className="mt-auto pt-8">
+        <Button asChild variant="secondary" className="w-full">
+          <Link href={formUrl} target="_blank" rel="noopener noreferrer">
+            Open the {name} form
+            <PixelIcon name="arrow-up-right" className="size-4" />
+          </Link>
+        </Button>
+      </div>
+    </article>
   );
 }

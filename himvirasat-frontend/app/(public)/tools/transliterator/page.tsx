@@ -1,53 +1,31 @@
-import Image from "next/image";
+import type { Metadata } from "next";
+
+import { SectionHeading } from "@/components/mistral/section-heading";
 import Transliterator from "@/components/transliterator/Transliterator";
+
+export const metadata: Metadata = {
+  title: "Devanagari ⇄ Takri Transliterator",
+};
 
 export default function TransliteratorPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden text-slate-900 dark:text-slate-100">
-      {/* Background */}
-      <div className="absolute inset-0">
-        <Image
-          src="/mountains1.png"
-          alt="Mountain background"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
+    <div className="mx-auto w-full max-w-content px-6 py-20 md:py-28 lg:px-10">
+      <SectionHeading
+        as="h1"
+        align="left"
+        eyebrow="Tools"
+        title="Devanagari ⇄ Takri"
+        description="Takri served as a chancery script across the western Himalaya before Devanagari replaced it."
+      />
+
+      <div className="mt-14">
+        <Transliterator />
       </div>
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-white/60 dark:bg-black/85" />
-
-      {/* Content */}
-      <main className="relative z-10 min-h-screen flex items-center justify-center px-6 pt-20">
-        <div className="w-full max-w-6xl">
-          <span className="uppercase tracking-widest text-xs opacity-70 font-semibold">
-            Tools
-          </span>
-
-          <h1 className="mt-2 text-4xl md:text-5xl font-semibold">
-            Transliteration
-          </h1>
-
-          <p className="mt-4 text-lg max-w-xl opacity-80 leading-relaxed">
-            Convert text between Devanagari and Tankri scripts for contribution
-            and verification.
-          </p>
-
-          <div className="mt-10">
-            <Transliterator />
-          </div>
-
-          {/* Font Support Note */}
-          <p className="mt-6 text-xs opacity-60 max-w-xl leading-relaxed">
-            Tankri characters may not display correctly on some systems due to
-            limited font support. If characters appear as blank boxes, please
-            install a Unicode font that supports Tankri (e.g., Noto Sans
-            Tankri).
-          </p>
-        </div>
-      </main>
+      <p className="text-body-sm text-muted-foreground mt-6 max-w-xl">
+        Takri text you copy will need a Takri-capable font in the destination
+        app.
+      </p>
     </div>
   );
 }

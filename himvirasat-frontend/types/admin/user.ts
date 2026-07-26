@@ -2,7 +2,7 @@ export interface UserDto {
   id: string;
   username: string;
   full_name: string;
-  role: "super_admin" | "language_expert";
+  role: "super_admin" | "language_head" | "language_expert";
   dialects: string[];
 }
 
@@ -28,12 +28,6 @@ export interface LanguageHead {
   is_active: boolean;
   created_at: string;
   points: number;
-}
-
-export interface DashboardStats {
-  languageExpertsCount: number;
-  languageHeadsCount: number;
-  superAdminsCount: number;
 }
 export interface DeleteLanguageExpertResponse {
   success: boolean;

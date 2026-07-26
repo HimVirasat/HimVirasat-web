@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { AlertTriangle, User, MapPin, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Contribution, WORKFLOW_RULES } from "@/types/admin/contribution-types";
+import { Contribution, WORKFLOW_RULES } from "@himvirasat/shared";
 
 // ------------------------------------------------------------------
 // Skeleton loader

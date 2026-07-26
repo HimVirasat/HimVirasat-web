@@ -6,7 +6,7 @@ import {
 
 import { AdminSidebar } from "./sidebar";
 
-import type { UserDto } from "@/types/admin/user";
+import type { UserDto } from "@himvirasat/shared";
 
 import { BackgroundDecor } from "@/components/layout/background-decor";
 export function DashboardShell({

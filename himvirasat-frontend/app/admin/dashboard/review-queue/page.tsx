@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { ContributionStatus } from "@/types/admin/contribution-types";
+import { ContributionStatus } from "@himvirasat/shared";
 import {
   useContributionsQueue,
   useContributionDetail,

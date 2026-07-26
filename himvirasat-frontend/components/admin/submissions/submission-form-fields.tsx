@@ -25,7 +25,13 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { SubmissionFormValues } from "@/types/admin/contribution-types";
+import {
+  CreateSubmissionSchema, // Value (for validation)
+  type CreateSubmissionDto, // Type (for TypeScript types)
+} from "@himvirasat/shared";
+
+// Alias or use it as your form values type
+export type SubmissionFormValues = CreateSubmissionDto;
 import { DataLookupService } from "@/lib/services/admin/datalookup-service"; // Adjust import path if needed
 
 // Explicit array of mandatory field keys used for Checklist & Progress tracking
@@ -95,11 +101,10 @@ export function SubmissionFormFields({
 
       const data = await DataLookupService.generateMetadata({
         word_devanagari: values.word_devanagari,
-        meaning_hindi: values.meaning_hindi || values.meaning,
-        meaning_english: values.meaning_english,
-        example_sentence: values.example_sentence,
+        meaning_hindi: (values.meaning_hindi ?? values.meaning) || undefined,
+        meaning_english: values.meaning_english ?? undefined,
+        example_sentence: values.example_sentence ?? undefined,
       });
-
       // Automatically update fields in parent state
       if (data.word_latin) onChange("word_latin", data.word_latin);
       if (data.word_takri) onChange("word_takri" as any, data.word_takri);

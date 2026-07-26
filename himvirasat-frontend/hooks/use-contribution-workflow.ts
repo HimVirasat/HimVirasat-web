@@ -1,10 +1,7 @@
 // src/hooks/use-contribution-workflow.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ReviewQueueService } from "@/lib/services/admin/reviewqueue-service";
-import {
-  ContributionStatus,
-  ContributionFilters,
-} from "@/types/admin/contribution-types";
+import { ContributionStatus, ContributionFilters } from "@himvirasat/shared";
 import { toast } from "sonner";
 
 export const workflowKeys = {

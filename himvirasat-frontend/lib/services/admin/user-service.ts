@@ -2,7 +2,7 @@ import type {
   DeleteLanguageExpertResponse,
   LanguageExpert,
   LanguageHead,
-} from "@/types/admin/user";
+} from "@himvirasat/shared/dtos/admin.dto";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 

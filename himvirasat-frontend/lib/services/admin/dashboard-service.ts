@@ -1,9 +1,9 @@
 import { API_URL } from "@/lib/constants";
-import { DashboardStats } from "@/types/admin/user";
+import { DashboardStatsDto } from "@himvirasat/shared/dtos/admin.dto";
 import { resolve } from "node:dns";
 
 export class DashboardService {
-  static async getStats(): Promise<DashboardStats> {
+  static async getStats(): Promise<DashboardStatsDto> {
     const response = await fetch(`${API_URL}/dashboard`, {
       credentials: "include",
     });

@@ -4,11 +4,12 @@ import {
   ContributionFilters,
   ReviewComment,
   ContributionStatus,
-} from "../../../types/admin/contribution-types";
+  CommentStatus,
+  UpdateStatusPayload,
+  AddCommentPayload,
+  UpdateCommentStatusPayload,
+} from "@himvirasat/shared";
 
-/**
- * Common fetch helper to parse responses and handle backend error messages
- */
 async function handleResponse<T>(
   response: Response,
   defaultError: string
@@ -25,9 +26,6 @@ async function handleResponse<T>(
 }
 
 export class ReviewQueueService {
-  /**
-   * Fetch all contributions filterable by status or dialect
-   */
   static async getAll(filters?: ContributionFilters): Promise<Contribution[]> {
     const params = new URLSearchParams();
     if (filters?.status) params.append("status", filters.status);
@@ -50,9 +48,6 @@ export class ReviewQueueService {
     return resData.data;
   }
 
-  /**
-   * Fetch a single word layout complete with threaded comments and historical audit feeds
-   */
   static async getById(id: string): Promise<Contribution> {
     const response = await fetch(`${API_URL}/reviewqueue/${id}`, {
       method: "GET",
@@ -67,16 +62,11 @@ export class ReviewQueueService {
     return resData.data;
   }
 
-  /**
-   * Initialize or submit a raw contribution layout
-   */
   static async create(data: Partial<Contribution>): Promise<Contribution> {
     const response = await fetch(`${API_URL}/reviewqueue`, {
       method: "POST",
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
 
@@ -88,9 +78,6 @@ export class ReviewQueueService {
     return resData.data;
   }
 
-  /**
-   * Save field updates made directly from the workspace inputs
-   */
   static async update(
     id: string,
     updates: Partial<Contribution>
@@ -98,9 +85,7 @@ export class ReviewQueueService {
     const response = await fetch(`${API_URL}/reviewqueue/${id}`, {
       method: "PUT",
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updates),
     });
 
@@ -112,21 +97,18 @@ export class ReviewQueueService {
     return resData.data;
   }
 
-  /**
-   * State machine transitions: handles Approving, Rejecting, or Flagging items
-   */
   static async updateStatus(
     id: string,
     status: ContributionStatus,
     reason?: string
   ): Promise<Contribution> {
+    const payload: UpdateStatusPayload = { status, reason };
+
     const response = await fetch(`${API_URL}/reviewqueue/${id}/status`, {
       method: "PATCH",
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ status, reason }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
 
     const resData = await handleResponse<{
@@ -137,21 +119,18 @@ export class ReviewQueueService {
     return resData.data;
   }
 
-  /**
-   * Post an administrative review comment against a targeted field canvas
-   */
   static async addComment(
     id: string,
     fieldName: string,
     message: string
   ): Promise<ReviewComment> {
+    const payload: AddCommentPayload = { field_name: fieldName, message };
+
     const response = await fetch(`${API_URL}/reviewqueue/${id}/comments`, {
       method: "POST",
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ field_name: fieldName, message }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
 
     const resData = await handleResponse<{
@@ -162,9 +141,6 @@ export class ReviewQueueService {
     return resData.data;
   }
 
-  /**
-   * Permanently purge a submission
-   */
   static async delete(id: string): Promise<void> {
     const response = await fetch(`${API_URL}/reviewqueue/${id}`, {
       method: "DELETE",
@@ -177,23 +153,21 @@ export class ReviewQueueService {
     );
   }
 
-  /**
-   * Update the status of a specific review comment (e.g., resolved, accepted)
-   */
   static async updateCommentStatus(
     contributionId: string,
     commentId: string,
-    status: "open" | "resolved" | "rejected" | "accepted"
+    status: CommentStatus,
+    fieldValueToAccept?: any
   ): Promise<ReviewComment> {
+    const payload: UpdateCommentStatusPayload = { status, fieldValueToAccept };
+
     const response = await fetch(
       `${API_URL}/reviewqueue/${contributionId}/comments/${commentId}/status`,
       {
         method: "PATCH",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       }
     );
 

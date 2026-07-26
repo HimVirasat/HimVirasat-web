@@ -6,12 +6,12 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import crypto from "node:crypto";
 
-import authRoutes from "./routes/auth.routes.js";
-import userRoutes from "./routes/user.routes.js";
-import dashboardRoutes from "./routes/dashboard.routes.js";
-import dataLookupRoutes from "./routes/datalookup.routes.js";
-import reviewQueueRoutes from "./routes/reviewqueue.routes.js";
-import submissionRoutes from "./routes/submission.routes.js";
+// import authRoutes from "./routes/auth.routes.js";
+// import userRoutes from "./routes/user.routes.js";
+// import dashboardRoutes from "./routes/dashboard.routes.js";
+// import dataLookupRoutes from "./routes/datalookup.routes.js";
+// import reviewQueueRoutes from "./routes/reviewqueue.routes.js";
+// import submissionRoutes from "./routes/submission.routes.js";
 import { env } from "./config/env.js";
 import { logger } from "./utils/logger.js";
 export const app = express();
@@ -62,9 +62,22 @@ app.get("/", (_, res) => {
   res.send("Backend is running");
 });
 
-app.use("/auth", authRoutes);
-app.use("/users", userRoutes);
-app.use("/dashboard", dashboardRoutes);
-app.use("/datalookup", dataLookupRoutes);
-app.use("/reviewqueue", reviewQueueRoutes);
-app.use("/submissions", submissionRoutes);
+import { authRouter } from "./modules/auth/index.js";
+import { usersRouter } from "./modules/users/index.js";
+import { submissionsRouter } from "./modules/submissions/index.js";
+import reviewqueueRouter from "./modules/reviewqueue/reviewqueue.routes.js";
+import datalookupRouter from "./modules/datalookup/datalookup.routes.js";
+import { dashboardRouter } from "./modules/dashboard/index.js";
+
+// const app = express();
+app.use(express.json());
+app.use(cookieParser());
+
+app.use("/auth", authRouter);
+app.use("/users", usersRouter);
+app.use("/submissions", submissionsRouter);
+app.use("/reviewqueue", reviewqueueRouter);
+app.use("/datalookup", datalookupRouter);
+app.use("/dashboard", dashboardRouter);
+
+export default app;

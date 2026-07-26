@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trash2, ShieldCheck } from "lucide-react";
-import type { LanguageHead } from "@/types/admin/user";
+import type { LanguageHead } from "@himvirasat/shared/dtos/admin.dto";
 import { EditableDialectsCell } from "../data-table/editable-dialects-cell";
 
 export function getHeadColumns(

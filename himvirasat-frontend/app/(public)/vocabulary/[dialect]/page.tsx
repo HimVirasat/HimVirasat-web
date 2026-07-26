@@ -1,22 +1,38 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import { Suspense } from "react";
-import {
-  dialectToBackground,
-  availableDialectsArray,
-} from "@/lib/dialects/dialect-config";
+
+import { SectionHeading } from "@/components/mistral/section-heading";
 import VocabularySearch from "@/components/vocabulary/VocabularySearch";
+import {
+  availableDialectsArray,
+  dialectsConfig,
+} from "@/lib/dialects/dialect-config";
+import { devToTankri } from "@/lib/transliteration/devToTankri";
+
+function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+export async function generateStaticParams() {
+  return availableDialectsArray.map((dialect) => ({ dialect }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ dialect: string }>;
+}): Promise<Metadata> {
+  const { dialect } = await params;
+  return { title: `${capitalize(dialect)} Vocabulary` };
+}
 
 function VocabularySearchSkeleton() {
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-6">
-      <div className="flex gap-3 justify-center">
-        <div className="flex-1 max-w-2xl h-14 bg-white/10 rounded-xl animate-pulse" />
-        <div className="h-14 w-24 bg-white/10 rounded-xl animate-pulse" />
-      </div>
-
+    <div className="w-full space-y-6">
+      <div className="bg-muted h-14 max-w-2xl animate-pulse rounded-md" />
       {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="h-28 bg-white/10 rounded-xl animate-pulse" />
+        <div key={i} className="bg-muted h-28 animate-pulse" />
       ))}
     </div>
   );
@@ -33,43 +49,28 @@ export default async function DialectPage({
     notFound();
   }
 
-  const background = dialectToBackground[dialect];
+  const config = dialectsConfig.find((d) => d.id === dialect);
 
   return (
-    <div className="relative min-h-screen text-slate-100 pt-10">
-      <div className="fixed inset-0 -z-20 overflow-hidden">
-        <Image
-          src={background}
-          alt={`${dialect} background`}
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
+    <main className="mx-auto w-full max-w-content px-6 py-20 md:py-28 lg:px-10">
+      <header>
+        <SectionHeading
+          as="h1"
+          align="left"
+          eyebrow="Vocabulary"
+          title={config?.title ?? capitalize(dialect)}
+          nativeEcho={
+            config?.nativeName ? devToTankri(config.nativeName) : undefined
+          }
+          description={`Explore the vocabulary and cultural expressions of ${config?.title ?? capitalize(dialect)}.`}
         />
+      </header>
+
+      <div className="mt-10">
+        <Suspense fallback={<VocabularySearchSkeleton />}>
+          <VocabularySearch dialect={dialect} />
+        </Suspense>
       </div>
-
-      <div className="fixed inset-0 -z-10 bg-black/30" />
-
-      <main className="min-h-screen flex justify-center px-4 md:px-6 py-12">
-        <div className="w-full max-w-5xl bg-black/50 rounded-2xl p-6 md:p-10 border border-white/10 backdrop-blur-md">
-          <header className="mb-10">
-            <span className="uppercase tracking-widest text-xs text-emerald-400 font-bold">
-              Himachali Dialect
-            </span>
-            <h1 className="mt-2 text-4xl md:text-5xl font-semibold capitalize tracking-tight">
-              {dialect}
-            </h1>
-            <p className="mt-4 text-slate-300 text-lg leading-relaxed">
-              Explore the vocabulary and cultural expressions of{" "}
-              <span className="text-white font-medium">{dialect}</span>.
-            </p>
-          </header>
-
-          <Suspense fallback={<VocabularySearchSkeleton />}>
-            <VocabularySearch dialect={dialect} />
-          </Suspense>
-        </div>
-      </main>
-    </div>
+    </main>
   );
 }

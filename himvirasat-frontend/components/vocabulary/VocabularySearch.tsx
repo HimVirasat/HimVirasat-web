@@ -1,20 +1,19 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useRef, useState, useDeferredValue } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import searchVocabulary from "@/lib/vocabulary/search-vocabulary";
 import { VocabularyEntry } from "@/types/vocabulary/vocabulary-types";
 import { datasetFilesMap } from "@/lib/dialects/dialect-config";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const VocabularyCard = dynamic(
   () => import("@/components/vocabulary/VocabularyCard"),
   {
-    loading: () => <Skeleton className="h-28 w-full rounded-xl" />,
+    loading: () => <Skeleton className="h-28 w-full rounded-md" />,
     ssr: false,
   }
 );
@@ -49,61 +48,64 @@ export default function VocabularySearch({ dialect }: { dialect: string }) {
   }, [data, deferredQuery, dialect]);
 
   return (
-    <section className="w-full space-y-6">
-      <div className="flex gap-3 max-w-2xl">
+    <section className="w-full">
+      <div className="relative max-w-2xl">
         <Input
           ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={`Search ${dialect} vocabulary…`}
-          className="h-14 text-base bg-white/5 border-white/10 text-white placeholder:text-slate-300 focus:ring-emerald-500 rounded-xl"
+          className="border-border bg-background h-14 rounded-md pr-24 pl-4 text-base"
         />
-
-        <Button
-          variant="outline"
-          onClick={() => {
-            setQuery("");
-            inputRef.current?.focus();
-          }}
-          className="h-14 px-6 bg-white/5 border-white/10 hover:bg-white/10 text-slate-200 rounded-xl"
-        >
-          Clear
-        </Button>
+        {query && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-1/2 right-2 -translate-y-1/2"
+            onClick={() => {
+              setQuery("");
+              inputRef.current?.focus();
+            }}
+          >
+            Clear
+          </Button>
+        )}
       </div>
 
-      <div className="text-sm text-slate-300">
+      <p className="text-body-sm text-muted-foreground mt-3 tabular-nums">
         {loading
-          ? `Loading ${dialect} heritage...`
-          : query.trim()
-            ? `Found ${results.length} matches`
-            : `Showing all ${data.length} entries`}
-      </div>
+          ? `Loading ${dialect} vocabulary…`
+          : `${results.length} of ${data.length} entries`}
+      </p>
 
-      <ScrollArea className="h-[60vh] w-full pr-4">
-        <div className="space-y-4 pb-10">
-          {results.length > 0 ? (
-            results.map((entry, idx) => (
-              <VocabularyCard
-                key={`${entry.word_native}-${idx}`}
-                entry={entry}
-                query={deferredQuery}
-                onSearch={setQuery}
-              />
-            ))
-          ) : !loading ? (
-            <div className="text-center py-20 text-slate-300">
-              {`No matches found for "${query}"`}
+      {/* Entries read as one continuous ruled table rather than a stack of
+          floating cards — the hairlines carry the structure. */}
+      <div className="border-border bg-border mt-8 grid gap-px border">
+        {results.length > 0 ? (
+          results.map((entry, idx) => (
+            <VocabularyCard
+              key={`${entry.word_native}-${idx}`}
+              entry={entry}
+              query={deferredQuery}
+              onSearch={setQuery}
+            />
+          ))
+        ) : !loading ? (
+          <div className="ruled-cell px-6 py-16 text-center">
+            <p className="text-body">No matches. Try a shorter fragment.</p>
+            <p className="text-body-sm text-muted-foreground mt-2">
+              Search is fuzzy: partial words and approximate spellings still
+              match.
+            </p>
+          </div>
+        ) : (
+          Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="ruled-cell">
+              <div className="bg-muted h-28 animate-pulse" />
             </div>
-          ) : (
-            Array.from({ length: 5 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-28 bg-white/5 animate-pulse rounded-xl"
-              />
-            ))
-          )}
-        </div>
-      </ScrollArea>
+          ))
+        )}
+      </div>
     </section>
   );
 }

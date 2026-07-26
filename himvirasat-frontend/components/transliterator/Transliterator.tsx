@@ -1,81 +1,143 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
+
+import { Eyebrow } from "@/components/mistral/eyebrow";
+import { PixelIcon } from "@/components/mistral/pixel-icon";
+import { Button } from "@/components/ui/button";
 import { devToTankri } from "@/lib/transliteration/devToTankri";
 import { tankriToDev } from "@/lib/transliteration/tankriToDev";
+import { cn } from "@/lib/utils";
+
+const EXAMPLES = ["नमस्ते", "हिमाचल", "पहाड़", "मंडी"];
+
+// The pane itself is the ruled cell, so the field carries no border of its
+// own — the hairline grid supplies all the structure.
+const fieldBase =
+  "w-full flex-1 resize-y bg-transparent outline-none placeholder:text-muted-foreground min-h-40 md:min-h-52";
 
 export default function Transliterator() {
   const [devText, setDevText] = useState("");
   const [tankriText, setTankriText] = useState("");
-  const [lastEdited, setLastEdited] = useState<"dev" | "tankri" | null>(null);
+  const [swapped, setSwapped] = useState(false);
 
   const handleDevChange = (value: string) => {
-    setLastEdited("dev");
     setDevText(value);
     setTankriText(devToTankri(value));
   };
 
   const handleTankriChange = (value: string) => {
-    setLastEdited("tankri");
     setTankriText(value);
     setDevText(tankriToDev(value));
   };
 
-  const copyToClipboard = async (text: string) => {
+  const copyText = async (text: string, script: "Devanagari" | "Takri") => {
     try {
       await navigator.clipboard.writeText(text);
+      toast(`Copied ${script} text`);
     } catch (err) {
       console.error("Copy failed", err);
     }
   };
 
+  const clearAll = () => {
+    setDevText("");
+    setTankriText("");
+  };
+
+  const bothEmpty = devText === "" && tankriText === "";
+
   return (
-    <div className="w-full max-w-5xl mx-auto glass rounded-2xl p-6 md:p-8 shadow">
-      <h2 className="text-2xl font-semibold">Transliteration Tool</h2>
-
-      <p className="mt-2 text-sm opacity-70 max-w-xl">
-        Type in either box. The other will update automatically.
-      </p>
-
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Devanagari */}
-        <div className="flex flex-col">
-          <label className="text-sm font-medium mb-1">Devanagari</label>
+    <div className="border-border border">
+      <div className="bg-border grid gap-px md:grid-cols-2">
+        <div
+          className={cn(
+            "ruled-cell flex flex-col gap-3 p-6",
+            swapped ? "md:order-2" : "md:order-1",
+          )}
+        >
+          <div className="flex items-center gap-2">
+            <Eyebrow nativeEcho="देवनागरी">Devanagari</Eyebrow>
+            <span className="text-body-sm text-muted-foreground ml-auto tabular-nums">
+              {devText.length}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={devText === ""}
+              onClick={() => copyText(devText, "Devanagari")}
+            >
+              Copy
+            </Button>
+          </div>
           <textarea
             value={devText}
             onChange={(e) => handleDevChange(e.target.value)}
-            placeholder="Type Devanagari here..."
-            className="h-40 rounded-lg border p-3 bg-white/70 dark:bg-zinc-900/70 resize-none focus:outline-none"
+            placeholder="यहाँ लिखें…"
+            aria-label="Devanagari text"
+            className={cn(fieldBase, "font-deva text-lg")}
           />
-          <button
-            onClick={() => copyToClipboard(devText)}
-            className="mt-2 text-sm px-3 py-1 rounded bg-emerald-600 text-white hover:bg-emerald-700 self-start"
-          >
-            Copy
-          </button>
         </div>
 
-        {/* Tankri */}
-        <div className="flex flex-col">
-          <label className="text-sm font-medium mb-1">Tankri</label>
+        <div
+          className={cn(
+            "ruled-cell flex flex-col gap-3 p-6",
+            swapped ? "md:order-1" : "md:order-2",
+          )}
+        >
+          <div className="flex items-center gap-2">
+            <Eyebrow nativeEcho="𑚔𑚭𑚊𑚤𑚯">Takri</Eyebrow>
+            <span className="text-body-sm text-muted-foreground ml-auto tabular-nums">
+              {tankriText.length}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={tankriText === ""}
+              onClick={() => copyText(tankriText, "Takri")}
+            >
+              Copy
+            </Button>
+          </div>
           <textarea
             value={tankriText}
             onChange={(e) => handleTankriChange(e.target.value)}
-            placeholder="Type Tankri here..."
-            className="h-40 rounded-lg border p-3 bg-white/70 dark:bg-zinc-900/70 resize-none focus:outline-none"
+            placeholder="Takri output…"
+            aria-label="Takri text"
+            className={cn(fieldBase, "font-takri text-xl leading-relaxed")}
           />
-          <button
-            onClick={() => copyToClipboard(tankriText)}
-            className="mt-2 text-sm px-3 py-1 rounded bg-emerald-600 text-white hover:bg-emerald-700 self-start"
-          >
-            Copy
-          </button>
         </div>
       </div>
 
-      <p className="mt-6 text-xs opacity-60">
-        This is a basic transliteration tool. Please verify outputs before
-        using.
+      <div className="border-border flex flex-wrap items-center gap-2 border-t p-4">
+        <Button variant="secondary" size="sm" onClick={() => setSwapped((s) => !s)}>
+          <PixelIcon
+            name="swap"
+            className={cn("size-4 transition-transform", swapped && "rotate-180")}
+          />
+          Swap panes
+        </Button>
+        <Button variant="ghost" size="sm" disabled={bothEmpty} onClick={clearAll}>
+          Clear
+        </Button>
+
+        <span className="text-body-sm text-muted-foreground ml-auto">Try:</span>
+        {EXAMPLES.map((word) => (
+          <button
+            key={word}
+            type="button"
+            lang="hi"
+            onClick={() => handleDevChange(word)}
+            className="border-border font-deva hover:bg-secondary rounded-md border px-3 py-1 text-sm transition-colors"
+          >
+            {word}
+          </button>
+        ))}
+      </div>
+
+      <p className="text-body-sm text-muted-foreground border-border border-t px-4 py-3">
+        This is a basic transliteration tool. Please verify outputs before use.
       </p>
     </div>
   );

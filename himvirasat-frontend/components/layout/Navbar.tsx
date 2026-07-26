@@ -1,148 +1,227 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
-import { SiGithub } from "@icons-pack/react-simple-icons";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
-// TOGGLE THIS TO SWITCH MODES:
-// false = Shrinking Floating Pill
-// true  = Strict Sticky Bar
-const STRICT_STICKY = false;
+import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { ArrowRow } from "@/components/mistral/arrow-row";
+import { Eyebrow } from "@/components/mistral/eyebrow";
+import { LogoMark } from "@/components/mistral/logo-mark";
+import { MegaMenu, type MenuPanel } from "@/components/mistral/mega-menu";
+import { PixelIcon } from "@/components/mistral/pixel-icon";
+import { Button } from "@/components/ui/button";
+import { dialectsConfig } from "@/lib/dialects/dialect-config";
+import { site } from "@/lib/site";
+
+const panels: MenuPanel[] = [
+  {
+    label: "Explore",
+    groups: [
+      {
+        heading: "Archive",
+        links: [
+          {
+            label: "Vocabulary",
+            href: "/vocabulary",
+            description: "Search living dictionaries by dialect.",
+          },
+          {
+            label: "Datasets",
+            href: "/datasets",
+            description: "Open, versioned translation data.",
+          },
+        ],
+      },
+      {
+        heading: "Dialects",
+        // Derived from the live config, so the menu can never advertise a
+        // dialect that has no vocabulary behind it.
+        links: dialectsConfig.map((dialect) => ({
+          label: dialect.title,
+          href: `/vocabulary/${dialect.id}`,
+          description: dialect.subtitle,
+        })),
+      },
+    ],
+  },
+  {
+    label: "Tools",
+    groups: [
+      {
+        heading: "Script",
+        links: [
+          {
+            label: "Transliterator",
+            href: "/tools/transliterator",
+            description: "Convert Devanagari to Takri and back.",
+          },
+        ],
+      },
+      {
+        heading: "Contribute",
+        links: [
+          {
+            label: "Start contributing",
+            href: "/contribute",
+            description: "Add sentences in your dialect.",
+          },
+          {
+            label: "All tools",
+            href: "/tools",
+            description: "Everything built so far.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    label: "About",
+    groups: [
+      {
+        heading: "Project",
+        links: [
+          {
+            label: "About HimVirasat",
+            href: "/about",
+            description: "Why this archive exists.",
+          },
+          {
+            label: "Team",
+            href: "/about#team",
+            description: "Who maintains it.",
+          },
+          {
+            label: "Source code",
+            href: site.links.repo,
+            description: "Open on GitHub.",
+            external: true,
+          },
+        ],
+      },
+      {
+        heading: "Community",
+        links: [
+          {
+            label: "HimVirasat Discord",
+            href: site.links.discordHimvirasat,
+            description: "Contributors and maintainers.",
+            external: true,
+          },
+          {
+            label: "HP Community Discord",
+            href: site.links.discordHpCommunity,
+            description: "The wider Himachal community.",
+            external: true,
+          },
+        ],
+      },
+    ],
+  },
+];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
 
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const navLinks = [
-    { name: "Home", href: "/" },
-    { name: "Vocabulary", href: "/vocabulary" },
-    { name: "Tools", href: "/tools" }, // ← ADD THIS
-    { name: "Contribute", href: "/contribute" },
-    { name: "About", href: "/about" },
-  ];
-
-  const headerClasses = STRICT_STICKY
-    ? `fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-white/85 dark:bg-zinc-950/90 backdrop-blur-md border-b border-border/40 py-2"
-          : "bg-transparent py-4"
-      }`
-    : `fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-in-out ${
-        isScrolled ? "top-2 w-[88%] max-w-4xl" : "top-2 w-[92%] max-w-5xl"
-      }`;
-
-  const navClasses = STRICT_STICKY
-    ? "mx-auto max-w-7xl px-6 flex items-center justify-between"
-    : `glass bg-white/85 dark:bg-zinc-950/90 rounded-full backdrop-blur-md transition-all duration-300 flex items-center justify-between ${
-        isScrolled ? "px-6 py-2 shadow-xl" : "px-8 py-4 shadow-lg"
-      }`;
+  // Nothing inside the overlay unmounts on navigation, so close it here.
+  useEffect(() => setIsOpen(false), [pathname]);
 
   return (
-    <header className={headerClasses}>
-      <nav className={navClasses}>
-        <Link href="/" className="flex items-center gap-2 group">
-          <Image
-            src="/virasat.png"
-            alt="Logo"
-            width={32}
-            height={32}
-            className="rounded-lg transition-transform group-hover:scale-110"
-          />
-          <span className="text-xl font-semibold tracking-tighter text-black dark:text-white">
-            HimVirasat
+    <header className="border-border bg-background fixed inset-x-0 top-0 z-50 border-b">
+      <nav className="flex h-16 items-stretch">
+        <Link
+          href="/"
+          className="border-border hover:bg-secondary flex shrink-0 items-center gap-2.5 border-r px-5 transition-colors"
+        >
+          <LogoMark size={28} />
+          <span className="flex flex-col">
+            <span className="font-display text-label leading-none">
+              HimVirasat
+            </span>
+            <span
+              aria-hidden
+              className="font-takri text-muted-foreground mt-1 text-[10px] leading-none"
+            >
+              {site.takriName}
+            </span>
           </span>
         </Link>
-        <div className="hidden md:flex items-center gap-4">
+
+        <MegaMenu panels={panels} />
+
+        <div className="ml-auto flex items-stretch">
+          {/* Upstream added this as an icon button using
+              `@icons-pack/react-simple-icons`. Kept as a feature, dropped
+              as a dependency: a whole icon package for one glyph, in a
+              system whose icons are all drawn on the same pixel lattice.
+              A text link also sits better in an editorial nav. */}
           <Link
-            href="https://github.com/HimVirasat"
+            href={site.links.github}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="HimVirasat GitHub"
-            className="relative p-2 rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all duration-300"
+            className="border-border text-nav text-muted-foreground hover:bg-secondary hover:text-foreground hidden items-center border-l px-4 transition-colors md:flex"
           >
-            <SiGithub className="h-5 w-5" />
+            GitHub
           </Link>
-          <ul className="flex items-center gap-1">
-            {navLinks.map((link) => {
-              const isActive =
-                link.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(link.href);
-
-              return (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className={`
-                  relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300
-                  ${
-                    isActive
-                      ? "text-emerald-700 dark:text-emerald-400 bg-emerald-500/10"
-                      : "text-foreground/70 hover:text-foreground hover:bg-foreground/5"
-                  }
-                `}
-                >
-                  {link.name}
-                  {isActive && (
-                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-emerald-500 rounded-full animate-pulse" />
-                  )}
-                </Link>
-              );
-            })}
-          </ul>
+          <div className="border-border flex items-center border-l px-2">
+            <ThemeToggle />
+          </div>
+          <div className="hidden items-center gap-2 px-4 md:flex">
+            <Button asChild variant="secondary">
+              <Link href="/contribute">Contribute</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/vocabulary">Explore vocabulary</Link>
+            </Button>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsOpen((open) => !open)}
+            aria-expanded={isOpen}
+            aria-controls="mobile-nav"
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+            className="border-border hover:bg-secondary flex items-center border-l px-5 transition-colors md:hidden"
+          >
+            <PixelIcon name={isOpen ? "close" : "grid"} />
+          </button>
         </div>
-
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden p-2 hover:bg-foreground/5 rounded-full transition-colors"
-          aria-label="Toggle Menu"
-        >
-          {isOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
       </nav>
 
-      <div
-        className={`
-          md:hidden absolute left-1/2 -translate-x-1/2 w-[95%]
-          bg-white/85 dark:bg-zinc-950/95 backdrop-blur-md
-          rounded-3xl p-6 shadow-2xl transition-all duration-300 origin-top
-          ${STRICT_STICKY ? "top-16" : "top-14"}
-          ${isOpen ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"}
-        `}
-      >
-        <div className="flex flex-col gap-4 text-center">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              onClick={() => setIsOpen(false)}
-              className="text-lg font-medium py-2 hover:text-emerald-600 transition-colors"
-            >
-              {link.name}
-            </Link>
+      {isOpen && (
+        <div
+          id="mobile-nav"
+          className="bg-background border-border animate-fade-slide fixed inset-x-0 top-16 bottom-0 overflow-y-auto border-t md:hidden"
+        >
+          {panels.map((panel) => (
+            <div key={panel.label} className="border-border border-b">
+              <Eyebrow className="px-4 pt-5">{panel.label}</Eyebrow>
+              <ul className="mt-2 flex flex-col">
+                {panel.groups.flatMap((group) =>
+                  group.links.map((link) => (
+                    <li key={link.href + link.label}>
+                      <ArrowRow
+                        href={link.href}
+                        label={link.label}
+                        description={link.description}
+                        external={link.external}
+                      />
+                    </li>
+                  )),
+                )}
+              </ul>
+            </div>
           ))}
-          <Link
-            href="https://github.com/HimVirasat"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => setIsOpen(false)}
-            aria-label="HimVirasat GitHub"
-            className="flex justify-center pt-2 text-foreground/70 hover:text-foreground transition-colors"
-          >
-            <SiGithub className="h-6 w-6" />
-          </Link>
+          <div className="flex flex-col gap-3 p-4">
+            <Button asChild size="lg">
+              <Link href="/contribute">Start contributing</Link>
+            </Button>
+            <Button asChild size="lg" variant="secondary">
+              <Link href="/vocabulary">Explore the vocabulary</Link>
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </header>
   );
 }

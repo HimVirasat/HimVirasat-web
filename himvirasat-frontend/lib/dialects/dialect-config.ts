@@ -1,6 +1,7 @@
 export interface DialectConfig {
   id: string;
   title: string;
+  nativeName?: string;
   subtitle: string;
   backgroundImage: string;
   datasetPath: string;
@@ -10,6 +11,7 @@ export const dialectsConfig: DialectConfig[] = [
   {
     id: "mandeali",
     title: "Mandeali",
+    nativeName: "मंडयाली",
     subtitle: "Mandi region",
     backgroundImage: "/bg-mandeali.png",
     datasetPath: "/datasets/dummy.json",

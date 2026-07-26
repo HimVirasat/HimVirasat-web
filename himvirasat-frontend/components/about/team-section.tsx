@@ -1,19 +1,21 @@
 "use client";
 
 import type { ElementType } from "react";
-import { Crown, Code2, Languages, Mail } from "lucide-react";
 import {
-  FaGithub,
   FaDiscord,
-  FaRedditAlien,
-  FaXTwitter,
+  FaEnvelope,
+  FaGithub,
   FaInstagram,
   FaLinkedin,
+  FaRedditAlien,
+  FaXTwitter,
 } from "react-icons/fa6";
 
+import { Eyebrow } from "@/components/mistral/eyebrow";
+import { RuledGrid } from "@/components/mistral/ruled-grid";
+import { SectionHeading } from "@/components/mistral/section-heading";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 function initials(name: string) {
@@ -29,7 +31,7 @@ function SocialRow({ socials }: { socials?: SocialLink[] }) {
   if (!socials?.length) return null;
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-2">
+    <div className="flex flex-wrap items-center gap-1.5">
       {socials.map((social) => {
         const Icon = SOCIAL_ICONS[social.platform];
 
@@ -40,12 +42,9 @@ function SocialRow({ socials }: { socials?: SocialLink[] }) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`${social.platform} profile`}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border 
-            border-emerald-500/15 bg-emerald-500/5 text-slate-600 
-            transition-colors hover:bg-emerald-500/10 hover:text-emerald-700 
-            dark:text-zinc-300 dark:hover:text-emerald-400"
+            className="border-border text-muted-foreground hover:bg-secondary hover:text-foreground inline-flex size-8 items-center justify-center rounded-md border transition-colors"
           >
-            <Icon className="h-4 w-4" />
+            <Icon className="size-3.5" />
           </a>
         );
       })}
@@ -53,193 +52,144 @@ function SocialRow({ socials }: { socials?: SocialLink[] }) {
   );
 }
 
-function PersonCard({
-  member,
-  size = "md",
-}: {
-  member: TeamMember;
-  size?: "lg" | "md" | "sm";
-}) {
-  const cardPadding = size === "lg" ? "p-6" : size === "md" ? "p-5" : "p-4";
-  const avatarSize =
-    size === "lg" ? "h-20 w-20" : size === "md" ? "h-16 w-16" : "h-14 w-14";
-  const nameSize =
-    size === "lg" ? "text-lg" : size === "md" ? "text-base" : "text-sm";
-  const roleSize = size === "lg" ? "text-md" : "text-[12px]";
-
+function PersonCard({ member }: { member: TeamMember }) {
   return (
-    <Card className="h-full border-white/20 bg-white/45 dark:bg-white/5">
-      <CardContent
-        className={cn(cardPadding, "flex flex-col items-center text-center")}
-      >
-        <Avatar className={cn(avatarSize, "ring-2 ring-emerald-500/25")}>
-          <AvatarImage src={member.avatar} alt={member.name} />
-          <AvatarFallback className="bg-emerald-600/10 text-emerald-700 dark:text-emerald-400">
-            {initials(member.name)}
-          </AvatarFallback>
-        </Avatar>
+    <div className="ruled-cell flex flex-col p-8">
+      <Avatar className="border-border size-16 border">
+        <AvatarImage src={member.avatar} alt={member.name} />
+        <AvatarFallback className="bg-pine-100 text-[#07070b]">
+          {initials(member.name)}
+        </AvatarFallback>
+      </Avatar>
 
-        <h3
-          className={cn(
-            "mt-3 font-semibold text-slate-900 dark:text-white",
-            nameSize
-          )}
-        >
-          {member.name}
-        </h3>
+      <h3 className="text-title mt-5">{member.name}</h3>
+      <Eyebrow className="mt-2">{member.role}</Eyebrow>
 
-        <p
-          className={cn(
-            "mt-1 uppercase tracking-wide text-emerald-700 dark:text-emerald-400 font-semibold",
-            roleSize
-          )}
-        >
-          {member.role}
-        </p>
+      {member.languages?.length ? (
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {member.languages.map((language) => (
+            <span
+              key={language}
+              className="animate-pop-in border-border text-body-sm text-muted-foreground rounded-md border px-2.5 py-0.5"
+            >
+              {language}
+            </span>
+          ))}
+        </div>
+      ) : null}
 
-        {member.languages?.length ? (
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
-            {member.languages.map((language) => (
-              <Badge
-                key={language}
-                variant="secondary"
-                className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-              >
-                {language}
-              </Badge>
-            ))}
-          </div>
-        ) : null}
-
-        {member.socials?.length ? (
-          <div className="mt-4">
-            <SocialRow socials={member.socials} />
-          </div>
-        ) : null}
-      </CardContent>
-    </Card>
-  );
-}
-
-function ConnectorLine() {
-  return (
-    <div className="flex justify-center" aria-hidden="true">
-      <div className="my-8 h-20 w-px bg-linear-to-b from-emerald-500/80 to-emerald-500/80" />
+      {member.socials?.length ? (
+        <div className="mt-6">
+          <SocialRow socials={member.socials} />
+        </div>
+      ) : null}
     </div>
   );
 }
 
-function SectionShell({
-  icon: Icon,
+function OpenSlot() {
+  return (
+    <div className="border-border border border-dashed p-8 text-center">
+      <p className="text-title text-muted-foreground">Your name here</p>
+      <p className="text-body-sm text-muted-foreground mt-2">
+        <a
+          href={site.links.discordHimvirasat}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="link-quiet underline underline-offset-4"
+        >
+          Join the Discord and start contributing.
+        </a>
+      </p>
+    </div>
+  );
+}
+
+function TeamBranch({
+  eyebrow,
   title,
   subtitle,
-  children,
+  leads,
+  membersHeading,
+  membersSubtitle,
+  members,
+  className,
 }: {
-  icon: ElementType;
+  eyebrow: string;
   title: string;
   subtitle: string;
-  children: React.ReactNode;
+  leads: TeamMember[];
+  membersHeading: string;
+  membersSubtitle: string;
+  members: TeamMember[];
+  className?: string;
 }) {
   return (
-    <Card className="border-white/20 bg-white/40 backdrop-blur-none dark:bg-white/5">
-      <CardContent className="p-6 sm:p-8">
-        <div className="mb-10 flex flex-col items-center text-center">
-          <div className="flex items-center gap-2">
-            <Icon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
-              {title}
-            </h3>
-          </div>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-700 dark:text-zinc-400">
-            {subtitle}
-          </p>
-        </div>
+    <section className={cn("border-border border-t pt-16", className)}>
+      <Eyebrow size="lg">{eyebrow}</Eyebrow>
+      <h3 className="text-display-md mt-4 text-balance">{title}</h3>
+      <p className="text-body text-muted-foreground mt-4 max-w-2xl">
+        {subtitle}
+      </p>
 
-        {children}
-      </CardContent>
-    </Card>
+      <RuledGrid cols={2} className="mt-10">
+        {leads.map((member) => (
+          <PersonCard key={member.name} member={member} />
+        ))}
+      </RuledGrid>
+
+      <div className="mt-14">
+        <h4 className="text-title">{membersHeading}</h4>
+        <p className="text-body-sm text-muted-foreground mt-2 max-w-2xl">
+          {membersSubtitle}
+        </p>
+
+        {members.length > 0 ? (
+          <RuledGrid cols="2-3" className="mt-8">
+            {members.map((member) => (
+              <PersonCard key={member.name} member={member} />
+            ))}
+          </RuledGrid>
+        ) : (
+          <div className="mt-8">
+            <OpenSlot />
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
 export function TeamSection() {
   return (
-    <section className="mt-32 scroll-mt-24">
-      <div className="mb-16 text-center">
-        <span className="flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-          <Crown className="h-3.5 w-3.5" />
-          Our Team
-        </span>
+    <section className="scroll-mt-24 py-24 md:py-32">
+      <SectionHeading
+        eyebrow="Our team"
+        title="The people behind HimVirasat."
+        description="A growing community of developers, researchers, language experts, and contributors working together to preserve Himachal's linguistic heritage."
+      />
 
-        <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl">
-          The People Behind HimVirasat
-        </h2>
+      <div className="mt-20 flex flex-col gap-20">
+        <TeamBranch
+          eyebrow="Technical team"
+          title="Building the platform."
+          subtitle="The technical branch develops HimVirasat's platform, infrastructure, and the systems that power dataset generation, validation, and public releases."
+          leads={TECH_LEADS}
+          membersHeading="Developers"
+          membersSubtitle="Developers and researchers building the technical foundation of HimVirasat."
+          members={DEVELOPERS}
+          className="border-t-0 pt-0"
+        />
 
-        <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-slate-700 dark:text-zinc-400">
-          A growing community of developers, researchers, language experts, and
-          contributors working together to preserve Himachal&apos;s linguistic
-          heritage.
-        </p>
-      </div>
-
-      <div className="space-y-12">
-        <SectionShell
-          icon={Code2}
-          title="Technical Team"
-          subtitle="The technical branch is responsible for developing HimVirasat's platform, infrastructure, 
-          and the systems that power dataset generation, validation, and public releases."
-        >
-          <div className="mx-auto grid max-w-2xl gap-6 md:grid-cols-2">
-            {TECH_LEADS.map((member) => (
-              <PersonCard key={member.name} member={member} size="md" />
-            ))}
-          </div>
-
-          <ConnectorLine />
-          <div className="text-center">
-            <h4 className="text-lg font-semibold text-slate-900 dark:text-white">
-              Developers
-            </h4>
-            <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">
-              Developers and researchers building the technical foundation of
-              HimVirasat.
-            </p>
-          </div>
-
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {DEVELOPERS.map((member) => (
-              <PersonCard key={member.name} member={member} size="md" />
-            ))}
-          </div>
-        </SectionShell>
-
-        <SectionShell
-          icon={Languages}
-          title="Language Team"
-          subtitle="The language branch is organized around heads and contributors, keeping each dialect or language stream active and easy to grow."
-        >
-          <div className="mx-auto grid max-w-2xl gap-6 md:grid-cols-2">
-            {LANGUAGE_HEADS.map((member) => (
-              <PersonCard key={member.name} member={member} size="md" />
-            ))}
-          </div>
-
-          <ConnectorLine />
-
-          <div className="text-center">
-            <h4 className="text-lg font-semibold text-slate-900 dark:text-white">
-              Contributors
-            </h4>
-            <p className="mt-1 text-sm text-slate-600 dark:text-zinc-400">
-              Contributors helping preserve and document Himachali languages.
-            </p>
-          </div>
-
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {CONTRIBUTORS.map((member) => (
-              <PersonCard key={member.name} member={member} size="md" />
-            ))}
-          </div>
-        </SectionShell>
+        <TeamBranch
+          eyebrow="Language team"
+          title="Keeping each dialect active."
+          subtitle="The language branch is organised around heads and contributors, keeping each dialect or language stream active and easy to grow."
+          leads={LANGUAGE_HEADS}
+          membersHeading="Contributors"
+          membersSubtitle="Contributors helping preserve and document Himachali languages."
+          members={CONTRIBUTORS}
+        />
       </div>
     </section>
   );
@@ -355,5 +305,5 @@ const SOCIAL_ICONS: Record<SocialPlatform, ElementType> = {
   twitter: FaXTwitter,
   instagram: FaInstagram,
   linkedin: FaLinkedin,
-  email: Mail,
+  email: FaEnvelope,
 };

@@ -1,108 +1,91 @@
-import Image from "next/image";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { SiGithub } from "@icons-pack/react-simple-icons";
 
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+import { Eyebrow } from "@/components/mistral/eyebrow";
+import { PixelIcon } from "@/components/mistral/pixel-icon";
+import { RuledGrid } from "@/components/mistral/ruled-grid";
+import { SectionHeading } from "@/components/mistral/section-heading";
+import { TakriMosaic } from "@/components/mistral/takri-mosaic";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { datasets } from "@/lib/datasets/dataset-utils";
+import { devToTankri } from "@/lib/transliteration/devToTankri";
+
+export const metadata: Metadata = {
+  title: "Datasets",
+  description: "Download open, versioned Himachali translation datasets.",
+};
 
 export default function DatasetsPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden text-foreground">
-      {/* Background Image */}
-      <div className="absolute inset-0">
-        <Image
-          src="/mountains1.png"
-          alt="Mountain background"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
+    <div>
+      <section className="mx-auto w-full max-w-content px-6 pt-20 pb-14 md:pt-28 lg:px-10">
+        <SectionHeading
+          as="h1"
+          align="left"
+          eyebrow="Datasets"
+          nativeEcho={devToTankri("आंकड़े")}
+          title="Open Himachali language datasets"
+          description="Curated linguistic datasets preserving Himachali dialects, published for research, NLP, and cultural documentation."
         />
-      </div>
+      </section>
 
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-white/60 dark:bg-black/85" />
+      <TakriMosaic variant="band" seed={31} />
 
-      <main className="relative z-10 min-h-screen flex items-center">
-        <div className="max-w-6xl px-6 sm:px-10 w-full">
-          <span className="uppercase tracking-widest text-xs opacity-70 font-semibold">
-            Language & Culture
-          </span>
+      <section className="mx-auto w-full max-w-content px-6 pt-14 pb-24 md:pb-32 lg:px-10">
+        <RuledGrid cols={2}>
+          {datasets.map((dataset) => (
+            <article key={dataset.id} className="ruled-cell flex flex-col p-8">
+              <div className="flex flex-wrap items-baseline justify-between gap-3">
+                <h2 className="text-title">{dataset.name}</h2>
+                <Eyebrow className="text-verdant">
+                  {dataset.version}
+                </Eyebrow>
+              </div>
+              <p className="text-body-sm text-muted-foreground mt-1">
+                {dataset.language}
+              </p>
+              <p className="text-body-sm text-muted-foreground mt-4 flex-1">
+                Open, structured vocabulary data suitable for linguistic
+                research, NLP training, and documentation.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-2">
+                <Button asChild>
+                  <a href={dataset.datasetLink} target="_blank" rel="noreferrer">
+                    Download ZIP
+                  </a>
+                </Button>
+                <Button asChild variant="secondary">
+                  <a href={dataset.kaggleLink} target="_blank" rel="noreferrer">
+                    Kaggle
+                  </a>
+                </Button>
+                <Button asChild variant="ghost">
+                  <a href={dataset.githubLink} target="_blank" rel="noreferrer">
+                    GitHub
+                    <PixelIcon name="arrow-up-right" className="size-4" />
+                  </a>
+                </Button>
+              </div>
+            </article>
+          ))}
 
-          <h1 className="mt-2 text-4xl md:text-5xl font-semibold">Datasets</h1>
-
-          <p className="mt-4 text-lg max-w-xl opacity-80 leading-relaxed">
-            Download curated linguistic datasets preserving Himachali dialects
-            for research, NLP, and cultural documentation.
-          </p>
-
-          <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {datasets.map((dataset) => (
-              <Card
-                key={dataset.id}
-                className="bg-background/80 backdrop-blur-md shadow-xl border border-border/50"
-              >
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{dataset.name}</CardTitle>
-                    <Badge variant="secondary">{dataset.version}</Badge>
-                  </div>
-                  <CardDescription>{dataset.language}</CardDescription>
-                </CardHeader>
-
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Open-source structured vocabulary dataset suitable for
-                    linguistic research, NLP training, and documentation.
-                  </p>
-                </CardContent>
-
-                <CardFooter className="flex flex-col gap-3">
-                  {/* Download ZIP */}
-                  <Button
-                    asChild
-                    className="w-full bg-green-500 hover:bg-green-600 text-white"
-                  >
-                    <Link href={dataset.datasetLink} target="_blank">
-                      Download Dataset (ZIP)
-                    </Link>
-                  </Button>
-
-                  {/* Kaggle */}
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href={dataset.kaggleLink} target="_blank">
-                      View on Kaggle
-                    </Link>
-                  </Button>
-
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="w-full flex items-center justify-center gap-2 
-                               bg-white dark:bg-zinc-900 
-                               hover:bg-zinc-100 dark:hover:bg-zinc-800
-                               border border-border"
-                  >
-                    <Link href={dataset.githubLink} target="_blank">
-                      <SiGithub size={16} />
-                      View on GitHub
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </main>
+          <Link
+            href="/contribute"
+            className="ruled-cell hover:bg-secondary group flex flex-col p-8 transition-colors"
+          >
+            <h2 className="text-title text-muted-foreground">
+              More datasets in progress
+            </h2>
+            <p className="text-body-sm text-muted-foreground mt-2 flex-1">
+              Contribute sentences in your dialect to help publish the next one.
+            </p>
+            <PixelIcon
+              name="chevron-right"
+              className="text-muted-foreground mt-8 size-4 transition-transform duration-300 group-hover:translate-x-1"
+            />
+          </Link>
+        </RuledGrid>
+      </section>
     </div>
   );
 }

@@ -7,11 +7,9 @@ export async function getDashboardStats(_req: Request, res: Response) {
     return res.status(200).json({ success: true, data: stats });
   } catch (error) {
     console.error(error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch dashboard statistics",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch dashboard statistics",
+    });
   }
 }

@@ -58,11 +58,9 @@ export async function generateMetadata(req: Request, res: Response) {
       .json({ success: true, model: result.model, data: result.data });
   } catch (error: any) {
     console.error(error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: error.message || "Failed to generate metadata",
-      });
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to generate metadata",
+    });
   }
 }

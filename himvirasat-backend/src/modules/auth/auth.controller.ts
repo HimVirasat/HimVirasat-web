@@ -79,20 +79,16 @@ export async function resetPassword(req: Request, res: Response) {
     }
     const { oldPassword, newPassword } = req.body;
     if (!oldPassword || !newPassword) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Old password and new password are required",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Old password and new password are required",
+      });
     }
     if (newPassword.length < 6) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "New password must be at least 6 characters",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "New password must be at least 6 characters",
+      });
     }
     const result = await service.resetUserPassword(
       authUser.userId,

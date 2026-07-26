@@ -35,13 +35,11 @@ export const createSubmission: RequestHandler = async (
       contributor_id,
       validationResult.data,
     );
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Vocabulary entry submitted successfully.",
-        data: contribution,
-      });
+    res.status(201).json({
+      success: true,
+      message: "Vocabulary entry submitted successfully.",
+      data: contribution,
+    });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });
   }

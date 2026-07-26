@@ -49,13 +49,11 @@ export async function deleteLanguageExpert(req: Request, res: Response) {
         .status(result.statusCode ?? 500)
         .json({ success: false, message: result.message });
     }
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Language expert deactivated",
-        deleted_id: id,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Language expert deactivated",
+      deleted_id: id,
+    });
   } catch (error) {
     console.error(error);
     return res
@@ -111,13 +109,11 @@ export async function deleteLanguageHead(req: Request, res: Response) {
         .status(result.statusCode ?? 500)
         .json({ success: false, message: result.message });
     }
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Language head deactivated",
-        deleted_id: id,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Language head deactivated",
+      deleted_id: id,
+    });
   } catch (error) {
     console.error(error);
     return res
@@ -130,12 +126,10 @@ export async function updateExpertDialects(req: Request, res: Response) {
   try {
     const { id, dialects } = req.body;
     if (!id || !Array.isArray(dialects)) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "User ID and dialects array are required",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "User ID and dialects array are required",
+      });
     }
     const result = await service.updateExpertDialects(id, dialects);
     if (!result.success) {
@@ -143,13 +137,11 @@ export async function updateExpertDialects(req: Request, res: Response) {
         .status(result.statusCode ?? 500)
         .json({ success: false, message: result.message });
     }
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Expert dialects updated",
-        expert: result.data,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Expert dialects updated",
+      expert: result.data,
+    });
   } catch (error) {
     console.error(error);
     return res
@@ -162,12 +154,10 @@ export async function updateHeadDialects(req: Request, res: Response) {
   try {
     const { id, dialects } = req.body;
     if (!id || !Array.isArray(dialects)) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "User ID and dialects array are required",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "User ID and dialects array are required",
+      });
     }
     const result = await service.updateHeadDialects(id, dialects);
     if (!result.success) {
@@ -175,13 +165,11 @@ export async function updateHeadDialects(req: Request, res: Response) {
         .status(result.statusCode ?? 500)
         .json({ success: false, message: result.message });
     }
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Head dialects updated",
-        head: result.data,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Head dialects updated",
+      head: result.data,
+    });
   } catch (error) {
     console.error(error);
     return res

@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 
 import { env } from "../config/env.js";
 
-import type { JwtUser } from "../types/auth.types.js";
+import type { JwtUser } from "@himvirasat/shared/dtos/auth.dto";
 
 export function generateToken(payload: JwtUser): string {
   return jwt.sign(payload, env.JWT_SECRET, {

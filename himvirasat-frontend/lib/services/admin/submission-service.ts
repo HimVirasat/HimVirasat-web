@@ -1,14 +1,28 @@
 import { API_URL } from "@/lib/constants";
-import type { ApiResponse } from "@himvirasat/shared/api";
-import type { CreateSubmissionPayload } from "@himvirasat/shared/submission";
-import { CreateSubmissionDto } from "@himvirasat/shared/submission";
+import type { ApiResponse, CreateSubmissionDto } from "@himvirasat/shared";
+
+// Local payload type expected by your Express backend API
+export type CreateSubmissionPayload = Omit<
+  CreateSubmissionDto,
+  "meaning"
+> & {
+  meaning: string;
+};
+
 export class SubmissionService {
   /**
    * Posts a new vocabulary contribution to POST /submissions
    */
   static async createSubmission(
     formData: CreateSubmissionDto
-  ): Promise<ApiResponse> {
+  ): Promise<ApiResponse<unknown>> {
+    // Standardize meaning field fallback
+    const computedMeaning = (
+      formData.meaning ||
+      formData.meaning_hindi ||
+      ""
+    ).trim();
+
     const payload: CreateSubmissionPayload = {
       dialect_id: Number(formData.dialect_id),
       category_id: formData.category_id ? Number(formData.category_id) : null,
@@ -19,7 +33,7 @@ export class SubmissionService {
       word_latin: formData.word_latin?.trim() || null,
       word_takri: formData.word_takri?.trim() || null,
       ipa: formData.ipa?.trim() || null,
-      meaning: (formData.meaning || formData.meaning_hindi || "").trim(),
+      meaning: computedMeaning,
       meaning_hindi: formData.meaning_hindi?.trim() || null,
       meaning_english: formData.meaning_english?.trim() || null,
       example_sentence: formData.example_sentence?.trim() || null,
@@ -42,10 +56,10 @@ export class SubmissionService {
       body: JSON.stringify(payload),
     });
 
-    const data: ApiResponse = await response.json().catch(() => ({
+    const data = (await response.json().catch(() => ({
       success: false,
       error: "Failed to parse response payload.",
-    }));
+    }))) as ApiResponse<unknown>;
 
     if (!response.ok) {
       throw new Error(

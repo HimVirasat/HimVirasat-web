@@ -416,7 +416,7 @@ export default function WorkspaceContent({
               )}
 
               {!currentItem.review_comments ||
-              currentItem.review_comments.length === 0 ? (
+                currentItem.review_comments.length === 0 ? (
                 <div className="rounded-xl border border-border/50 bg-muted/20 p-6 text-center text-xs text-muted-foreground">
                   No review comments have been added.
                 </div>
@@ -556,47 +556,25 @@ export default function WorkspaceContent({
                   History
                 </h3>
                 <div className="rounded-xl border border-border/40 bg-card/40 divide-y divide-border/40">
-                  {latestHistory.map(
-                    (event: {
-                      id: React.Key | null | undefined;
-                      users: { full_name: any; username: any };
-                      performed_by: any;
-                      action:
-                        | string
-                        | number
-                        | bigint
-                        | boolean
-                        | React.ReactElement<
-                            any,
-                            string | React.JSXElementConstructor<any>
-                          >
-                        | Iterable<React.ReactNode>
-                        | React.ReactPortal
-                        | Promise<React.AwaitedReactNode>
-                        | null
-                        | undefined;
-                      details: any;
-                      created_at: string | number | Date;
-                    }) => (
-                      <div
-                        key={event.id}
-                        className="p-3 flex items-start gap-3 text-xs"
-                      >
-                        <div className="font-medium text-foreground">
-                          {event.users?.full_name ||
-                            event.users?.username ||
-                            event.performed_by}
-                        </div>
-                        <div className="text-muted-foreground">
-                          {event.action}{" "}
-                          {event.details ? `- ${event.details}` : ""}
-                        </div>
-                        <span className="ml-auto text-muted-foreground/60 text-[10px]">
-                          {new Date(event.created_at).toLocaleDateString()}
-                        </span>
+                  {latestHistory.map((event: any) => (
+                    <div
+                      key={event.id}
+                      className="p-3 flex items-start gap-3 text-xs"
+                    >
+                      <div className="font-medium text-foreground">
+                        {event.users?.full_name ||
+                          event.users?.username ||
+                          event.performed_by}
                       </div>
-                    )
-                  )}
+                      <div className="text-muted-foreground">
+                        {event.action}{" "}
+                        {event.details ? `- ${event.details}` : ""}
+                      </div>
+                      <span className="ml-auto text-muted-foreground/60 text-[10px]">
+                        {new Date(event.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

@@ -21,7 +21,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-import type { UserDto } from "@/types/admin/user";
+import type { UserDto } from "@himvirasat/shared";
 
 interface AdminSidebarProps {
   user: UserDto;

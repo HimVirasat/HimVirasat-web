@@ -2,7 +2,7 @@
 
 import { DataTable } from "@/components/admin/data-table/data-table";
 import { getExpertColumns } from "./expert-columns";
-import type { LanguageExpert } from "@/types/admin/user";
+import type { LanguageExpert } from "@himvirasat/shared/dtos/admin.dto";
 
 interface ExpertTableProps {
   experts: LanguageExpert[];

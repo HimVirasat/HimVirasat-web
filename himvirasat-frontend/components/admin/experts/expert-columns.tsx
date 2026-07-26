@@ -4,8 +4,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trash2, UserCheck } from "lucide-react";
-import type { LanguageExpert } from "@/types/admin/user";
 import { EditableDialectsCell } from "../data-table//editable-dialects-cell";
+import { LanguageExpert } from "@himvirasat/shared/dtos/admin.dto";
 
 export function getExpertColumns(
   onRemove: (expertId: string) => void,

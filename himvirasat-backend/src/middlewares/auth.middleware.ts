@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 
 import { verifyToken } from "../utils/jwt.js";
 
-import type { JwtUser } from "../types/auth.types.js";
+import type { JwtUser } from "@himvirasat/shared";
 
 export interface AuthenticatedRequest extends Request {
   user?: JwtUser;

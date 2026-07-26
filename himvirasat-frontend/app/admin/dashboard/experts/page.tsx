@@ -4,7 +4,6 @@ import { CreateExpertDialog } from "@/components/admin/experts/create-expert-dia
 import { ExpertTable } from "@/components/admin/experts/expert-table";
 import { ExpertsToolbar } from "@/components/admin/experts/experts-header-toolbar";
 import { UserService } from "@/lib/services/admin/user-service";
-import { LanguageExpert } from "@/types/admin/user";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";

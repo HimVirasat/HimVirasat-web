@@ -18,15 +18,15 @@ import {
   MANDATORY_FIELDS,
 } from "@/components/admin/submissions/submission-form-fields";
 import {
-  SubmissionFormValues,
+  CreateSubmissionDto,
   WORKFLOW_RULES,
-} from "@/types/admin/contribution-types";
+} from "@himvirasat/shared";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DataLookupService } from "@/lib/services/admin/datalookup-service";
 import { SubmissionService } from "@/lib/services/admin/submission-service";
 import { useRouter } from "next/navigation";
 
-const initialFormData: SubmissionFormValues = {
+const initialFormData: CreateSubmissionDto = {
   dialect_id: 0,
   word_devanagari: "",
   category_id: undefined,
@@ -46,19 +46,22 @@ export default function ContributionSubmissionPage() {
   const queryClient = useQueryClient();
 
   const [formData, setFormData] =
-    useState<SubmissionFormValues>(initialFormData);
+    useState<CreateSubmissionDto>(initialFormData);
 
   // Dynamic progress calculation based on MANDATORY_FIELDS array
   const completion = useMemo(() => {
-    const completedCount = MANDATORY_FIELDS.reduce((acc, field) => {
-      const val = (formData as Record<string, any>)[field];
-      const isFilled =
-        val !== undefined &&
-        val !== null &&
-        String(val).trim() !== "" &&
-        val !== 0;
-      return isFilled ? acc + 1 : acc;
-    }, 0);
+    const completedCount = (MANDATORY_FIELDS as (keyof CreateSubmissionDto)[]).reduce(
+      (acc: number, field) => {
+        const val = formData[field];
+        const isFilled =
+          val !== undefined &&
+          val !== null &&
+          String(val).trim() !== "" &&
+          val !== 0;
+        return isFilled ? acc + 1 : acc;
+      },
+      0
+    );
 
     return Math.round((completedCount / MANDATORY_FIELDS.length) * 100);
   }, [formData]);
@@ -96,7 +99,7 @@ export default function ContributionSubmissionPage() {
 
   // Create Submission Mutation
   const submissionMutation = useMutation({
-    mutationFn: (values: SubmissionFormValues) =>
+    mutationFn: (values: CreateSubmissionDto) =>
       SubmissionService.createSubmission(values),
     onSuccess: () => {
       toast.success("Submission sent to review", {
@@ -128,9 +131,9 @@ export default function ContributionSubmissionPage() {
   const hasSyncFailure = isErrorDialects || isErrorCategories || isErrorPOS;
   const isSubmitting = submissionMutation.isPending;
 
-  const handleFieldChange = <K extends keyof SubmissionFormValues>(
-    field: K,
-    value: SubmissionFormValues[K]
+  const handleFieldChange = (
+    field: keyof CreateSubmissionDto,
+    value: any
   ) => {
     setFormData((previous) => ({ ...previous, [field]: value }));
   };
@@ -139,15 +142,15 @@ export default function ContributionSubmissionPage() {
     event.preventDefault();
 
     // Iterate through mandatory fields array to ensure completeness
-    for (const field of MANDATORY_FIELDS) {
-      const val = (formData as Record<string, any>)[field];
+    for (const field of MANDATORY_FIELDS as (keyof CreateSubmissionDto)[]) {
+      const val = formData[field];
       if (
         val === undefined ||
         val === null ||
         String(val).trim() === "" ||
         val === 0
       ) {
-        const readableFieldName = field.replace(/_/g, " ").toUpperCase();
+        const readableFieldName = String(field).replace(/_/g, " ").toUpperCase();
         toast.error("Missing Field", {
           description: `Please fulfill mandatory field: ${readableFieldName}`,
         });
@@ -317,11 +320,11 @@ export default function ContributionSubmissionPage() {
                 {/* Form Inputs */}
                 <div className="p-5 sm:p-6 lg:p-8">
                   <SubmissionFormFields
-                    values={formData}
+                    values={formData as any}
                     dialects={dbDialects}
                     categories={dbCategories}
                     partsOfSpeech={dbPartsOfSpeech}
-                    onChange={handleFieldChange}
+                    onChange={handleFieldChange as any}
                   />
                 </div>
               </div>

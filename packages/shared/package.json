@@ -10,13 +10,9 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./api": {
-      "types": "./dist/api.d.ts",
-      "default": "./dist/api.js"
-    },
-    "./submission": {
-      "types": "./dist/submission.d.ts",
-      "default": "./dist/submission.js"
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
     }
   },
   "scripts": {

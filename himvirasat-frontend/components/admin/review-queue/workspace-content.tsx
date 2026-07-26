@@ -47,7 +47,7 @@ import {
   getOpenReviewCommentCount,
   isAuthorityRole,
   ContributionStatus,
-} from "@/types/admin/contribution-types";
+} from "@himvirasat/shared";
 
 import {
   useTransitionStatus,
@@ -205,7 +205,7 @@ export default function WorkspaceContent({
   const latestHistory = useMemo(() => {
     if (!currentItem) return [];
     return (currentItem.history || []).sort(
-      (a, b) =>
+      (a: { created_at: string | number | Date; }, b: { created_at: string | number | Date; }) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
   }, [currentItem]);
@@ -414,7 +414,7 @@ export default function WorkspaceContent({
               )}
 
               {!currentItem.review_comments ||
-              currentItem.review_comments.length === 0 ? (
+                currentItem.review_comments.length === 0 ? (
                 <div className="rounded-xl border border-border/50 bg-muted/20 p-6 text-center text-xs text-muted-foreground">
                   No review comments have been added.
                 </div>
@@ -554,7 +554,7 @@ export default function WorkspaceContent({
                   History
                 </h3>
                 <div className="rounded-xl border border-border/40 bg-card/40 divide-y divide-border/40">
-                  {latestHistory.map((event) => (
+                  {latestHistory.map((event: { id: React.Key | null | undefined; message: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; users: { username: any; }; actor_id: any; created_at: string | number | Date; type: string; }) => (
                     <div
                       key={event.id}
                       className="p-3 flex items-start gap-3 text-xs"

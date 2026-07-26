@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataLookupService } from "@/lib/services/admin/datalookup-service";
-import { Contribution } from "@/types/admin/contribution-types";
+import { Contribution } from "@himvirasat/shared";
 
 interface WorkspaceEditContentProps {
   editForm: Partial<Contribution>;

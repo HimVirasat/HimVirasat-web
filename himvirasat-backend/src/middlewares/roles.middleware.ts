@@ -1,10 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-
+import { SystemRole } from "@himvirasat/shared";
 import type { AuthenticatedRequest } from "./auth.middleware.js";
 
-import type { UserRole } from "../types/auth.types.js";
-
-export function requireRole(...roles: UserRole[]) {
+export function requireRole(...roles: SystemRole[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     const user = (req as AuthenticatedRequest).user;
 

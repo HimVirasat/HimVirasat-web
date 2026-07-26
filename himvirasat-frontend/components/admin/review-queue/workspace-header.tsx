@@ -18,7 +18,7 @@ import {
   ContributionStatus,
   SystemRole,
   WORKFLOW_RULES,
-} from "@/types/admin/contribution-types";
+} from "@himvirasat/shared";
 
 interface WorkspaceHeaderProps {
   currentItem: Contribution;

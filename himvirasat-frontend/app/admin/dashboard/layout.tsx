@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { DashboardShell } from "@/components/admin/dashboard-shell";
 import { AdminAuthService } from "@/lib/services/admin/admin-auth-service";
 
-import type { UserDto } from "@/types/admin/user";
+import type { UserDto } from "@himvirasat/shared";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BackgroundDecor } from "@/components/layout/background-decor";
 export default function DashboardLayout({

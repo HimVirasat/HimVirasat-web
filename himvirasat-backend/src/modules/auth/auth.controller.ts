@@ -15,7 +15,9 @@ export async function login(req: Request, res: Response) {
     const { username, password } = parseResult.data;
     const result = await service.loginUser(username, password);
     if (!result.success) {
-      return res.status(result.statusCode ?? 500).json({ success: false, message: result.message });
+      return res
+        .status(result.statusCode ?? 500)
+        .json({ success: false, message: result.message });
     }
     // Set cookie
     res.cookie("access_token", result.token, {
@@ -31,7 +33,9 @@ export async function login(req: Request, res: Response) {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 }
 
@@ -43,18 +47,28 @@ export async function me(req: Request, res: Response) {
     }
     const user = await service.getUserProfile(authUser.userId);
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
     return res.status(200).json({ success: true, user });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 }
 
 export async function logout(_req: Request, res: Response) {
-  res.clearCookie("access_token", { httpOnly: true, secure: true, sameSite: "none" });
-  return res.status(200).json({ success: true, message: "Logged out successfully" });
+  res.clearCookie("access_token", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
+  return res
+    .status(200)
+    .json({ success: true, message: "Logged out successfully" });
 }
 
 export async function resetPassword(req: Request, res: Response) {
@@ -65,18 +79,38 @@ export async function resetPassword(req: Request, res: Response) {
     }
     const { oldPassword, newPassword } = req.body;
     if (!oldPassword || !newPassword) {
-      return res.status(400).json({ success: false, message: "Old password and new password are required" });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Old password and new password are required",
+        });
     }
     if (newPassword.length < 6) {
-      return res.status(400).json({ success: false, message: "New password must be at least 6 characters" });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "New password must be at least 6 characters",
+        });
     }
-    const result = await service.resetUserPassword(authUser.userId, oldPassword, newPassword);
+    const result = await service.resetUserPassword(
+      authUser.userId,
+      oldPassword,
+      newPassword,
+    );
     if (!result.success) {
-      return res.status(result.statusCode ?? 500).json({ success: false, message: result.message });
+      return res
+        .status(result.statusCode ?? 500)
+        .json({ success: false, message: result.message });
     }
-    return res.status(200).json({ success: true, message: "Password reset successfully" });
+    return res
+      .status(200)
+      .json({ success: true, message: "Password reset successfully" });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 }

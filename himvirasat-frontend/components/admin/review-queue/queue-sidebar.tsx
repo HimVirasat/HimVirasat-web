@@ -23,11 +23,7 @@ import {
 } from "@himvirasat/shared";
 
 export type QueueFilter =
-  | "my_submissions"
-  | "under_review"
-  | "approved"
-  | "flagged"
-  | "rejected";
+  "my_submissions" | "under_review" | "approved" | "flagged" | "rejected";
 
 interface QueueSidebarProps {
   activeUserId: string;
@@ -180,9 +176,8 @@ export default function QueueSidebar({
               const isMine = item.contributor_id === activeUserId;
 
               // Safely handle status normalization and provide fallback
-              const normalizedStatus = (
-                item.status?.toLowerCase() ?? ""
-              ) as ContributionStatus;
+              const normalizedStatus = (item.status?.toLowerCase() ??
+                "") as ContributionStatus;
 
               const badgeConfig = statusBadgeConfig[normalizedStatus] ?? {
                 label: item.status || "Unknown",

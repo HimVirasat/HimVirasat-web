@@ -119,7 +119,7 @@ export function SubmissionFormFields({
     } catch (err: any) {
       setGrokError(
         err.message ||
-        "An error occurred while calling the metadata generation service."
+          "An error occurred while calling the metadata generation service."
       );
     } finally {
       setIsGenerating(false);

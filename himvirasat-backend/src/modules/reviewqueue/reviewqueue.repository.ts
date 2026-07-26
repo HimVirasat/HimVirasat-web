@@ -13,7 +13,10 @@ export async function insertContribution(data: any) {
   return contribution;
 }
 
-export async function fetchContributions(filters: { status?: string | undefined; dialect_id?: number | undefined }, selectQuery: string) {
+export async function fetchContributions(
+  filters: { status?: string | undefined; dialect_id?: number | undefined },
+  selectQuery: string,
+) {
   let query = supabase.from("contributions").select(selectQuery);
   if (filters.status) query = query.eq("status", filters.status);
   if (filters.dialect_id) query = query.eq("dialect_id", filters.dialect_id);
@@ -51,10 +54,7 @@ export async function updateContribution(id: string, updates: any) {
 }
 
 export async function deleteContribution(id: string) {
-  const { error } = await supabase
-    .from("contributions")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("contributions").delete().eq("id", id);
   if (error) throw error;
 }
 
@@ -62,24 +62,22 @@ export async function deleteContribution(id: string) {
 // History
 // ------------------------------------------------------------------
 export async function insertHistory(data: any) {
-  const { error } = await supabase
-    .from("contribution_history")
-    .insert([data]);
+  const { error } = await supabase.from("contribution_history").insert([data]);
   if (error) throw error;
 }
 
 export async function insertHistoryBatch(rows: any[]) {
   if (rows.length === 0) return;
-  const { error } = await supabase
-    .from("contribution_history")
-    .insert(rows);
+  const { error } = await supabase.from("contribution_history").insert(rows);
   if (error) throw error;
 }
 
 export async function fetchHistoryByContributionId(id: string) {
   const { data, error } = await supabase
     .from("contribution_history")
-    .select(`*, users:users!contribution_history_actor_id_fkey(username, full_name)`)
+    .select(
+      `*, users:users!contribution_history_actor_id_fkey(username, full_name)`,
+    )
     .eq("contribution_id", id)
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -93,7 +91,9 @@ export async function insertComment(data: any) {
   const { data: comment, error } = await supabase
     .from("contribution_comments")
     .insert([data])
-    .select(`*, users:users!contribution_comments_author_id_fkey(username, full_name)`)
+    .select(
+      `*, users:users!contribution_comments_author_id_fkey(username, full_name)`,
+    )
     .single();
   if (error) throw error;
   return comment;
@@ -102,7 +102,9 @@ export async function insertComment(data: any) {
 export async function fetchCommentsByContributionId(id: string) {
   const { data, error } = await supabase
     .from("contribution_comments")
-    .select(`*, users:users!contribution_comments_author_id_fkey(username, full_name)`)
+    .select(
+      `*, users:users!contribution_comments_author_id_fkey(username, full_name)`,
+    )
     .eq("contribution_id", id)
     .order("created_at", { ascending: true });
   if (error) throw error;
@@ -114,7 +116,9 @@ export async function updateComment(id: string, updates: any) {
     .from("contribution_comments")
     .update(updates)
     .eq("id", id)
-    .select(`*, users:users!contribution_comments_author_id_fkey(username, full_name)`)
+    .select(
+      `*, users:users!contribution_comments_author_id_fkey(username, full_name)`,
+    )
     .single();
   if (error && error.code !== "PGRST116") throw error;
   return data || null;
@@ -123,7 +127,9 @@ export async function updateComment(id: string, updates: any) {
 export async function fetchCommentById(id: string) {
   const { data, error } = await supabase
     .from("contribution_comments")
-    .select(`*, users:users!contribution_comments_author_id_fkey(username, full_name)`)
+    .select(
+      `*, users:users!contribution_comments_author_id_fkey(username, full_name)`,
+    )
     .eq("id", id)
     .single();
   if (error && error.code !== "PGRST116") throw error;

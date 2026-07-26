@@ -17,10 +17,7 @@ import {
   SubmissionFormFields,
   MANDATORY_FIELDS,
 } from "@/components/admin/submissions/submission-form-fields";
-import {
-  CreateSubmissionDto,
-  WORKFLOW_RULES,
-} from "@himvirasat/shared";
+import { CreateSubmissionDto, WORKFLOW_RULES } from "@himvirasat/shared";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DataLookupService } from "@/lib/services/admin/datalookup-service";
 import { SubmissionService } from "@/lib/services/admin/submission-service";
@@ -50,18 +47,17 @@ export default function ContributionSubmissionPage() {
 
   // Dynamic progress calculation based on MANDATORY_FIELDS array
   const completion = useMemo(() => {
-    const completedCount = (MANDATORY_FIELDS as (keyof CreateSubmissionDto)[]).reduce(
-      (acc: number, field) => {
-        const val = formData[field];
-        const isFilled =
-          val !== undefined &&
-          val !== null &&
-          String(val).trim() !== "" &&
-          val !== 0;
-        return isFilled ? acc + 1 : acc;
-      },
-      0
-    );
+    const completedCount = (
+      MANDATORY_FIELDS as (keyof CreateSubmissionDto)[]
+    ).reduce((acc: number, field) => {
+      const val = formData[field];
+      const isFilled =
+        val !== undefined &&
+        val !== null &&
+        String(val).trim() !== "" &&
+        val !== 0;
+      return isFilled ? acc + 1 : acc;
+    }, 0);
 
     return Math.round((completedCount / MANDATORY_FIELDS.length) * 100);
   }, [formData]);
@@ -131,10 +127,7 @@ export default function ContributionSubmissionPage() {
   const hasSyncFailure = isErrorDialects || isErrorCategories || isErrorPOS;
   const isSubmitting = submissionMutation.isPending;
 
-  const handleFieldChange = (
-    field: keyof CreateSubmissionDto,
-    value: any
-  ) => {
+  const handleFieldChange = (field: keyof CreateSubmissionDto, value: any) => {
     setFormData((previous) => ({ ...previous, [field]: value }));
   };
 
@@ -150,7 +143,9 @@ export default function ContributionSubmissionPage() {
         String(val).trim() === "" ||
         val === 0
       ) {
-        const readableFieldName = String(field).replace(/_/g, " ").toUpperCase();
+        const readableFieldName = String(field)
+          .replace(/_/g, " ")
+          .toUpperCase();
         toast.error("Missing Field", {
           description: `Please fulfill mandatory field: ${readableFieldName}`,
         });

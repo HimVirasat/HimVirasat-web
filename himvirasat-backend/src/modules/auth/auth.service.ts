@@ -14,7 +14,11 @@ export async function loginUser(username: string, password: string) {
   if (!valid) {
     return { success: false, statusCode: 401, message: "Invalid credentials" };
   }
-  const token = generateToken({ userId: user.id, username: user.username, role: user.role });
+  const token = generateToken({
+    userId: user.id,
+    username: user.username,
+    role: user.role,
+  });
   return {
     success: true,
     token,
@@ -40,13 +44,28 @@ export async function getUserProfile(userId: string) {
   };
 }
 
-export async function resetUserPassword(userId: string, oldPassword: string, newPassword: string) {
+export async function resetUserPassword(
+  userId: string,
+  oldPassword: string,
+  newPassword: string,
+) {
   const user = await repository.findUserById(userId);
-  if (!user) return { success: false, statusCode: 404, message: "User not found" };
+  if (!user)
+    return { success: false, statusCode: 404, message: "User not found" };
   const valid = await bcrypt.compare(oldPassword, user.password_hash);
-  if (!valid) return { success: false, statusCode: 400, message: "Incorrect current password" };
+  if (!valid)
+    return {
+      success: false,
+      statusCode: 400,
+      message: "Incorrect current password",
+    };
   const hashed = await bcrypt.hash(newPassword, 10);
   const updated = await repository.updateUserPassword(userId, hashed);
-  if (!updated) return { success: false, statusCode: 500, message: "Failed to update password" };
+  if (!updated)
+    return {
+      success: false,
+      statusCode: 500,
+      message: "Failed to update password",
+    };
   return { success: true };
 }

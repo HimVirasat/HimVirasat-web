@@ -3,7 +3,9 @@ import { supabase } from "../../services/supabase.js";
 export async function findUsersByRole(role: string) {
   const { data, error } = await supabase
     .from("users")
-    .select("id, username, full_name, email, dialects, is_active, created_at, points")
+    .select(
+      "id, username, full_name, email, dialects, is_active, created_at, points",
+    )
     .eq("role", role)
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -37,7 +39,8 @@ export async function softDeleteUser(id: string) {
     .select("username, email")
     .eq("id", id)
     .single();
-  if (fetchError || !user) return { success: false, statusCode: 404, message: "User not found" };
+  if (fetchError || !user)
+    return { success: false, statusCode: 404, message: "User not found" };
 
   const timestamp = Date.now();
   const anonymizedUsername = `deleted_hv_${timestamp}`;

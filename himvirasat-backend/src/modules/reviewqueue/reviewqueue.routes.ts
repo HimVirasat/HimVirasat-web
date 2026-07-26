@@ -11,6 +11,10 @@ router.put("/:id", requireAuth, controller.updateReviewQueue);
 router.delete("/:id", requireAuth, controller.deleteReviewQueue);
 router.patch("/:id/status", requireAuth, controller.updateReviewQueueStatus);
 router.post("/:id/comments", requireAuth, controller.addReviewQueueComment);
-router.patch("/:id/comments/:commentId/status", requireAuth, controller.updateReviewQueueCommentStatus);
+router.patch(
+  "/:id/comments/:commentId/status",
+  requireAuth,
+  controller.updateReviewQueueCommentStatus,
+);
 
 export default router;

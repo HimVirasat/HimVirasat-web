@@ -11,8 +11,6 @@ export async function insertContribution(data: any) {
 }
 
 export async function insertHistory(data: any) {
-  const { error } = await supabase
-    .from("contribution_history")
-    .insert([data]);
+  const { error } = await supabase.from("contribution_history").insert([data]);
   if (error) throw error;
 }

@@ -16,7 +16,8 @@ const formatContribution = (item: any) => {
   if (!item) return item;
   return {
     ...item,
-    contributor_name: item.users?.full_name || item.users?.username || "Contributor",
+    contributor_name:
+      item.users?.full_name || item.users?.username || "Contributor",
     dialect_name: item.dialects?.name || "Standard",
     category_name: item.categories?.name || "General Vocabulary",
     part_of_speech_name: item.parts_of_speech?.name || "General",
@@ -47,15 +48,15 @@ const sanitizeContributionInput = (input: any) => {
 // 1. CREATE
 // ------------------------------------------------------------------
 export async function createContribution(contributorId: string, _payload: any) {
-//   const cleanData = sanitizeContributionInput(payload);
+  //   const cleanData = sanitizeContributionInput(payload);
   const customUUID = randomUUID();
 
-//   const contribution = await repository.insertContribution({
-//     ...cleanData,
-//     id: customUUID,
-//     contributor_id: contributorId,
-//     status: "under_review",
-//   });
+  //   const contribution = await repository.insertContribution({
+  //     ...cleanData,
+  //     id: customUUID,
+  //     contributor_id: contributorId,
+  //     status: "under_review",
+  //   });
 
   // Log history
   await repository.insertHistory({
@@ -66,15 +67,24 @@ export async function createContribution(contributorId: string, _payload: any) {
   });
 
   // Fetch the enriched version
-  const enriched = await repository.fetchContributionById(customUUID, CONTRIBUTION_SELECT_QUERY);
+  const enriched = await repository.fetchContributionById(
+    customUUID,
+    CONTRIBUTION_SELECT_QUERY,
+  );
   return formatContribution(enriched);
 }
 
 // ------------------------------------------------------------------
 // 2. READ (list)
 // ------------------------------------------------------------------
-export async function fetchContributions(filters: { status?: string | undefined; dialect_id?: number | undefined }) {
-  const data = await repository.fetchContributions(filters, CONTRIBUTION_SELECT_QUERY);
+export async function fetchContributions(filters: {
+  status?: string | undefined;
+  dialect_id?: number | undefined;
+}) {
+  const data = await repository.fetchContributions(
+    filters,
+    CONTRIBUTION_SELECT_QUERY,
+  );
   return data.map(formatContribution);
 }
 
@@ -82,7 +92,10 @@ export async function fetchContributions(filters: { status?: string | undefined;
 // 3. READ (single + comments + history)
 // ------------------------------------------------------------------
 export async function fetchContributionById(id: string) {
-  const item = await repository.fetchContributionById(id, CONTRIBUTION_SELECT_QUERY);
+  const item = await repository.fetchContributionById(
+    id,
+    CONTRIBUTION_SELECT_QUERY,
+  );
   if (!item) return null;
 
   const comments = await repository.fetchCommentsByContributionId(id);
@@ -98,7 +111,11 @@ export async function fetchContributionById(id: string) {
 // ------------------------------------------------------------------
 // 4. UPDATE (core fields)
 // ------------------------------------------------------------------
-export async function updateContribution(id: string, actorId: string, payload: any) {
+export async function updateContribution(
+  id: string,
+  actorId: string,
+  payload: any,
+) {
   const currentData = await repository.fetchContributionRaw(id);
   if (!currentData) {
     throw new Error("Contribution record not found.");
@@ -107,18 +124,35 @@ export async function updateContribution(id: string, actorId: string, payload: a
   const cleanUpdates = sanitizeContributionInput(payload);
 
   // Build diff
-  const diffEntries: { field_name: string; old_value: string; new_value: string }[] = [];
+  const diffEntries: {
+    field_name: string;
+    old_value: string;
+    new_value: string;
+  }[] = [];
   Object.keys(cleanUpdates).forEach((key) => {
-    const oldVal = currentData[key] !== null && currentData[key] !== undefined ? String(currentData[key]) : "";
-    const newVal = cleanUpdates[key] !== null && cleanUpdates[key] !== undefined ? String(cleanUpdates[key]) : "";
+    const oldVal =
+      currentData[key] !== null && currentData[key] !== undefined
+        ? String(currentData[key])
+        : "";
+    const newVal =
+      cleanUpdates[key] !== null && cleanUpdates[key] !== undefined
+        ? String(cleanUpdates[key])
+        : "";
     if (oldVal !== newVal) {
-      diffEntries.push({ field_name: key, old_value: oldVal, new_value: newVal });
+      diffEntries.push({
+        field_name: key,
+        old_value: oldVal,
+        new_value: newVal,
+      });
     }
   });
 
   if (diffEntries.length === 0) {
     // no changes, still return enriched item
-    const enriched = await repository.fetchContributionById(id, CONTRIBUTION_SELECT_QUERY);
+    const enriched = await repository.fetchContributionById(
+      id,
+      CONTRIBUTION_SELECT_QUERY,
+    );
     return formatContribution(enriched);
   }
 
@@ -135,19 +169,31 @@ export async function updateContribution(id: string, actorId: string, payload: a
     new_value: diff.new_value,
     message: `Updated [${diff.field_name}]: '${diff.old_value || "empty"}' ➔ '${diff.new_value || "empty"}'`,
   }));
-  await repository.insertHistoryBatch(historyRows).catch((err: PostgrestError) =>
-    logger.warn("Failed logging individual field changes to contribution_history", err)
-  );
+  await repository
+    .insertHistoryBatch(historyRows)
+    .catch((err: PostgrestError) =>
+      logger.warn(
+        "Failed logging individual field changes to contribution_history",
+        err,
+      ),
+    );
 
   // Return enriched
-  const enriched = await repository.fetchContributionById(id, CONTRIBUTION_SELECT_QUERY);
+  const enriched = await repository.fetchContributionById(
+    id,
+    CONTRIBUTION_SELECT_QUERY,
+  );
   return formatContribution(enriched);
 }
 
 // ------------------------------------------------------------------
 // 5. UPDATE STATUS
 // ------------------------------------------------------------------
-export async function updateContributionStatus(id: string, actorId: string, payload: { status: string; reason?: string | undefined }) {
+export async function updateContributionStatus(
+  id: string,
+  actorId: string,
+  payload: { status: string; reason?: string | undefined },
+) {
   const { status, reason } = payload;
 
   const statusUpdates: Record<string, any> = { status };
@@ -180,7 +226,10 @@ export async function updateContributionStatus(id: string, actorId: string, payl
     message: reason || `Status updated to ${status}.`,
   });
 
-  const enriched = await repository.fetchContributionById(id, CONTRIBUTION_SELECT_QUERY);
+  const enriched = await repository.fetchContributionById(
+    id,
+    CONTRIBUTION_SELECT_QUERY,
+  );
   return formatContribution(enriched);
 }
 
@@ -197,10 +246,11 @@ export async function deleteContribution(id: string) {
 export async function addContributionComment(
   contributionId: string,
   authorId: string,
-  payload: { field_name: string; message: string }
+  payload: { field_name: string; message: string },
 ) {
   const { field_name, message } = payload;
-  const cleanFieldName = field_name && field_name.trim() !== "" ? field_name.trim() : "General";
+  const cleanFieldName =
+    field_name && field_name.trim() !== "" ? field_name.trim() : "General";
 
   const comment = await repository.insertComment({
     contribution_id: contributionId,
@@ -227,7 +277,7 @@ export async function addContributionComment(
 export async function updateCommentStatus(
   commentId: string,
   actorId: string,
-  payload: { status: CommentStatus; fieldValueToAccept?: any }
+  payload: { status: CommentStatus; fieldValueToAccept?: any },
 ) {
   const { status, fieldValueToAccept } = payload;
 
@@ -241,8 +291,14 @@ export async function updateCommentStatus(
   if (!updatedComment) throw new Error("Comment not found");
 
   // If status is "accepted" and we have a field value to apply
-  if (status === "accepted" && fieldValueToAccept !== undefined && updatedComment.field_name !== "General") {
-    const currentData = await repository.fetchContributionRaw(updatedComment.contribution_id);
+  if (
+    status === "accepted" &&
+    fieldValueToAccept !== undefined &&
+    updatedComment.field_name !== "General"
+  ) {
+    const currentData = await repository.fetchContributionRaw(
+      updatedComment.contribution_id,
+    );
     if (currentData) {
       const fieldName = updatedComment.field_name;
       const oldVal = String(currentData[fieldName] ?? "");
@@ -268,13 +324,16 @@ export async function updateCommentStatus(
     resolved: "comment_resolved",
     open: "comment_added",
   };
-  const authorName = updatedComment.users?.username || updatedComment.users?.full_name || "contributor";
+  const authorName =
+    updatedComment.users?.username ||
+    updatedComment.users?.full_name ||
+    "contributor";
   const historyMessage =
     status === "accepted"
       ? `comment accepted of ${authorName}`
       : status === "rejected"
-      ? `comment rejected of ${authorName}`
-      : `Marked review comment on [${updatedComment.field_name}] as ${status}.`;
+        ? `comment rejected of ${authorName}`
+        : `Marked review comment on [${updatedComment.field_name}] as ${status}.`;
 
   await repository.insertHistory({
     contribution_id: updatedComment.contribution_id,

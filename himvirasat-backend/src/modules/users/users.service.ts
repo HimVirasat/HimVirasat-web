@@ -9,7 +9,11 @@ export async function createLanguageExpert(payload: any) {
   const { fullName, email, username, password, dialects } = payload;
   const existing = await repository.findUserByUsername(username);
   if (existing) {
-    return { success: false, statusCode: 409, message: "Username already exists" };
+    return {
+      success: false,
+      statusCode: 409,
+      message: "Username already exists",
+    };
   }
   const passwordHash = await bcrypt.hash(password, 12);
   const user = await repository.createUser({
@@ -20,8 +24,16 @@ export async function createLanguageExpert(payload: any) {
     role: "language_expert",
     dialects,
   });
-  if (!user) return { success: false, statusCode: 500, message: "Failed to create user" };
-  return { success: true, expert: { id: user.id, username: user.username, dialects: user.dialects } };
+  if (!user)
+    return {
+      success: false,
+      statusCode: 500,
+      message: "Failed to create user",
+    };
+  return {
+    success: true,
+    expert: { id: user.id, username: user.username, dialects: user.dialects },
+  };
 }
 
 export async function deleteLanguageExpert(id: string) {
@@ -36,7 +48,11 @@ export async function createLanguageHead(payload: any) {
   const { fullName, email, username, password, dialects } = payload;
   const existing = await repository.findUserByUsername(username);
   if (existing) {
-    return { success: false, statusCode: 409, message: "Username already exists" };
+    return {
+      success: false,
+      statusCode: 409,
+      message: "Username already exists",
+    };
   }
   const passwordHash = await bcrypt.hash(password, 12);
   const user = await repository.createUser({
@@ -47,8 +63,16 @@ export async function createLanguageHead(payload: any) {
     role: "language_head",
     dialects,
   });
-  if (!user) return { success: false, statusCode: 500, message: "Failed to create user" };
-  return { success: true, head: { id: user.id, username: user.username, dialects: user.dialects } };
+  if (!user)
+    return {
+      success: false,
+      statusCode: 500,
+      message: "Failed to create user",
+    };
+  return {
+    success: true,
+    head: { id: user.id, username: user.username, dialects: user.dialects },
+  };
 }
 
 export async function deleteLanguageHead(id: string) {
@@ -57,12 +81,14 @@ export async function deleteLanguageHead(id: string) {
 
 export async function updateExpertDialects(id: string, dialects: string[]) {
   const updated = await repository.updateUserDialects(id, dialects);
-  if (!updated) return { success: false, statusCode: 404, message: "User not found" };
+  if (!updated)
+    return { success: false, statusCode: 404, message: "User not found" };
   return { success: true, data: updated };
 }
 
 export async function updateHeadDialects(id: string, dialects: string[]) {
   const updated = await repository.updateUserDialects(id, dialects);
-  if (!updated) return { success: false, statusCode: 404, message: "User not found" };
+  if (!updated)
+    return { success: false, statusCode: 404, message: "User not found" };
   return { success: true, data: updated };
 }

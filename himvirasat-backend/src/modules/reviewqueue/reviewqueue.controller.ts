@@ -11,12 +11,17 @@ import {
 const getUserId = (req: AuthenticatedRequest): string | undefined =>
   req.user?.userId || (req.user as any)?.id;
 
-const getStringParam = (param: string | string[] | undefined): string | null => {
+const getStringParam = (
+  param: string | string[] | undefined,
+): string | null => {
   if (typeof param === "string") return param;
   return null;
 };
 
-export const createReviewQueue: RequestHandler = async (req, res): Promise<void> => {
+export const createReviewQueue: RequestHandler = async (
+  req,
+  res,
+): Promise<void> => {
   const authReq = req as AuthenticatedRequest;
   const contributor_id = getUserId(authReq);
   if (!contributor_id) {
@@ -31,16 +36,23 @@ export const createReviewQueue: RequestHandler = async (req, res): Promise<void>
   }
 };
 
-export const getReviewQueue: RequestHandler = async (req, res): Promise<void> => {
+export const getReviewQueue: RequestHandler = async (
+  req,
+  res,
+): Promise<void> => {
   try {
     const filterValidation = ContributionFiltersSchema.safeParse({
       status: req.query.status,
-      dialect_id: req.query.dialect_id ? Number(req.query.dialect_id) : undefined,
+      dialect_id: req.query.dialect_id
+        ? Number(req.query.dialect_id)
+        : undefined,
     });
     if (!filterValidation.success) {
       res.status(400).json({
         success: false,
-        error: filterValidation.error.issues[0]?.message ?? "Invalid filter parameters",
+        error:
+          filterValidation.error.issues[0]?.message ??
+          "Invalid filter parameters",
         requestId: res.locals.requestId,
       });
       return;
@@ -52,16 +64,23 @@ export const getReviewQueue: RequestHandler = async (req, res): Promise<void> =>
   }
 };
 
-export const getReviewQueueById: RequestHandler = async (req, res): Promise<void> => {
+export const getReviewQueueById: RequestHandler = async (
+  req,
+  res,
+): Promise<void> => {
   try {
     const id = getStringParam(req.params.id);
     if (!id) {
-      res.status(400).json({ success: false, error: "Invalid or missing contribution ID" });
+      res
+        .status(400)
+        .json({ success: false, error: "Invalid or missing contribution ID" });
       return;
     }
     const item = await service.fetchContributionById(id);
     if (!item) {
-      res.status(404).json({ success: false, message: "Review queue item not found" });
+      res
+        .status(404)
+        .json({ success: false, message: "Review queue item not found" });
       return;
     }
     res.status(200).json({ success: true, data: item });
@@ -70,7 +89,10 @@ export const getReviewQueueById: RequestHandler = async (req, res): Promise<void
   }
 };
 
-export const updateReviewQueue: RequestHandler = async (req, res): Promise<void> => {
+export const updateReviewQueue: RequestHandler = async (
+  req,
+  res,
+): Promise<void> => {
   const authReq = req as AuthenticatedRequest;
   const actor_id = getUserId(authReq);
   if (!actor_id) {
@@ -80,7 +102,9 @@ export const updateReviewQueue: RequestHandler = async (req, res): Promise<void>
   try {
     const id = getStringParam(req.params.id);
     if (!id) {
-      res.status(400).json({ success: false, error: "Invalid or missing contribution ID" });
+      res
+        .status(400)
+        .json({ success: false, error: "Invalid or missing contribution ID" });
       return;
     }
     const data = await service.updateContribution(id, actor_id, req.body);
@@ -90,7 +114,10 @@ export const updateReviewQueue: RequestHandler = async (req, res): Promise<void>
   }
 };
 
-export const updateReviewQueueStatus: RequestHandler = async (req, res): Promise<void> => {
+export const updateReviewQueueStatus: RequestHandler = async (
+  req,
+  res,
+): Promise<void> => {
   const authReq = req as AuthenticatedRequest;
   const actor_id = getUserId(authReq);
   if (!actor_id) {
@@ -108,31 +135,47 @@ export const updateReviewQueueStatus: RequestHandler = async (req, res): Promise
   try {
     const id = getStringParam(req.params.id);
     if (!id) {
-      res.status(400).json({ success: false, error: "Invalid or missing contribution ID" });
+      res
+        .status(400)
+        .json({ success: false, error: "Invalid or missing contribution ID" });
       return;
     }
-    const data = await service.updateContributionStatus(id, actor_id, parseResult.data);
+    const data = await service.updateContributionStatus(
+      id,
+      actor_id,
+      parseResult.data,
+    );
     res.status(200).json({ success: true, data });
   } catch (error: any) {
     res.status(400).json({ success: false, error: error.message });
   }
 };
 
-export const deleteReviewQueue: RequestHandler = async (req, res): Promise<void> => {
+export const deleteReviewQueue: RequestHandler = async (
+  req,
+  res,
+): Promise<void> => {
   try {
     const id = getStringParam(req.params.id);
     if (!id) {
-      res.status(400).json({ success: false, error: "Invalid or missing contribution ID" });
+      res
+        .status(400)
+        .json({ success: false, error: "Invalid or missing contribution ID" });
       return;
     }
     await service.deleteContribution(id);
-    res.status(200).json({ success: true, message: "Review queue item deleted cleanly." });
+    res
+      .status(200)
+      .json({ success: true, message: "Review queue item deleted cleanly." });
   } catch (error: any) {
     res.status(400).json({ success: false, error: error.message });
   }
 };
 
-export const addReviewQueueComment: RequestHandler = async (req, res): Promise<void> => {
+export const addReviewQueueComment: RequestHandler = async (
+  req,
+  res,
+): Promise<void> => {
   const authReq = req as AuthenticatedRequest;
   const author_id = getUserId(authReq);
   if (!author_id) {
@@ -150,11 +193,14 @@ export const addReviewQueueComment: RequestHandler = async (req, res): Promise<v
   try {
     const id = getStringParam(req.params.id);
     if (!id) {
-      res.status(400).json({ success: false, error: "Invalid or missing contribution ID" });
+      res
+        .status(400)
+        .json({ success: false, error: "Invalid or missing contribution ID" });
       return;
     }
     const { field_name, message } = parseResult.data;
-    const cleanFieldName = field_name && field_name.trim() !== "" ? field_name.trim() : "General";
+    const cleanFieldName =
+      field_name && field_name.trim() !== "" ? field_name.trim() : "General";
     const comment = await service.addContributionComment(id, author_id, {
       field_name: cleanFieldName,
       message,
@@ -165,7 +211,10 @@ export const addReviewQueueComment: RequestHandler = async (req, res): Promise<v
   }
 };
 
-export const updateReviewQueueCommentStatus: RequestHandler = async (req, res): Promise<void> => {
+export const updateReviewQueueCommentStatus: RequestHandler = async (
+  req,
+  res,
+): Promise<void> => {
   const authReq = req as AuthenticatedRequest;
   const actor_id = getUserId(authReq);
   if (!actor_id) {
@@ -176,17 +225,25 @@ export const updateReviewQueueCommentStatus: RequestHandler = async (req, res): 
   if (!parseResult.success) {
     res.status(400).json({
       success: false,
-      error: parseResult.error.issues[0]?.message ?? "Invalid comment status payload",
+      error:
+        parseResult.error.issues[0]?.message ??
+        "Invalid comment status payload",
     });
     return;
   }
   try {
     const commentId = getStringParam(req.params.commentId);
     if (!commentId) {
-      res.status(400).json({ success: false, error: "Invalid or missing comment ID" });
+      res
+        .status(400)
+        .json({ success: false, error: "Invalid or missing comment ID" });
       return;
     }
-    const data = await service.updateCommentStatus(commentId, actor_id, parseResult.data);
+    const data = await service.updateCommentStatus(
+      commentId,
+      actor_id,
+      parseResult.data,
+    );
     res.status(200).json({ success: true, data });
   } catch (error: any) {
     res.status(400).json({ success: false, error: error.message });

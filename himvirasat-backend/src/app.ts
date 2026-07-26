@@ -65,7 +65,7 @@ app.get("/", (_, res) => {
 import { authRouter } from "./modules/auth/index.js";
 import { usersRouter } from "./modules/users/index.js";
 import { submissionsRouter } from "./modules/submissions/index.js";
-import reviewqueueRouter from "./modules/reviewqueue/reviewqueue.routes.js"
+import reviewqueueRouter from "./modules/reviewqueue/reviewqueue.routes.js";
 import datalookupRouter from "./modules/datalookup/datalookup.routes.js";
 import { dashboardRouter } from "./modules/dashboard/index.js";
 

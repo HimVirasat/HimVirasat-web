@@ -205,8 +205,10 @@ export default function WorkspaceContent({
   const latestHistory = useMemo(() => {
     if (!currentItem) return [];
     return (currentItem.history || []).sort(
-      (a: { created_at: string | number | Date; }, b: { created_at: string | number | Date; }) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      (
+        a: { created_at: string | number | Date },
+        b: { created_at: string | number | Date }
+      ) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
   }, [currentItem]);
 
@@ -414,7 +416,7 @@ export default function WorkspaceContent({
               )}
 
               {!currentItem.review_comments ||
-                currentItem.review_comments.length === 0 ? (
+              currentItem.review_comments.length === 0 ? (
                 <div className="rounded-xl border border-border/50 bg-muted/20 p-6 text-center text-xs text-muted-foreground">
                   No review comments have been added.
                 </div>
@@ -554,29 +556,47 @@ export default function WorkspaceContent({
                   History
                 </h3>
                 <div className="rounded-xl border border-border/40 bg-card/40 divide-y divide-border/40">
-                  {latestHistory.map((event: { id: React.Key | null | undefined; message: string | number | bigint | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<React.AwaitedReactNode> | null | undefined; users: { username: any; }; actor_id: any; created_at: string | number | Date; type: string; }) => (
-                    <div
-                      key={event.id}
-                      className="p-3 flex items-start gap-3 text-xs"
-                    >
-                      <Clock className="size-3.5 text-muted-foreground mt-0.5" />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-foreground">
-                          {event.message}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">
-                          {event.users?.username || event.actor_id} ·{" "}
-                          {new Date(event.created_at).toLocaleString()}
-                        </p>
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] capitalize"
+                  {latestHistory.map(
+                    (event: {
+                      id: React.Key | null | undefined;
+                      users: { full_name: any; username: any };
+                      performed_by: any;
+                      action:
+                        | string
+                        | number
+                        | bigint
+                        | boolean
+                        | React.ReactElement<
+                            any,
+                            string | React.JSXElementConstructor<any>
+                          >
+                        | Iterable<React.ReactNode>
+                        | React.ReactPortal
+                        | Promise<React.AwaitedReactNode>
+                        | null
+                        | undefined;
+                      details: any;
+                      created_at: string | number | Date;
+                    }) => (
+                      <div
+                        key={event.id}
+                        className="p-3 flex items-start gap-3 text-xs"
                       >
-                        {event.type.replace("_", " ")}
-                      </Badge>
-                    </div>
-                  ))}
+                        <div className="font-medium text-foreground">
+                          {event.users?.full_name ||
+                            event.users?.username ||
+                            event.performed_by}
+                        </div>
+                        <div className="text-muted-foreground">
+                          {event.action}{" "}
+                          {event.details ? `- ${event.details}` : ""}
+                        </div>
+                        <span className="ml-auto text-muted-foreground/60 text-[10px]">
+                          {new Date(event.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             </div>

@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trash2, UserCheck } from "lucide-react";
 import { EditableDialectsCell } from "../data-table//editable-dialects-cell";
-import { LanguageExpert } from "@himvirasat/shared/dtos/admin.dto";
+import { LanguageExpert } from "@himvirasat/shared";
 
 export function getExpertColumns(
   onRemove: (expertId: string) => void,

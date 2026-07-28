@@ -2,7 +2,7 @@ import {
   DataLookupRepository,
   dataLookupRepository,
 } from "./datalookup.repository.js";
-import { GenerateMetadataInput, LinguisticMetadata, MetadataGenerationResult } from "@himvirasat/shared/";
+import { GenerateMetadataInput, LinguisticMetadata, MetadataGenerationResult } from "@himvirasat/shared";
 
 export class DataLookupService {
   constructor(

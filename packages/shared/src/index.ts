@@ -1,12 +1,14 @@
-// export * from "./api.js";
-// export * from "./submission.js";
-// export * from "./reviewqueue.js"
-// export * from "./admin.js"
-
 // packages/shared/src/index.ts
-export * from "./common/roles.js";
-export * from "./common/api-response.js";
-export * from "./dtos/auth.dto.js";
-export * from "./dtos/submission.dto.js";
-export * from "./db/entities.js";
-export * from "./workflow/workflow-rules.js";
+
+// Common Utilities & Enums
+export * from "./common/index.js";
+
+// Domain Features
+export * from "./features-types/auth/index.js";
+export * from "./features-types/admin/index.js";
+export * from "./features-types/submissions/index.js";
+export * from "./features-types/db/index.js";
+export * from "./features-types/workflow/index.js";
+export * from "./features-types/datalookup/index.js"
+export * from "./features-types/reviewqueue/index.js"
+export * from "./features-types/users/index.js"

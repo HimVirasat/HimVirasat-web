@@ -1,94 +1,132 @@
 import bcrypt from "bcrypt";
-import * as repository from "./users.repository.js";
+import {
+  UsersRepository,
+  usersRepository,
+} from "./users.repository.js";
+import {
+  CreateUserPayloadFrontend,
+  ServiceResult,
+  SoftDeleteResult,
+} from "@himvirasat/shared";
 
-export async function fetchLanguageExperts() {
-  return repository.findUsersByRole("language_expert");
-}
+export class UsersService {
+  constructor(
+    private readonly repository: UsersRepository = usersRepository
+  ) { }
 
-export async function createLanguageExpert(payload: any) {
-  const { fullName, email, username, password, dialects } = payload;
-  const existing = await repository.findUserByUsername(username);
-  if (existing) {
+  async fetchLanguageExperts() {
+    return this.repository.findUsersByRole("language_expert");
+  }
+
+  async createLanguageExpert(
+    payload: CreateUserPayloadFrontend
+  ): Promise<ServiceResult> {
+    const { fullName, email, username, password, dialects } = payload;
+    const existing = await this.repository.findUserByUsername(username);
+
+    if (existing) {
+      return {
+        success: false,
+        statusCode: 409,
+        message: "Username already exists",
+      };
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    const user = await this.repository.createUser({
+      username,
+      password_hash: passwordHash,
+      full_name: fullName,
+      email,
+      role: "language_expert",
+      dialects,
+    });
+
+    if (!user) {
+      return {
+        success: false,
+        statusCode: 500,
+        message: "Failed to create user",
+      };
+    }
+
     return {
-      success: false,
-      statusCode: 409,
-      message: "Username already exists",
+      success: true,
+      expert: { id: user.id, username: user.username, dialects: user.dialects },
     };
   }
-  const passwordHash = await bcrypt.hash(password, 12);
-  const user = await repository.createUser({
-    username,
-    password_hash: passwordHash,
-    full_name: fullName,
-    email,
-    role: "language_expert",
-    dialects,
-  });
-  if (!user)
+
+  async deleteLanguageExpert(id: string): Promise<SoftDeleteResult> {
+    return this.repository.softDeleteUser(id);
+  }
+
+  async fetchLanguageHeads() {
+    return this.repository.findUsersByRole("language_head");
+  }
+
+  async createLanguageHead(
+    payload: CreateUserPayloadFrontend
+  ): Promise<ServiceResult> {
+    const { fullName, email, username, password, dialects } = payload;
+    const existing = await this.repository.findUserByUsername(username);
+
+    if (existing) {
+      return {
+        success: false,
+        statusCode: 409,
+        message: "Username already exists",
+      };
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    const user = await this.repository.createUser({
+      username,
+      password_hash: passwordHash,
+      full_name: fullName,
+      email,
+      role: "language_head",
+      dialects,
+    });
+
+    if (!user) {
+      return {
+        success: false,
+        statusCode: 500,
+        message: "Failed to create user",
+      };
+    }
+
     return {
-      success: false,
-      statusCode: 500,
-      message: "Failed to create user",
-    };
-  return {
-    success: true,
-    expert: { id: user.id, username: user.username, dialects: user.dialects },
-  };
-}
-
-export async function deleteLanguageExpert(id: string) {
-  return repository.softDeleteUser(id);
-}
-
-export async function fetchLanguageHeads() {
-  return repository.findUsersByRole("language_head");
-}
-
-export async function createLanguageHead(payload: any) {
-  const { fullName, email, username, password, dialects } = payload;
-  const existing = await repository.findUserByUsername(username);
-  if (existing) {
-    return {
-      success: false,
-      statusCode: 409,
-      message: "Username already exists",
+      success: true,
+      head: { id: user.id, username: user.username, dialects: user.dialects },
     };
   }
-  const passwordHash = await bcrypt.hash(password, 12);
-  const user = await repository.createUser({
-    username,
-    password_hash: passwordHash,
-    full_name: fullName,
-    email,
-    role: "language_head",
-    dialects,
-  });
-  if (!user)
-    return {
-      success: false,
-      statusCode: 500,
-      message: "Failed to create user",
-    };
-  return {
-    success: true,
-    head: { id: user.id, username: user.username, dialects: user.dialects },
-  };
+
+  async deleteLanguageHead(id: string): Promise<SoftDeleteResult> {
+    return this.repository.softDeleteUser(id);
+  }
+
+  async updateExpertDialects(
+    id: string,
+    dialects: string[]
+  ): Promise<ServiceResult> {
+    const updated = await this.repository.updateUserDialects(id, dialects);
+    if (!updated) {
+      return { success: false, statusCode: 404, message: "User not found" };
+    }
+    return { success: true, data: updated };
+  }
+
+  async updateHeadDialects(
+    id: string,
+    dialects: string[]
+  ): Promise<ServiceResult> {
+    const updated = await this.repository.updateUserDialects(id, dialects);
+    if (!updated) {
+      return { success: false, statusCode: 404, message: "User not found" };
+    }
+    return { success: true, data: updated };
+  }
 }
 
-export async function deleteLanguageHead(id: string) {
-  return repository.softDeleteUser(id);
-}
-
-export async function updateExpertDialects(id: string, dialects: string[]) {
-  const updated = await repository.updateUserDialects(id, dialects);
-  if (!updated)
-    return { success: false, statusCode: 404, message: "User not found" };
-  return { success: true, data: updated };
-}
-
-export async function updateHeadDialects(id: string, dialects: string[]) {
-  const updated = await repository.updateUserDialects(id, dialects);
-  if (!updated)
-    return { success: false, statusCode: 404, message: "User not found" };
-  return { success: true, data: updated };
-}
+export const usersService = new UsersService();

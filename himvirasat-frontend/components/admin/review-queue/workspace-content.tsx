@@ -255,7 +255,6 @@ export default function WorkspaceContent({
 
   // ---- Now we have a valid currentItem, compute remaining variables ----
   const rules = WORKFLOW_RULES[currentItem.status] || {
-    label: "Draft",
     canComment: () => true,
     canApprove: () => false,
     canReject: () => true,
@@ -416,7 +415,7 @@ export default function WorkspaceContent({
               )}
 
               {!currentItem.review_comments ||
-                currentItem.review_comments.length === 0 ? (
+              currentItem.review_comments.length === 0 ? (
                 <div className="rounded-xl border border-border/50 bg-muted/20 p-6 text-center text-xs text-muted-foreground">
                   No review comments have been added.
                 </div>

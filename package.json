@@ -3,12 +3,12 @@
   "private": true,
   "packageManager": "pnpm@11.3.0",
   "scripts": {
-    "dev": "pnpm --filter @himvirasat/shared build && pnpm --parallel --filter himvirasat-backend --filter himvirasat-frontend dev",
+    "dev": "pnpm --parallel --filter himvirasat-backend --filter himvirasat-frontend dev",
     "dev:sh": "./dev.sh",
     "dev:bat": "dev.bat",
     "dev:frontend": "pnpm --filter himvirasat-frontend dev",
     "dev:backend": "pnpm --filter himvirasat-backend dev",
-    "build": "pnpm -r build",
+    "build": "pnpm --filter @himvirasat/shared build && pnpm -r build",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
     "format": "pnpm -r format"

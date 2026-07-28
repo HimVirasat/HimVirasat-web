@@ -102,6 +102,7 @@ export class ReviewQueueService {
     status: ContributionStatus,
     reason?: string
   ): Promise<Contribution> {
+    console.log("🚀 SENDING UPDATE STATUS FETCH:", { id, status, reason }); // Add this
     const payload: UpdateStatusPayload = { status, reason };
 
     const response = await fetch(`${API_URL}/reviewqueue/${id}/status`, {

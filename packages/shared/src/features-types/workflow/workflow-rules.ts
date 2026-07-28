@@ -1,5 +1,5 @@
-import { SystemRole } from "../common/roles.js";
-import { ContributionStatus } from "../dtos/submission.dto.js";
+import { SystemRole } from "../../common/roles.js";
+import { ContributionStatus } from "../submissions/submission.dto.js";
 import { Contribution } from "../db/entities.js";
 
 export interface StateRule {

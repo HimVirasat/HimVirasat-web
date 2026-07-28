@@ -38,11 +38,6 @@ export const CreateSubmissionSchema = z.object({
 });
 export type CreateSubmissionDto = z.infer<typeof CreateSubmissionSchema>;
 
-export const ContributionFiltersSchema = z.object({
-  status: ContributionStatusSchema.optional(),
-  dialect_id: z.number().optional(),
-});
-export type ContributionFilters = z.infer<typeof ContributionFiltersSchema>;
 
 export const UpdateStatusPayloadSchema = z.object({
   status: ContributionStatusSchema,
@@ -77,3 +72,5 @@ export const HistoryEventTypeSchema = z.enum([
   "rejected",
 ]);
 export type HistoryEventType = z.infer<typeof HistoryEventTypeSchema>;
+
+

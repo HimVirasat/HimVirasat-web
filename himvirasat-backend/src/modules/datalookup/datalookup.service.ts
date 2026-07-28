@@ -1,41 +1,36 @@
-import { supabase } from "../../services/supabase.js";
+import {
+  DataLookupRepository,
+  dataLookupRepository,
+} from "./datalookup.repository.js";
+import { GenerateMetadataInput, LinguisticMetadata, MetadataGenerationResult } from "@himvirasat/shared/";
 
-export async function fetchDialects() {
-  const { data, error } = await supabase
-    .from("dialects")
-    .select("name")
-    .order("name", { ascending: true });
-  if (error) throw error;
-  return data ? data.map((row) => row.name) : [];
-}
+export class DataLookupService {
+  constructor(
+    private readonly repository: DataLookupRepository = dataLookupRepository
+  ) { }
 
-export async function fetchCategories() {
-  const { data, error } = await supabase
-    .from("categories")
-    .select("name")
-    .order("name", { ascending: true });
-  if (error) throw error;
-  return data ? data.map((row) => row.name) : [];
-}
+  async fetchDialects(): Promise<string[]> {
+    return await this.repository.getDialects();
+  }
 
-export async function fetchPartsOfSpeech() {
-  const { data, error } = await supabase
-    .from("parts_of_speech")
-    .select("name")
-    .order("name", { ascending: true });
-  if (error) throw error;
-  return data ? data.map((row) => row.name) : [];
-}
+  async fetchCategories(): Promise<string[]> {
+    return await this.repository.getCategories();
+  }
 
-export async function generateLinguisticMetadata(input: any) {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) throw new Error("OPENROUTER_API_KEY missing");
-  const model = process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-sonnet";
+  async fetchPartsOfSpeech(): Promise<string[]> {
+    return await this.repository.getPartsOfSpeech();
+  }
 
-  const prompt = buildPrompt(input);
-  const response = await fetch(
-    "https://openrouter.ai/api/v1/chat/completions",
-    {
+  async generateLinguisticMetadata(
+    input: GenerateMetadataInput
+  ): Promise<MetadataGenerationResult> {
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey) throw new Error("OPENROUTER_API_KEY missing");
+
+    const model = process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-sonnet";
+    const prompt = this.buildPrompt(input);
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -56,22 +51,25 @@ export async function generateLinguisticMetadata(input: any) {
           { role: "user", content: prompt },
         ],
       }),
-    },
-  );
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`OpenRouter error (${response.status}): ${text}`);
-  }
-  const data = await response.json();
-  const rawContent = data.choices?.[0]?.message?.content || "{}";
-  const parsed = parseCleanJSON(rawContent);
-  return { model, data: parsed };
-}
+    });
 
-function buildPrompt(input: any) {
-  const { word_devanagari, meaning_hindi, meaning_english, example_sentence } =
-    input;
-  return `You are an expert linguist specializing in Western Pahadi / Himachali dialects, Devanagari script, Takri script, and IPA phonetics.
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`OpenRouter error (${response.status}): ${text}`);
+    }
+
+    const data = await response.json();
+    const rawContent = data.choices?.[0]?.message?.content || "{}";
+    const parsed = this.parseCleanJSON(rawContent) as LinguisticMetadata;
+
+    return { model, data: parsed };
+  }
+
+  private buildPrompt(input: GenerateMetadataInput): string {
+    const { word_devanagari, meaning_hindi, meaning_english, example_sentence } =
+      input;
+
+    return `You are an expert linguist specializing in Western Pahadi / Himachali dialects, Devanagari script, Takri script, and IPA phonetics.
 Based on the following lexical entry:
 - Word (Devanagari): ${word_devanagari}
 - Hindi Meaning: ${meaning_hindi || "N/A"}
@@ -93,12 +91,16 @@ Respond ONLY with a valid JSON object matching this structure:
   "example_sentence_latin": "...",
   "example_sentence_takri": "..."
 }`;
+  }
+
+  private parseCleanJSON(raw: string): unknown {
+    const cleaned = raw
+      .replace(/```json/gi, "")
+      .replace(/```/g, "")
+      .trim();
+
+    return JSON.parse(cleaned);
+  }
 }
 
-function parseCleanJSON(raw: string) {
-  const cleaned = raw
-    .replace(/```json/gi, "")
-    .replace(/```/g, "")
-    .trim();
-  return JSON.parse(cleaned);
-}
+export const dataLookupService = new DataLookupService();

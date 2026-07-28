@@ -1,23 +1,16 @@
-import { supabase } from "../../services/supabase.js";
+import {
+  DashboardRepository,
+  dashboardRepository,
+} from "./dashboard.repository.js";
+import { DashboardStats } from "@himvirasat/shared";
+export class DashboardService {
+  constructor(
+    private readonly repository: DashboardRepository = dashboardRepository
+  ) {}
 
-export async function fetchDashboardStats() {
-  const [experts, heads, admins] = await Promise.all([
-    supabase
-      .from("users")
-      .select("*", { count: "exact", head: true })
-      .eq("role", "language_expert"),
-    supabase
-      .from("users")
-      .select("*", { count: "exact", head: true })
-      .eq("role", "language_head"),
-    supabase
-      .from("users")
-      .select("*", { count: "exact", head: true })
-      .eq("role", "super_admin"),
-  ]);
-  return {
-    languageExpertsCount: experts.count ?? 0,
-    languageHeadsCount: heads.count ?? 0,
-    superAdminsCount: admins.count ?? 0,
-  };
+  async fetchDashboardStats(): Promise<DashboardStats> {
+    return await this.repository.getDashboardStats();
+  }
 }
+
+export const dashboardService = new DashboardService();

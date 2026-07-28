@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { SystemRoleSchema } from "../common/roles.js";
+import { SystemRoleSchema } from "../../common/roles.js";
 import {
   ContributionStatusSchema,
   CommentStatusSchema,
-} from "../dtos/submission.dto.js";
+} from "../submissions/submission.dto.js";
 
 // Database User Record (Internal server use only - includes password hash)
 export const UserSchema = z.object({

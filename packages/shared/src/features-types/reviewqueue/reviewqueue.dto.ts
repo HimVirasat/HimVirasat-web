@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { 
-  ContributionStatusSchema, 
-  CommentStatusSchema, 
-  HistoryEventTypeSchema 
+import {
+  ContributionStatusSchema,
+  CommentStatusSchema,
+  HistoryEventTypeSchema
 } from "../submissions/index.js"; // adjust relative import if needed
 
 // --- RawContribution ---

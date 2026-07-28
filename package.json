@@ -3,7 +3,7 @@
   "private": true,
   "packageManager": "pnpm@11.3.0",
   "scripts": {
-    "dev": "pnpm --parallel --filter himvirasat-backend --filter himvirasat-frontend dev",
+    "dev": "pnpm --parallel --filter @himvirasat/shared --filter himvirasat-backend --filter himvirasat-frontend dev",
     "dev:sh": "./dev.sh",
     "dev:bat": "dev.bat",
     "dev:frontend": "pnpm --filter himvirasat-frontend dev",

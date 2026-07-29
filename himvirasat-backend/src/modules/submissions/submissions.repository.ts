@@ -1,9 +1,18 @@
+/**
+ * Submissions Repository
+ * File: submissions.repository.ts
+ */
+
 import { supabase } from "../../services/supabase.js";
-import { InsertContributionPayload, InsertSubmissionHistoryPayload, ContributionRecord } from "@himvirasat/shared";
+import {
+  InsertContributionPayload,
+  InsertSubmissionHistoryPayload,
+  ContributionRecord,
+} from "@himvirasat/shared";
 
 export class SubmissionsRepository {
   async insertContribution(
-    data: InsertContributionPayload
+    data: InsertContributionPayload,
   ): Promise<ContributionRecord> {
     const { data: contribution, error } = await supabase
       .from("contributions")
@@ -16,7 +25,9 @@ export class SubmissionsRepository {
   }
 
   async insertHistory(data: InsertSubmissionHistoryPayload): Promise<void> {
-    const { error } = await supabase.from("contribution_history").insert([data]);
+    const { error } = await supabase
+      .from("contribution_history")
+      .insert([data]);
     if (error) throw error;
   }
 }

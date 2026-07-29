@@ -1,5 +1,16 @@
+/**
+ * Review Queue Repository
+ * File: reviewqueue.repository.ts
+ */
+
 import { supabase } from "../../services/supabase.js";
-import { RawContribution, ContributionFilters, InsertHistoryPayload, InsertCommentPayload } from "@himvirasat/shared";
+import {
+  RawContribution,
+  ContributionFilters,
+  InsertHistoryPayload,
+  InsertCommentPayload,
+} from "@himvirasat/shared";
+
 export const CONTRIBUTION_SELECT_QUERY = `
   *,
   users:users!contributions_contributor_id_fkey(username, full_name),
@@ -9,7 +20,9 @@ export const CONTRIBUTION_SELECT_QUERY = `
 `;
 
 export class ReviewQueueRepository {
-  async insertContribution(data: Record<string, unknown>): Promise<RawContribution> {
+  async insertContribution(
+    data: Record<string, unknown>,
+  ): Promise<RawContribution> {
     const { data: contribution, error } = await supabase
       .from("contributions")
       .insert([data])
@@ -22,7 +35,7 @@ export class ReviewQueueRepository {
 
   async fetchContributions(
     filters: ContributionFilters,
-    selectQuery: string = CONTRIBUTION_SELECT_QUERY
+    selectQuery: string = CONTRIBUTION_SELECT_QUERY,
   ): Promise<RawContribution[]> {
     let query = supabase.from("contributions").select(selectQuery);
     if (filters.status) query = query.eq("status", filters.status);
@@ -35,7 +48,7 @@ export class ReviewQueueRepository {
 
   async fetchContributionById(
     id: string,
-    selectQuery: string = CONTRIBUTION_SELECT_QUERY
+    selectQuery: string = CONTRIBUTION_SELECT_QUERY,
   ): Promise<RawContribution | null> {
     const { data, error } = await supabase
       .from("contributions")
@@ -58,7 +71,10 @@ export class ReviewQueueRepository {
     return (data as RawContribution) || null;
   }
 
-  async updateContribution(id: string, updates: Record<string, unknown>): Promise<void> {
+  async updateContribution(
+    id: string,
+    updates: Record<string, unknown>,
+  ): Promise<void> {
     const { error } = await supabase
       .from("contributions")
       .update(updates)
@@ -68,13 +84,18 @@ export class ReviewQueueRepository {
   }
 
   async deleteContribution(id: string): Promise<void> {
-    const { error } = await supabase.from("contributions").delete().eq("id", id);
+    const { error } = await supabase
+      .from("contributions")
+      .delete()
+      .eq("id", id);
     if (error) throw error;
   }
 
   // History Operations
   async insertHistory(data: InsertHistoryPayload): Promise<void> {
-    const { error } = await supabase.from("contribution_history").insert([data]);
+    const { error } = await supabase
+      .from("contribution_history")
+      .insert([data]);
     if (error) throw error;
   }
 
@@ -84,11 +105,13 @@ export class ReviewQueueRepository {
     if (error) throw error;
   }
 
-  async fetchHistoryByContributionId(id: string): Promise<Record<string, unknown>[]> {
+  async fetchHistoryByContributionId(
+    id: string,
+  ): Promise<Record<string, unknown>[]> {
     const { data, error } = await supabase
       .from("contribution_history")
       .select(
-        `*, users:users!contribution_history_actor_id_fkey(username, full_name)`
+        `*, users:users!contribution_history_actor_id_fkey(username, full_name)`,
       )
       .eq("contribution_id", id)
       .order("created_at", { ascending: false });
@@ -98,12 +121,14 @@ export class ReviewQueueRepository {
   }
 
   // Comment Operations
-  async insertComment(data: InsertCommentPayload): Promise<Record<string, unknown>> {
+  async insertComment(
+    data: InsertCommentPayload,
+  ): Promise<Record<string, unknown>> {
     const { data: comment, error } = await supabase
       .from("contribution_comments")
       .insert([data])
       .select(
-        `*, users:users!contribution_comments_author_id_fkey(username, full_name)`
+        `*, users:users!contribution_comments_author_id_fkey(username, full_name)`,
       )
       .single();
 
@@ -111,11 +136,13 @@ export class ReviewQueueRepository {
     return comment;
   }
 
-  async fetchCommentsByContributionId(id: string): Promise<Record<string, unknown>[]> {
+  async fetchCommentsByContributionId(
+    id: string,
+  ): Promise<Record<string, unknown>[]> {
     const { data, error } = await supabase
       .from("contribution_comments")
       .select(
-        `*, users:users!contribution_comments_author_id_fkey(username, full_name)`
+        `*, users:users!contribution_comments_author_id_fkey(username, full_name)`,
       )
       .eq("contribution_id", id)
       .order("created_at", { ascending: true });
@@ -126,14 +153,14 @@ export class ReviewQueueRepository {
 
   async updateComment(
     id: string,
-    updates: Record<string, unknown>
+    updates: Record<string, unknown>,
   ): Promise<Record<string, unknown> | null> {
     const { data, error } = await supabase
       .from("contribution_comments")
       .update(updates)
       .eq("id", id)
       .select(
-        `*, users:users!contribution_comments_author_id_fkey(username, full_name)`
+        `*, users:users!contribution_comments_author_id_fkey(username, full_name)`,
       )
       .single();
 
@@ -145,7 +172,7 @@ export class ReviewQueueRepository {
     const { data, error } = await supabase
       .from("contribution_comments")
       .select(
-        `*, users:users!contribution_comments_author_id_fkey(username, full_name)`
+        `*, users:users!contribution_comments_author_id_fkey(username, full_name)`,
       )
       .eq("id", id)
       .single();

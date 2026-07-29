@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
-import { LayoutDashboard, Users, Check, Send, Settings } from "lucide-react";
+import { LayoutDashboard, Users, Check, Send, Settings, Logs } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -63,6 +63,11 @@ const SUPER_ADMIN_ITEMS = [
     icon: Send,
   },
   {
+    title: "Logs",
+    url: "/admin/dashboard/logs/",
+    icon: Logs
+  },
+  {
     title: "Settings",
     url: "/admin/dashboard/settings",
     icon: Settings,
@@ -89,6 +94,11 @@ const LANGUAGE_HEAD_ITEMS = [
     title: "Submissions",
     url: "/admin/dashboard/submissions/",
     icon: Send,
+  },
+  {
+    title: "Logs",
+    url: "/admin/dashboard/logs/",
+    icon: Logs
   },
   {
     title: "Settings",

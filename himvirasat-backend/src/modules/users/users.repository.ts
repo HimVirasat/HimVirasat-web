@@ -1,13 +1,24 @@
-import { supabase } from "../../services/supabase.js";
+/**
+ * Users Repository
+ * File: users.repository.ts
+ */
 
-import { UserRow, CreateUserPayloadBackend, SoftDeleteResult, AwardPointsPayload } from "@himvirasat/shared";
+import { supabase } from "../../services/supabase.js";
+import {
+  UserRow,
+  CreateUserPayloadBackend,
+  SoftDeleteResult,
+  AwardPointsPayload,
+} from "@himvirasat/shared";
+import { logger } from "../../utils/logger.js";
 
 export class UsersRepository {
+  [x: string]: any;
   async findUsersByRole(role: string): Promise<Partial<UserRow>[]> {
     const { data, error } = await supabase
       .from("users")
       .select(
-        "id, username, full_name, email, dialects, is_active, created_at, points"
+        "id, username, full_name, email, dialects, is_active, created_at, points",
       )
       .eq("role", role)
       .order("created_at", { ascending: false });
@@ -68,7 +79,7 @@ export class UsersRepository {
 
   async updateUserDialects(
     id: string,
-    dialects: string[]
+    dialects: string[],
   ): Promise<{ id: string; dialects: string[] } | null> {
     const { data, error } = await supabase
       .from("users")
@@ -80,8 +91,10 @@ export class UsersRepository {
     if (error && error.code !== "PGRST116") throw error;
     return (data as { id: string; dialects: string[] }) || null;
   }
+
   async awardPoints(payload: AwardPointsPayload): Promise<boolean> {
-    const { userId, points, reason, referenceId, dialectId, isContributor } = payload;
+    const { userId, points, reason, referenceId, dialectId, isContributor } =
+      payload;
 
     const { data, error } = await supabase.rpc("award_points_rpc", {
       p_user_id: userId,
@@ -93,7 +106,7 @@ export class UsersRepository {
     });
 
     if (error) {
-      console.error("Error awarding points:", error);
+      logger.error("Error awarding points:", error);
       throw error;
     }
 

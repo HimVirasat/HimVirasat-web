@@ -120,22 +120,22 @@ export default function WorkspaceViewContent({
     <div className="space-y-6">
       {(currentItem.status === "flagged" ||
         currentItem.status === "rejected") && (
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 flex items-start gap-3 text-xs">
-            <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <span className="font-bold uppercase tracking-wider text-[10px] text-amber-600 dark:text-amber-400">
-                {currentItem.status === "flagged"
-                  ? "Active Flag"
-                  : "Rejected Entry"}
-              </span>
-              <p className="text-foreground font-medium">
-                {currentItem.status === "flagged"
-                  ? currentItem.flag_reason
-                  : currentItem.rejected_reason}
-              </p>
-            </div>
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 flex items-start gap-3 text-xs">
+          <AlertTriangle className="size-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <span className="font-bold uppercase tracking-wider text-[10px] text-amber-600 dark:text-amber-400">
+              {currentItem.status === "flagged"
+                ? "Active Flag"
+                : "Rejected Entry"}
+            </span>
+            <p className="text-foreground font-medium">
+              {currentItem.status === "flagged"
+                ? currentItem.flag_reason
+                : currentItem.rejected_reason}
+            </p>
           </div>
-        )}
+        </div>
+      )}
 
       {/* Header Metadata with Short ID */}
       <div className="flex items-center gap-2">

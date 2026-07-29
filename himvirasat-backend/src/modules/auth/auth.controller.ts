@@ -1,7 +1,13 @@
+/**
+ * Auth Controller
+ * File: auth.controller.ts
+ */
+
 import { Request, Response } from "express";
 import { LoginRequestSchema } from "@himvirasat/shared";
 import { AuthService, authService } from "./auth.service.js";
 import { AuthenticatedRequest } from "../../middlewares/auth.middleware.js";
+import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class AuthController {
   constructor(private readonly service: AuthService = authService) {}
@@ -38,8 +44,21 @@ export class AuthController {
         message: result.message,
         user: result.user,
       });
-    } catch (error) {
-      console.error("Auth Controller [login] error:", error);
+    } catch (error: any) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Internal server error";
+
+      await AuditLogger.logError({
+        userId: null,
+        errorMessage,
+        serviceCategory: "auth",
+        stackTrace: error.stack,
+        code: "LOGIN_CRITICAL_ERROR",
+        path: req.originalUrl || req.path,
+        method: req.method,
+        metadata: { username: req.body?.username },
+      });
+
       return res
         .status(500)
         .json({ success: false, message: "Internal server error" });
@@ -47,8 +66,10 @@ export class AuthController {
   };
 
   me = async (req: Request, res: Response) => {
+    const authUser = (req as AuthenticatedRequest).user;
+    const actorId = authUser?.userId;
+
     try {
-      const authUser = (req as AuthenticatedRequest).user;
       if (!authUser) {
         return res
           .status(401)
@@ -63,20 +84,46 @@ export class AuthController {
       }
 
       return res.status(200).json({ success: true, user });
-    } catch (error) {
-      console.error("Auth Controller [me] error:", error);
+    } catch (error: any) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Internal server error";
+
+      await AuditLogger.logError({
+        userId: actorId || null,
+        errorMessage,
+        serviceCategory: "auth",
+        stackTrace: error.stack,
+        code: "GET_ME_FAILED",
+        path: req.originalUrl || req.path,
+        method: req.method,
+      });
+
       return res
         .status(500)
         .json({ success: false, message: "Internal server error" });
     }
   };
 
-  logout = async (_req: Request, res: Response) => {
+  logout = async (req: Request, res: Response) => {
+    const authUser = (req as AuthenticatedRequest).user;
+    const actorId = authUser?.userId;
+
     res.clearCookie("access_token", {
       httpOnly: true,
       secure: true,
       sameSite: "none",
     });
+
+    if (actorId) {
+      await AuditLogger.logActivity({
+        actorId,
+        action: "LOGOUT",
+        entityType: "user",
+        entityId: actorId,
+        serviceCategory: "auth",
+        status: "SUCCESS",
+      });
+    }
 
     return res
       .status(200)
@@ -84,8 +131,10 @@ export class AuthController {
   };
 
   resetPassword = async (req: Request, res: Response) => {
+    const authUser = (req as AuthenticatedRequest).user;
+    const actorId = authUser?.userId;
+
     try {
-      const authUser = (req as AuthenticatedRequest).user;
       if (!authUser) {
         return res
           .status(401)
@@ -120,8 +169,20 @@ export class AuthController {
       }
 
       return res.status(200).json({ success: true, message: result.message });
-    } catch (error) {
-      console.error("Auth Controller [resetPassword] error:", error);
+    } catch (error: any) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Internal server error";
+
+      await AuditLogger.logError({
+        userId: actorId || null,
+        errorMessage,
+        serviceCategory: "auth",
+        stackTrace: error.stack,
+        code: "RESET_PASSWORD_CRITICAL_ERROR",
+        path: req.originalUrl || req.path,
+        method: req.method,
+      });
+
       return res
         .status(500)
         .json({ success: false, message: "Internal server error" });

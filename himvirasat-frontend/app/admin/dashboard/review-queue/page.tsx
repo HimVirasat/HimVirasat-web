@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { ContributionStatus } from "@himvirasat/shared";
 import {
   useContributionsQueue,
@@ -15,10 +17,15 @@ import WorkspaceHeader from "@/components/admin/review-queue/workspace-header";
 import WorkspaceContent from "@/components/admin/review-queue/workspace-content";
 
 export default function ReviewQueueDashboardPage() {
-  // 1. Live User Session from React Query
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+
+  const urlItemId = searchParams.get("id") || "";
   const { data: activeUser, isLoading: isLoadingUser } = useCurrentUser();
 
-  const [selectedId, setSelectedId] = useState<string>("");
+  const [selectedId, setSelectedId] = useState<string>(urlItemId);
   const [searchQuery, setSearchQuery] = useState("");
   const [queueFilter, setQueueFilter] = useState<QueueFilter>("under_review");
   const [workspaceTab, setWorkspaceTab] = useState<
@@ -27,20 +34,17 @@ export default function ReviewQueueDashboardPage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editForm, setEditForm] = useState<any>({});
 
-  // 2. Data Hooks
-  const backendStatusFilter =
-    queueFilter === "my_submissions"
-      ? undefined
-      : (queueFilter as ContributionStatus);
-  const { data: items = [] } = useContributionsQueue({
-    status: backendStatusFilter,
-  });
-  const { data: currentItem } = useContributionDetail(selectedId);
+  // Flag to ensure initial URL sync runs only ONCE when opening a shared link
+  const hasSyncedUrlRef = useRef(false);
 
-  // 3. Mutation Hooks
-  const { mutate: updateContribution } = useUpdateContribution();
+  const { data: items = [], isLoading: isLoadingQueue } =
+    useContributionsQueue();
+  const { data: currentItem, isLoading: isLoadingDetail } =
+    useContributionDetail(selectedId);
+  const { mutate: updateContribution, isPending: isSaving } =
+    useUpdateContribution();
 
-  // 4. Computed Stats & Filters
+  // 1. Computed Stats & Filters
   const statusCounts = useMemo(() => {
     return (items ?? []).reduce(
       (counts, item) => ({
@@ -66,7 +70,59 @@ export default function ReviewQueueDashboardPage() {
     });
   }, [items, queueFilter, searchQuery, activeUser?.id]);
 
-  // Handlers
+  // 2. Selection & Navigation Handlers
+  const handleSelectItem = (id: string) => {
+    setSelectedId(id);
+    const params = new URLSearchParams(searchParams.toString());
+    if (id) {
+      params.set("id", id);
+    } else {
+      params.delete("id");
+    }
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleTabChange = (newFilter: QueueFilter) => {
+    setQueueFilter(newFilter);
+
+    // Check if the current item exists in the newly selected stage list
+    const existsInNewTab = (items ?? []).some((item) => {
+      if (newFilter === "my_submissions") {
+        return item.id === selectedId && item.contributor_id === activeUser?.id;
+      }
+      return item.id === selectedId && item.status === newFilter;
+    });
+
+    // If selected item doesn't belong to the new tab, clear the selection and URL param
+    if (!existsInNewTab) {
+      setSelectedId("");
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("id");
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    }
+  };
+
+  // 3. One-Time Sync Effect for Direct Link Navigation
+  useEffect(() => {
+    if (
+      currentItem &&
+      urlItemId === currentItem.id &&
+      !hasSyncedUrlRef.current
+    ) {
+      hasSyncedUrlRef.current = true;
+      if (currentItem.status && currentItem.status !== queueFilter) {
+        setQueueFilter(currentItem.status as QueueFilter);
+      }
+    }
+  }, [currentItem, urlItemId, queueFilter]);
+
+  // 4. Default Fallback Selection when switching tabs if nothing is selected
+  useEffect(() => {
+    if (!selectedId && queueFilteredItems.length > 0) {
+      handleSelectItem(queueFilteredItems[0].id);
+    }
+  }, [queueFilteredItems, selectedId]);
+
   const startEditing = () => {
     if (!currentItem) return;
     setEditForm(currentItem);
@@ -75,11 +131,17 @@ export default function ReviewQueueDashboardPage() {
 
   const saveInlineEdits = () => {
     if (!currentItem) return;
-    updateContribution({ id: currentItem.id, updates: editForm });
-    setIsEditMode(false);
+    updateContribution(
+      { id: currentItem.id, updates: editForm },
+      {
+        onSuccess: () => {
+          setIsEditMode(false);
+          queryClient.invalidateQueries({ queryKey: ["contributions"] });
+        },
+      }
+    );
   };
 
-  // 5. Auth & Loading Guards
   if (isLoadingUser) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-background">
@@ -98,7 +160,7 @@ export default function ReviewQueueDashboardPage() {
             Unauthorized Access
           </p>
           <p className="text-xs text-muted-foreground">
-            No valid login token found. Please log in to view the queue.
+            Please log in to view the review queue.
           </p>
         </div>
       </div>
@@ -107,7 +169,6 @@ export default function ReviewQueueDashboardPage() {
 
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden bg-background border-t">
-      {/* Header UI using real activeUser data */}
       <header className="h-14 shrink-0 flex items-center justify-between border-b px-6 bg-card/60">
         <span className="text-sm font-semibold">Review Queue</span>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -127,12 +188,13 @@ export default function ReviewQueueDashboardPage() {
         <QueueSidebar
           activeUserId={activeUser.id}
           queueFilter={queueFilter}
-          setQueueFilter={setQueueFilter}
+          setQueueFilter={handleTabChange} // 👈 Use handleTabChange instead of raw setQueueFilter
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           queueFilteredItems={queueFilteredItems}
           selectedId={selectedId}
-          handleSelectItem={setSelectedId}
+          handleSelectItem={handleSelectItem}
+          isLoading={isLoadingQueue}
         />
 
         <main className="flex-1 min-h-0 flex flex-col relative">
@@ -147,6 +209,7 @@ export default function ReviewQueueDashboardPage() {
                 setIsEditMode={setIsEditMode}
                 startEditing={startEditing}
                 saveInlineEdits={saveInlineEdits}
+                isSaving={isSaving}
                 statusCounts={statusCounts}
               />
               <WorkspaceContent
@@ -156,6 +219,7 @@ export default function ReviewQueueDashboardPage() {
                 isEditMode={isEditMode}
                 editForm={editForm}
                 setEditForm={setEditForm}
+                isLoading={isLoadingDetail}
               />
             </div>
           ) : (

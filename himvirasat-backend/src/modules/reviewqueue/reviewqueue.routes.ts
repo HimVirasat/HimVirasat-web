@@ -9,12 +9,20 @@ router.get("/", requireAuth, reviewQueueController.getReviewQueue);
 router.get("/:id", requireAuth, reviewQueueController.getReviewQueueById);
 router.put("/:id", requireAuth, reviewQueueController.updateReviewQueue);
 router.delete("/:id", requireAuth, reviewQueueController.deleteReviewQueue);
-router.patch("/:id/status", requireAuth, reviewQueueController.updateReviewQueueStatus);
-router.post("/:id/comments", requireAuth, reviewQueueController.addReviewQueueComment);
+router.patch(
+  "/:id/status",
+  requireAuth,
+  reviewQueueController.updateReviewQueueStatus,
+);
+router.post(
+  "/:id/comments",
+  requireAuth,
+  reviewQueueController.addReviewQueueComment,
+);
 router.patch(
   "/:id/comments/:commentId/status",
   requireAuth,
-  reviewQueueController.updateReviewQueueCommentStatus
+  reviewQueueController.updateReviewQueueCommentStatus,
 );
 
 export default router;

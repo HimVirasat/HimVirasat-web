@@ -1,11 +1,20 @@
+/**
+ * Submissions Controller
+ * File: submissions.controller.ts
+ */
+
 import { RequestHandler } from "express";
-import { SubmissionsService, submissionsService } from "./submissions.service.js";
+import {
+  SubmissionsService,
+  submissionsService,
+} from "./submissions.service.js";
 import { AuthenticatedRequest } from "../../middlewares/auth.middleware.js";
 import { CreateSubmissionSchema } from "@himvirasat/shared";
+import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class SubmissionsController {
   constructor(
-    private readonly service: SubmissionsService = submissionsService
+    private readonly service: SubmissionsService = submissionsService,
   ) {}
 
   private getUserId(req: AuthenticatedRequest): string | undefined {
@@ -17,7 +26,9 @@ export class SubmissionsController {
     const contributor_id = this.getUserId(authReq);
 
     if (!contributor_id) {
-      res.status(401).json({ success: false, error: "Authentication missing." });
+      res
+        .status(401)
+        .json({ success: false, error: "Authentication missing." });
       return;
     }
 
@@ -44,7 +55,7 @@ export class SubmissionsController {
     try {
       const contribution = await this.service.createSubmission(
         contributor_id,
-        validationResult.data
+        validationResult.data,
       );
 
       res.status(201).json({
@@ -52,9 +63,21 @@ export class SubmissionsController {
         message: "Vocabulary entry submitted successfully.",
         data: contribution,
       });
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error ? error.message : "Internal server error";
+
+      await AuditLogger.logError({
+        userId: contributor_id,
+        errorMessage,
+        serviceCategory: "submissions",
+        stackTrace: error.stack,
+        code: "CREATE_SUBMISSION_FAILED",
+        path: req.originalUrl || req.path,
+        method: req.method,
+        metadata: { body: req.body },
+      });
+
       res.status(500).json({ success: false, error: errorMessage });
     }
   };

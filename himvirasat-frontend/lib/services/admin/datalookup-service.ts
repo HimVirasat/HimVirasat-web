@@ -1,4 +1,6 @@
+import { ActivityLog, ErrorLog, GetLogsParams } from "@himvirasat/shared";
 import { API_URL } from "@/lib/constants";
+
 
 export interface GenerateMetadataPayload {
   word_devanagari: string;
@@ -31,7 +33,18 @@ export class DataLookupService {
     const result = await response.json();
     return result.data;
   }
+  static async getAvailablePartsOfSpeech(): Promise<string[]> {
+    const response = await fetch(`${API_URL}/datalookup/available-pos`, {
+      credentials: "include",
+    });
 
+    if (!response.ok) {
+      throw new Error("Failed to fetch available parts of speech");
+    }
+
+    const result = await response.json();
+    return result.data;
+  }
   /**
    * Fetches all functional category strings from the database
    */
@@ -49,15 +62,49 @@ export class DataLookupService {
   }
 
   /**
-   * Fetches all part of speech grammatical markers from the database
+   * Fetches activity logs matching filter criteria
    */
-  static async getAvailablePartsOfSpeech(): Promise<string[]> {
-    const response = await fetch(`${API_URL}/datalookup/available-pos`, {
-      credentials: "include",
-    });
+  static async getActivityLogs(params: GetLogsParams): Promise<ActivityLog[]> {
+    const queryParams = new URLSearchParams();
+    if (params.status && params.status !== "ALL") {
+      queryParams.append("status", params.status);
+    }
+    if (params.service && params.service !== "ALL") {
+      queryParams.append("service", params.service);
+    }
+
+    const response = await fetch(
+      `${API_URL}/datalookup/logs/activity?${queryParams.toString()}`,
+      { credentials: "include" }
+    );
 
     if (!response.ok) {
-      throw new Error("Failed to fetch available parts of speech");
+      throw new Error("Failed to fetch activity logs");
+    }
+
+    const result = await response.json();
+    return result.data;
+  }
+
+  /**
+   * Fetches error exception logs matching filter criteria
+   */
+  static async getErrorLogs(params: GetLogsParams): Promise<ErrorLog[]> {
+    const queryParams = new URLSearchParams();
+    if (params.status && params.status !== "ALL") {
+      queryParams.append("status", params.status);
+    }
+    if (params.service && params.service !== "ALL") {
+      queryParams.append("service", params.service);
+    }
+
+    const response = await fetch(
+      `${API_URL}/datalookup/logs/error?${queryParams.toString()}`,
+      { credentials: "include" }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch error logs");
     }
 
     const result = await response.json();

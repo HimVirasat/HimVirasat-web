@@ -10,25 +10,25 @@ router.get(
   "/language-experts",
   requireAuth,
   requireRole("super_admin", "language_head"),
-  usersController.getLanguageExperts
+  usersController.getLanguageExperts,
 );
 router.post(
   "/language-experts",
   requireAuth,
   requireRole("super_admin", "language_head"),
-  usersController.createLanguageExpert
+  usersController.createLanguageExpert,
 );
 router.post(
   "/delete-expert",
   requireAuth,
   requireRole("super_admin", "language_head"),
-  usersController.deleteLanguageExpert
+  usersController.deleteLanguageExpert,
 );
 router.patch(
   "/language-experts/dialects",
   requireAuth,
   requireRole("super_admin", "language_head"),
-  usersController.updateExpertDialects
+  usersController.updateExpertDialects,
 );
 
 // Language Heads
@@ -36,25 +36,25 @@ router.get(
   "/language-heads",
   requireAuth,
   requireRole("super_admin"),
-  usersController.getLanguageHeads
+  usersController.getLanguageHeads,
 );
 router.post(
   "/language-heads",
   requireAuth,
   requireRole("super_admin"),
-  usersController.createLanguageHead
+  usersController.createLanguageHead,
 );
 router.post(
   "/delete-head",
   requireAuth,
   requireRole("super_admin"),
-  usersController.deleteLanguageHead
+  usersController.deleteLanguageHead,
 );
 router.patch(
   "/language-heads/dialects",
   requireAuth,
   requireRole("super_admin"),
-  usersController.updateHeadDialects
+  usersController.updateHeadDialects,
 );
 
 export default router;

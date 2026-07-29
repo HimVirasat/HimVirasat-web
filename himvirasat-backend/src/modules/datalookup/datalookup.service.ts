@@ -1,12 +1,20 @@
+import { AuditLogger } from "../../utils/audit-logger.js";
 import {
   DataLookupRepository,
   dataLookupRepository,
 } from "./datalookup.repository.js";
-import { GenerateMetadataInput, LinguisticMetadata, MetadataGenerationResult } from "@himvirasat/shared";
+import {
+  GenerateMetadataInput,
+  LinguisticMetadata,
+  MetadataGenerationResult,
+  ActivityLog,
+  ErrorLog,
+  GetLogsParams,
+} from "@himvirasat/shared";
 
 export class DataLookupService {
   constructor(
-    private readonly repository: DataLookupRepository = dataLookupRepository
+    private readonly repository: DataLookupRepository = dataLookupRepository,
   ) { }
 
   async fetchDialects(): Promise<string[]> {
@@ -21,8 +29,16 @@ export class DataLookupService {
     return await this.repository.getPartsOfSpeech();
   }
 
+  async fetchActivityLogs(params: GetLogsParams): Promise<ActivityLog[]> {
+    return await this.repository.getActivityLogs(params);
+  }
+
+  async fetchErrorLogs(params: GetLogsParams): Promise<ErrorLog[]> {
+    return await this.repository.getErrorLogs(params);
+  }
+
   async generateLinguisticMetadata(
-    input: GenerateMetadataInput
+    input: GenerateMetadataInput,
   ): Promise<MetadataGenerationResult> {
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) throw new Error("OPENROUTER_API_KEY missing");
@@ -30,28 +46,31 @@ export class DataLookupService {
     const model = process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-sonnet";
     const prompt = this.buildPrompt(input);
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        "HTTP-Referer": process.env.SITE_URL || "http://localhost:3000",
-        "X-Title": "Himvirasat Linguistic Generator",
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+          "HTTP-Referer": process.env.SITE_URL || "http://localhost:3000",
+          "X-Title": "Himvirasat Linguistic Generator",
+        },
+        body: JSON.stringify({
+          model,
+          temperature: 0.2,
+          response_format: { type: "json_object" },
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are a precise linguistic JSON generator for Himachali/Pahadi dialects.",
+            },
+            { role: "user", content: prompt },
+          ],
+        }),
       },
-      body: JSON.stringify({
-        model,
-        temperature: 0.2,
-        response_format: { type: "json_object" },
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a precise linguistic JSON generator for Himachali/Pahadi dialects.",
-          },
-          { role: "user", content: prompt },
-        ],
-      }),
-    });
+    );
 
     if (!response.ok) {
       const text = await response.text();
@@ -66,8 +85,12 @@ export class DataLookupService {
   }
 
   private buildPrompt(input: GenerateMetadataInput): string {
-    const { word_devanagari, meaning_hindi, meaning_english, example_sentence } =
-      input;
+    const {
+      word_devanagari,
+      meaning_hindi,
+      meaning_english,
+      example_sentence,
+    } = input;
 
     return `You are an expert linguist specializing in Western Pahadi / Himachali dialects, Devanagari script, Takri script, and IPA phonetics.
 Based on the following lexical entry:

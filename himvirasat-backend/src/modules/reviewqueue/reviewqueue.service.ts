@@ -4,14 +4,20 @@ import {
   ContributionFilters,
   POINT_REWARDS,
 } from "@himvirasat/shared";
-import { CONTRIBUTION_SELECT_QUERY, reviewQueueRepository, ReviewQueueRepository } from "./reviewqueue.repository.js";
+import {
+  CONTRIBUTION_SELECT_QUERY,
+  reviewQueueRepository,
+  ReviewQueueRepository,
+} from "./reviewqueue.repository.js";
 import { logger } from "../../utils/logger.js";
 import type { HistoryEventType, CommentStatus } from "@himvirasat/shared";
-import { usersRepository } from "../users/users.repository.js"; // Adjust relative import path
+import { usersRepository } from "../users/users.repository.js";
+import { AuditLogger } from "../../utils/audit-logger.js";
+
 export class ReviewQueueService {
   constructor(
-    private readonly repository: ReviewQueueRepository = reviewQueueRepository
-  ) { }
+    private readonly repository: ReviewQueueRepository = reviewQueueRepository,
+  ) {}
 
   private formatContribution(item: RawContribution | null) {
     if (!item) return item;
@@ -25,7 +31,9 @@ export class ReviewQueueService {
     };
   }
 
-  private sanitizeContributionInput(input: Record<string, unknown> | undefined) {
+  private sanitizeContributionInput(
+    input: Record<string, unknown> | undefined,
+  ) {
     const {
       id,
       categories,
@@ -46,8 +54,17 @@ export class ReviewQueueService {
     return cleanColumns;
   }
 
-  async createContribution(contributorId: string, _payload: Record<string, unknown>) {
+  async createContribution(
+    contributorId: string,
+    payload: Record<string, unknown>,
+  ) {
     const customUUID = randomUUID();
+
+    await this.repository.insertContribution({
+      id: customUUID,
+      contributor_id: contributorId,
+      ...payload,
+    });
 
     await this.repository.insertHistory({
       contribution_id: customUUID,
@@ -56,9 +73,22 @@ export class ReviewQueueService {
       message: "Contribution submitted for review.",
     });
 
+    await AuditLogger.logActivity({
+      actorId: contributorId,
+      action: "CONTRIBUTION_SUBMITTED",
+      entityType: "contribution",
+      entityId: customUUID,
+      serviceCategory: "review_queue",
+      status: "SUCCESS",
+      metadata: {
+        wordDevanagari: payload.word_devanagari || null,
+        dialectId: payload.dialect_id || null,
+      },
+    });
+
     const enriched = await this.repository.fetchContributionById(
       customUUID,
-      CONTRIBUTION_SELECT_QUERY
+      CONTRIBUTION_SELECT_QUERY,
     );
 
     return this.formatContribution(enriched);
@@ -67,7 +97,7 @@ export class ReviewQueueService {
   async fetchContributions(filters: ContributionFilters) {
     const data = await this.repository.fetchContributions(
       filters,
-      CONTRIBUTION_SELECT_QUERY
+      CONTRIBUTION_SELECT_QUERY,
     );
     return data.map((item) => this.formatContribution(item));
   }
@@ -75,7 +105,7 @@ export class ReviewQueueService {
   async fetchContributionById(id: string) {
     const item = await this.repository.fetchContributionById(
       id,
-      CONTRIBUTION_SELECT_QUERY
+      CONTRIBUTION_SELECT_QUERY,
     );
     if (!item) return null;
 
@@ -92,7 +122,7 @@ export class ReviewQueueService {
   async updateContribution(
     id: string,
     actorId: string,
-    payload: Record<string, unknown>
+    payload: Record<string, unknown>,
   ) {
     const currentData = await this.repository.fetchContributionRaw(id);
     if (!currentData) {
@@ -129,7 +159,7 @@ export class ReviewQueueService {
     if (diffEntries.length === 0) {
       const enriched = await this.repository.fetchContributionById(
         id,
-        CONTRIBUTION_SELECT_QUERY
+        CONTRIBUTION_SELECT_QUERY,
       );
       return this.formatContribution(enriched);
     }
@@ -151,32 +181,42 @@ export class ReviewQueueService {
       .catch((err) =>
         logger.warn(
           "Failed logging individual field changes to contribution_history",
-          err
-        )
+          err,
+        ),
       );
+
+    await AuditLogger.logActivity({
+      actorId,
+      action: "CONTRIBUTION_UPDATED",
+      entityType: "contribution",
+      entityId: id,
+      serviceCategory: "review_queue",
+      status: "SUCCESS",
+      metadata: {
+        updatedFields: diffEntries.map((d) => d.field_name),
+      },
+    });
 
     const enriched = await this.repository.fetchContributionById(
       id,
-      CONTRIBUTION_SELECT_QUERY
+      CONTRIBUTION_SELECT_QUERY,
     );
 
     return this.formatContribution(enriched);
   }
+
   async updateContributionStatus(
     id: string,
     actorId: string,
-    payload: { status: string; reason?: string | undefined }
+    payload: { status: string; reason?: string | undefined },
   ) {
     const { status, reason } = payload;
     const statusUpdates: Record<string, unknown> = { status };
     let historyType: HistoryEventType = "submitted";
 
-    console.log("🔥 UPDATE_STATUS ROUTE ENTERED:", { id, status, actorId });
-
-    // 1. Fetch contribution metadata (ensure primary key UUID is fetched)
     const existingContribution = await this.repository.fetchContributionById(
       id,
-      "id, contributor_id, dialect_id, status"
+      "id, contributor_id, dialect_id, status, word_devanagari",
     );
 
     if (!existingContribution) {
@@ -184,7 +224,6 @@ export class ReviewQueueService {
     }
 
     const previousStatus = existingContribution.status;
-    // Ensure we use the real DB UUID for point transaction references
     const contributionUuid = (existingContribution.id || id) as string;
 
     if (status === "flagged") {
@@ -205,7 +244,6 @@ export class ReviewQueueService {
       historyType = "flag_removed";
     }
 
-    // 2. Update contribution status & log history entry
     await this.repository.updateContribution(id, statusUpdates);
 
     await this.repository.insertHistory({
@@ -215,69 +253,96 @@ export class ReviewQueueService {
       message: reason || `Status updated to ${status}.`,
     });
 
-    // 3. Award Points only if transitioning to "approved" for the first time
+    await AuditLogger.logActivity({
+      actorId,
+      action: `CONTRIBUTION_${payload.status.toUpperCase()}`,
+      entityType: "contribution",
+      entityId: id,
+      serviceCategory: "review_queue",
+      status: "SUCCESS",
+      metadata: {
+        previousStatus: existingContribution.status,
+        newStatus: payload.status,
+        reason: payload.reason || null,
+        wordDevanagari: existingContribution.word_devanagari,
+        contributorId: existingContribution.contributor_id,
+      },
+    });
+
     if (status === "approved" && previousStatus !== "approved") {
-      const contributorId = existingContribution.contributor_id as string | undefined;
+      const contributorId = existingContribution.contributor_id as
+        string | undefined;
       const dialectId =
         typeof existingContribution.dialect_id === "number"
           ? existingContribution.dialect_id
           : undefined;
 
       try {
-        // A. Contributor receives points
         if (contributorId) {
-          console.log("--> Awarding points to contributor:", {
-            contributorId,
-            contributionUuid,
-          });
-
           await usersRepository.awardPoints({
             userId: contributorId,
             points: POINT_REWARDS.CONTRIBUTOR_APPROVED,
             reason: "contribution_approved",
-            referenceId: contributionUuid, // Must be UUID
+            referenceId: contributionUuid,
             dialectId: dialectId,
             isContributor: true,
           });
         }
 
-        // B. Reviewer receives points (if not self-approving)
         if (actorId && actorId !== contributorId) {
-          console.log("--> Awarding points to reviewer:", {
-            actorId,
-            contributionUuid,
-          });
-
           await usersRepository.awardPoints({
             userId: actorId,
             points: POINT_REWARDS.REVIEWER_APPROVED,
             reason: "review_completed",
-            referenceId: contributionUuid, // Must be UUID
+            referenceId: contributionUuid,
             dialectId: dialectId,
             isContributor: false,
           });
         }
-      } catch (error) {
-        console.error("❌ Failed to award points during status approval:", error);
+      } catch (error: any) {
+        await AuditLogger.logError({
+          userId: actorId,
+          errorMessage: error.message || "Failed to award points during status approval",
+          serviceCategory: "review_queue",
+          stackTrace: error.stack,
+          code: "AWARD_POINTS_FAILED",
+          path: `/api/contributions/${id}/status`,
+          method: "PATCH",
+          metadata: { contributionId: id, attemptedStatus: payload.status },
+        });
+        console.error(
+          "Failed to award points during status approval:",
+          error,
+        );
       }
     }
 
-    // 4. Fetch and return enriched payload
     const enriched = await this.repository.fetchContributionById(
       id,
-      CONTRIBUTION_SELECT_QUERY
+      CONTRIBUTION_SELECT_QUERY,
     );
 
     return this.formatContribution(enriched);
   }
-  async deleteContribution(id: string) {
+
+  async deleteContribution(id: string, actorId?: string) {
     await this.repository.deleteContribution(id);
+
+    await AuditLogger.logActivity({
+      actorId: actorId || null,
+      action: "CONTRIBUTION_DELETED",
+      entityType: "contribution",
+      entityId: id,
+      serviceCategory: "review_queue",
+      status: "SUCCESS",
+      metadata: { contributionId: id },
+    });
   }
 
   async addContributionComment(
     contributionId: string,
     authorId: string,
-    payload: { field_name: string; message: string }
+    payload: { field_name: string; message: string },
   ) {
     const { field_name, message } = payload;
     const cleanFieldName =
@@ -298,13 +363,27 @@ export class ReviewQueueService {
       message: `Added review comment under [${cleanFieldName}]: "${message}"`,
     });
 
+    await AuditLogger.logActivity({
+      actorId: authorId,
+      action: "COMMENT_ADDED",
+      entityType: "contribution_comment",
+      entityId: String(comment.id || contributionId),
+      serviceCategory: "review_queue",
+      status: "SUCCESS",
+      metadata: {
+        contributionId,
+        fieldName: cleanFieldName,
+        message,
+      },
+    });
+
     return comment;
   }
 
   async updateCommentStatus(
     commentId: string,
     actorId: string,
-    payload: { status: CommentStatus; fieldValueToAccept?: unknown }
+    payload: { status: CommentStatus; fieldValueToAccept?: unknown },
   ) {
     const { status, fieldValueToAccept } = payload;
     const patchData: Record<string, unknown> = { status };
@@ -314,21 +393,22 @@ export class ReviewQueueService {
       patchData.resolved_by = actorId;
     }
 
-    const updatedComment = await this.repository.updateComment(commentId, patchData);
+    const updatedComment = await this.repository.updateComment(
+      commentId,
+      patchData,
+    );
     if (!updatedComment) throw new Error("Comment not found");
 
     const commentFieldName = (updatedComment.field_name as string) || "General";
     const contributionId = updatedComment.contribution_id as string;
 
-    // 1. If accepted and suggested a new field value, update the contribution field
     if (
       status === "accepted" &&
       fieldValueToAccept !== undefined &&
       commentFieldName !== "General"
     ) {
-      const currentData = await this.repository.fetchContributionRaw(
-        contributionId
-      );
+      const currentData =
+        await this.repository.fetchContributionRaw(contributionId);
 
       if (currentData) {
         const oldVal = String(currentData[commentFieldName] ?? "");
@@ -348,10 +428,9 @@ export class ReviewQueueService {
       }
     }
 
-    // 2. Award Points if a comment is accepted
     if (status === "accepted") {
-      // Extract author ID from comment (adjust key if your column name is user_id / author_id)
-      const commentAuthorId = (updatedComment.user_id || updatedComment.author_id) as string | undefined;
+      const commentAuthorId = (updatedComment.user_id ||
+        updatedComment.author_id) as string | undefined;
 
       if (commentAuthorId) {
         try {
@@ -362,14 +441,19 @@ export class ReviewQueueService {
             referenceId: commentId,
             isContributor: true,
           });
-          console.log(`--> Awarded ${POINT_REWARDS.COMMENT_ACCEPTED} points to comment author: ${commentAuthorId}`);
-        } catch (error) {
-          console.error("❌ Failed to award points for accepted comment:", error);
+        } catch (error: any) {
+          await AuditLogger.logError({
+            userId: actorId,
+            errorMessage: error.message || "Failed to award points for accepted comment",
+            serviceCategory: "review_queue",
+            stackTrace: error.stack,
+            code: "AWARD_COMMENT_POINTS_FAILED",
+            metadata: { commentId, commentAuthorId },
+          });
         }
       }
     }
 
-    // 3. Log event history entry
     const historyTypeMap: Record<CommentStatus, HistoryEventType> = {
       accepted: "comment_accepted",
       rejected: "comment_rejected",
@@ -377,7 +461,8 @@ export class ReviewQueueService {
       open: "comment_added",
     };
 
-    const users = updatedComment.users as { username?: string; full_name?: string } | undefined;
+    const users = updatedComment.users as
+      { username?: string; full_name?: string } | undefined;
     const authorName = users?.username || users?.full_name || "contributor";
 
     const historyMessage =
@@ -392,6 +477,20 @@ export class ReviewQueueService {
       actor_id: actorId,
       type: historyTypeMap[status],
       message: historyMessage,
+    });
+
+    await AuditLogger.logActivity({
+      actorId,
+      action: `COMMENT_${status.toUpperCase()}`,
+      entityType: "contribution_comment",
+      entityId: commentId,
+      serviceCategory: "review_queue",
+      status: "SUCCESS",
+      metadata: {
+        contributionId,
+        commentStatus: status,
+        fieldValueToAccept: fieldValueToAccept ?? null,
+      },
     });
 
     return this.repository.fetchCommentById(commentId);

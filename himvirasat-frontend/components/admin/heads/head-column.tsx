@@ -65,6 +65,15 @@ export function getHeadColumns(
       ),
     },
     {
+      accessorKey: "points",
+      header: "Points",
+      cell: ({ row }) => (
+        <span className="font-mono text-xs font-medium">
+          {row.original.points ?? 0}
+        </span>
+      ),
+    },
+    {
       accessorKey: "is_active",
       header: "Status",
       cell: ({ row }) => {

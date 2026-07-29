@@ -1,10 +1,16 @@
+/**
+ * Auth Service
+ * File: auth.service.ts
+ */
+
 import bcrypt from "bcrypt";
 import { AuthRepository, authRepository } from "./auth.repository.js";
 import { generateToken } from "../../utils/jwt.js";
 import type { UserDto, LoginResponse } from "@himvirasat/shared";
+import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class AuthService {
-  constructor(private readonly repository: AuthRepository = authRepository) {}
+  constructor(private readonly repository: AuthRepository = authRepository) { }
 
   async login(
     username: string,
@@ -13,6 +19,15 @@ export class AuthService {
     const user = await this.repository.findByUsername(username);
 
     if (!user) {
+      await AuditLogger.logActivity({
+        actorId: null,
+        action: "LOGIN_FAILED",
+        entityType: "user",
+        serviceCategory: "auth",
+        status: "FAILED",
+        metadata: { username, reason: "User not found" },
+      });
+
       return {
         success: false,
         statusCode: 401,
@@ -21,6 +36,16 @@ export class AuthService {
     }
 
     if (!user.is_active) {
+      await AuditLogger.logActivity({
+        actorId: user.id,
+        action: "LOGIN_FAILED",
+        entityType: "user",
+        entityId: user.id,
+        serviceCategory: "auth",
+        status: "FAILED",
+        metadata: { username, reason: "Account disabled" },
+      });
+
       return {
         success: false,
         statusCode: 403,
@@ -30,6 +55,16 @@ export class AuthService {
 
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordValid) {
+      await AuditLogger.logActivity({
+        actorId: user.id,
+        action: "LOGIN_FAILED",
+        entityType: "user",
+        entityId: user.id,
+        serviceCategory: "auth",
+        status: "FAILED",
+        metadata: { username, reason: "Invalid password" },
+      });
+
       return {
         success: false,
         statusCode: 401,
@@ -51,6 +86,16 @@ export class AuthService {
       dialects: user.dialects,
     };
 
+    await AuditLogger.logActivity({
+      actorId: user.id,
+      action: "LOGIN_SUCCESS",
+      entityType: "user",
+      entityId: user.id,
+      serviceCategory: "auth",
+      status: "SUCCESS",
+      metadata: { username: user.username, role: user.role },
+    });
+
     return {
       success: true,
       message: "Login successful",
@@ -62,6 +107,15 @@ export class AuthService {
   async getUserProfile(userId: string): Promise<UserDto | null> {
     const user = await this.repository.findById(userId);
     if (!user) return null;
+
+    // await AuditLogger.logActivity({
+    //   actorId: userId,
+    //   action: "GET_USER_PROFILE",
+    //   entityType: "user",
+    //   entityId: userId,
+    //   serviceCategory: "auth",
+    //   status: "SUCCESS",
+    // });
 
     return {
       id: user.id,
@@ -87,6 +141,16 @@ export class AuthService {
       user.password_hash,
     );
     if (!isPasswordValid) {
+      await AuditLogger.logActivity({
+        actorId: userId,
+        action: "RESET_PASSWORD_FAILED",
+        entityType: "user",
+        entityId: userId,
+        serviceCategory: "auth",
+        status: "FAILED",
+        metadata: { reason: "Incorrect current password" },
+      });
+
       return {
         success: false,
         statusCode: 400,
@@ -101,12 +165,31 @@ export class AuthService {
     );
 
     if (!isUpdated) {
+      await AuditLogger.logActivity({
+        actorId: userId,
+        action: "RESET_PASSWORD_FAILED",
+        entityType: "user",
+        entityId: userId,
+        serviceCategory: "auth",
+        status: "FAILED",
+        metadata: { reason: "Database update failed" },
+      });
+
       return {
         success: false,
         statusCode: 500,
         message: "Failed to update password",
       };
     }
+
+    await AuditLogger.logActivity({
+      actorId: userId,
+      action: "RESET_PASSWORD_SUCCESS",
+      entityType: "user",
+      entityId: userId,
+      serviceCategory: "auth",
+      status: "SUCCESS",
+    });
 
     return { success: true, message: "Password reset successfully" };
   }

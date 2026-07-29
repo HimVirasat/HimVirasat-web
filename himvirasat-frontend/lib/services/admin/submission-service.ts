@@ -2,10 +2,7 @@ import { API_URL } from "@/lib/constants";
 import type { ApiResponse, CreateSubmissionDto } from "@himvirasat/shared";
 
 // Local payload type expected by your Express backend API
-export type CreateSubmissionPayload = Omit<
-  CreateSubmissionDto,
-  "meaning"
-> & {
+export type CreateSubmissionPayload = Omit<CreateSubmissionDto, "meaning"> & {
   meaning: string;
 };
 

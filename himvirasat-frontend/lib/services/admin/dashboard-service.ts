@@ -1,5 +1,5 @@
 import { API_URL } from "@/lib/constants";
-import { DashboardStatsDto } from "@himvirasat/shared/dtos/admin.dto";
+import { DashboardStatsDto } from "@himvirasat/shared";
 import { resolve } from "node:dns";
 
 export class DashboardService {

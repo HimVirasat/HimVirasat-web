@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Check,
   Edit3,
@@ -9,6 +9,7 @@ import {
   MessageSquare,
   X,
   Loader2,
+  Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,7 @@ import {
   SystemRole,
   WORKFLOW_RULES,
 } from "@himvirasat/shared";
+import { toast } from "sonner";
 
 interface WorkspaceHeaderProps {
   currentItem: Contribution;
@@ -51,6 +53,23 @@ export default function WorkspaceHeader({
   isSaving = false,
   statusCounts,
 }: WorkspaceHeaderProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    if (!currentItem?.id) return;
+
+    // Build standard share URL pointing to current entry ID
+    const shareUrl = `${window.location.origin}${window.location.pathname}?id=${currentItem.id}`;
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      toast.success("Direct link copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy link.");
+    }
+  };
   return (
     <div className="h-12 shrink-0 border-b px-6 flex items-center justify-between bg-card/20">
       <div className="flex items-center gap-4 min-w-0">
@@ -127,6 +146,25 @@ export default function WorkspaceHeader({
               </Button>
             </div>
           ))}
+        {/* Action Controls */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleShare}
+            className="h-8 gap-1.5 text-xs font-medium cursor-pointer"
+          >
+            {copied ? (
+              <>
+                <Check className="size-3.5 text-emerald-500" /> Copied
+              </>
+            ) : (
+              <>
+                <Share2 className="size-3.5" /> Share
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

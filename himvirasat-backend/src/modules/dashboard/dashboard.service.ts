@@ -1,23 +1,34 @@
-import { supabase } from "../../services/supabase.js";
+/**
+ * Dashboard Service
+ * File: dashboard.service.ts
+ */
 
-export async function fetchDashboardStats() {
-  const [experts, heads, admins] = await Promise.all([
-    supabase
-      .from("users")
-      .select("*", { count: "exact", head: true })
-      .eq("role", "language_expert"),
-    supabase
-      .from("users")
-      .select("*", { count: "exact", head: true })
-      .eq("role", "language_head"),
-    supabase
-      .from("users")
-      .select("*", { count: "exact", head: true })
-      .eq("role", "super_admin"),
-  ]);
-  return {
-    languageExpertsCount: experts.count ?? 0,
-    languageHeadsCount: heads.count ?? 0,
-    superAdminsCount: admins.count ?? 0,
-  };
+import {
+  DashboardRepository,
+  dashboardRepository,
+} from "./dashboard.repository.js";
+import { DashboardStats } from "@himvirasat/shared";
+// import { AuditLogger } from "../../utils/audit-logger.js";
+
+export class DashboardService {
+  constructor(
+    private readonly repository: DashboardRepository = dashboardRepository,
+  ) {}
+
+  async fetchDashboardStats(_actorId?: string): Promise<DashboardStats> {
+    const stats = await this.repository.getDashboardStats();
+
+    // await AuditLogger.logActivity({
+    //   actorId: actorId || null,
+    //   action: "FETCH_DASHBOARD_STATS",
+    //   entityType: "dashboard_stats",
+    //   serviceCategory: "datalookup",
+    //   status: "SUCCESS",
+    //   metadata: { stats },
+    // });
+
+    return stats;
+  }
 }
+
+export const dashboardService = new DashboardService();

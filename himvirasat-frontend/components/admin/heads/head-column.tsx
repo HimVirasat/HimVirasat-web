@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trash2, ShieldCheck } from "lucide-react";
-import type { LanguageHead } from "@himvirasat/shared/dtos/admin.dto";
+import type { LanguageHead } from "@himvirasat/shared";
 import { EditableDialectsCell } from "../data-table/editable-dialects-cell";
 
 export function getHeadColumns(
@@ -62,6 +62,15 @@ export function getHeadColumns(
           currentDialects={row.original.dialects}
           type="head"
         />
+      ),
+    },
+    {
+      accessorKey: "points",
+      header: "Points",
+      cell: ({ row }) => (
+        <span className="font-mono text-xs font-medium">
+          {row.original.points ?? 0}
+        </span>
       ),
     },
     {

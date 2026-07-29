@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { SystemRoleSchema } from "../common/roles.js";
+import { SystemRoleSchema } from "../../common/roles.js";
 
 export const JwtUserSchema = z.object({
   userId: z.string(),
@@ -29,3 +29,9 @@ export const LoginResponseSchema = z.object({
   user: UserDtoSchema.optional(),
 });
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;
+
+
+export interface UserRecord extends UserDto {
+  password_hash: string;
+  is_active: boolean;
+}

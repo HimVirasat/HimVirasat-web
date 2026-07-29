@@ -203,15 +203,12 @@ export default function WorkspaceContent({
 
   // useMemo must be called unconditionally as well
   const latestHistory = useMemo(() => {
-    if (!currentItem) return [];
-    return (currentItem.history || []).sort(
-      (
-        a: { created_at: string | number | Date },
-        b: { created_at: string | number | Date }
-      ) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    if (!currentItem || !Array.isArray(currentItem.history)) return [];
+    return [...currentItem.history].sort(
+      (a: any, b: any) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
   }, [currentItem]);
-
   // ---- Early returns after all hooks ----
   if (!showContent) {
     return (
@@ -255,7 +252,6 @@ export default function WorkspaceContent({
 
   // ---- Now we have a valid currentItem, compute remaining variables ----
   const rules = WORKFLOW_RULES[currentItem.status] || {
-    label: "Draft",
     canComment: () => true,
     canApprove: () => false,
     canReject: () => true,
@@ -416,7 +412,7 @@ export default function WorkspaceContent({
               )}
 
               {!currentItem.review_comments ||
-                currentItem.review_comments.length === 0 ? (
+              currentItem.review_comments.length === 0 ? (
                 <div className="rounded-xl border border-border/50 bg-muted/20 p-6 text-center text-xs text-muted-foreground">
                   No review comments have been added.
                 </div>
@@ -556,25 +552,46 @@ export default function WorkspaceContent({
                   History
                 </h3>
                 <div className="rounded-xl border border-border/40 bg-card/40 divide-y divide-border/40">
-                  {latestHistory.map((event: any) => (
-                    <div
-                      key={event.id}
-                      className="p-3 flex items-start gap-3 text-xs"
-                    >
-                      <div className="font-medium text-foreground">
-                        {event.users?.full_name ||
-                          event.users?.username ||
-                          event.performed_by}
+                  {latestHistory.map((event: any) => {
+                    // Fallback formatting if event.message is empty
+                    const actionText =
+                      event.message ||
+                      event.action ||
+                      (event.type
+                        ? event.type.replace("_", " ")
+                        : "Action logged");
+
+                    return (
+                      <div
+                        key={event.id}
+                        className="p-3 flex items-start gap-3 text-xs"
+                      >
+                        <div className="font-medium text-foreground">
+                          {event.users?.full_name ||
+                            event.users?.username ||
+                            event.performed_by ||
+                            "System User"}
+                        </div>
+                        <div className="text-muted-foreground">
+                          {actionText}
+                          {event.details ? ` - ${event.details}` : ""}
+                        </div>
+                        <span className="ml-auto shrink-0 text-muted-foreground/60 text-[10px]">
+                          {event.created_at
+                            ? new Date(event.created_at).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )
+                            : ""}
+                        </span>
                       </div>
-                      <div className="text-muted-foreground">
-                        {event.action}{" "}
-                        {event.details ? `- ${event.details}` : ""}
-                      </div>
-                      <span className="ml-auto text-muted-foreground/60 text-[10px]">
-                        {new Date(event.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>

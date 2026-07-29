@@ -113,7 +113,7 @@ export default function WorkspaceViewContent({
   }
 
   // --- Content rendering (unchanged) ---
-  const rules = WORKFLOW_RULES[currentItem.status] || { label: "Draft" };
+  const rules = WORKFLOW_RULES[currentItem.status] || { label: "unknown" };
   const shortId = currentItem.id.slice(-4);
 
   return (

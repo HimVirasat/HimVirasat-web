@@ -1,7 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-
 import { verifyToken } from "../utils/jwt.js";
-
 import type { JwtUser } from "@himvirasat/shared";
 
 export interface AuthenticatedRequest extends Request {
@@ -16,8 +14,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    const payload = verifyToken(token);
-
+    const payload = verifyToken(token) as JwtUser;
     (req as AuthenticatedRequest).user = payload;
 
     next();

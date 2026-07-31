@@ -13,7 +13,7 @@ import {
 import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class UsersService {
-  constructor(private readonly repository: UsersRepository = usersRepository) { }
+  constructor(private readonly repository: UsersRepository = usersRepository) {}
 
   async fetchLanguageExperts(_actorId?: string) {
     const data = await this.repository.findUsersByRole("language_expert");

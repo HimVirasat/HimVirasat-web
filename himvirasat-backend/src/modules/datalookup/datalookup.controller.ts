@@ -5,7 +5,7 @@ import { AuditLogger } from "../../utils/audit-logger.js";
 export class DataLookupController {
   constructor(
     private readonly service: DataLookupService = dataLookupService,
-  ) {}
+  ) { }
 
   getDialects = async (_req: Request, res: Response) => {
     try {
@@ -37,14 +37,24 @@ export class DataLookupController {
       return res.status(200).json({ success: true, data });
     } catch (error) {
       console.error("DataLookup Controller [getPartsOfSpeech] error:", error);
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Failed to retrieve parts of speech",
-        });
+      return res.status(500).json({
+        success: false,
+        message: "Failed to retrieve parts of speech",
+      });
     }
   };
+  getAvailableRegions = async (_req: Request, res: Response) => {
+    try {
+      const data = await this.service.fetchAvailableRegions();
+      return res.status(200).json({ success: true, data });
+    } catch (error) {
+      console.error("DataLookup Controller [getAvailableRegions] error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to retrieve Available Regions",
+      });
+    }
+  }
 
   getActivityLogs = async (req: Request, res: Response) => {
     try {
@@ -56,7 +66,7 @@ export class DataLookupController {
       return res.status(200).json({ success: true, data });
     } catch (error: any) {
       console.error("DataLookup Controller [getActivityLogs] error:", error);
-      
+
       await AuditLogger.logError({
         userId: (req as any).user?.id || null,
         errorMessage: error.message || "Failed to retrieve activity logs",

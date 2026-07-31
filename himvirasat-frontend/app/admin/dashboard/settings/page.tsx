@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AdminAuthService } from "@/lib/services/admin/admin-auth-service";
+import { AuthService } from "@/lib/services/auth-service";
 import {
   staticPrimaryButtonStyles,
   staticSecondaryButtonStyles,
@@ -39,7 +39,7 @@ export default function SettingsPage() {
   async function handleLogout() {
     setIsLoggingOut(true);
     try {
-      const response = await AdminAuthService.logout();
+      const response = await AuthService.logout();
 
       if (!response.success) {
         toast.error(response.message ?? "Logout failed", {
@@ -54,7 +54,7 @@ export default function SettingsPage() {
       toast.success("Logged out successfully", {
         description: "You have been signed out of your account.",
       });
-      router.replace("/admin");
+      router.replace("/login");
     } catch (error) {
       console.error(error);
       toast.error("An unexpected error occurred", {
@@ -93,7 +93,7 @@ export default function SettingsPage() {
 
     setIsResetting(true);
     try {
-      const response = await AdminAuthService.resetPassword(
+      const response = await AuthService.resetPassword(
         oldPassword,
         newPassword
       );

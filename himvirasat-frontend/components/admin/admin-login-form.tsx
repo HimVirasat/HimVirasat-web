@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Loader2 } from "lucide-react";
+import { LogIn, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -15,7 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AdminAuthService } from "@/lib/services/admin/admin-auth-service";
+import { AuthService } from "@/lib/services/auth-service";
 
 export function AdminLoginForm() {
   const router = useRouter();
@@ -30,7 +31,7 @@ export function AdminLoginForm() {
     setLoading(true);
 
     try {
-      const response = await AdminAuthService.login(username, password);
+      const response = await AuthService.login(username, password);
 
       if (!response.success) {
         toast.error(response.message ?? "Authentication failed");
@@ -44,6 +45,7 @@ export function AdminLoginForm() {
         super_admin: "Super Admin",
         language_head: "Language Head",
         language_expert: "Language Expert",
+        contributor: "Contributor",
       };
 
       const userRole = response.user?.role;
@@ -55,7 +57,11 @@ export function AdminLoginForm() {
         toast.success("Successfully logged in", { duration: 5000 });
       }
 
-      router.push("/admin/dashboard");
+      router.push(
+        response.user?.role === "contributor"
+          ? "/user/dashboard"
+          : "/admin/dashboard"
+      );
     } catch (error) {
       console.error(error);
       toast.error(error instanceof Error ? error.message : "Login failed");
@@ -69,14 +75,14 @@ export function AdminLoginForm() {
       <CardHeader className="text-center">
         <div className="mb-4 flex justify-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full border">
-            <ShieldCheck className="h-6 w-6" />
+            <LogIn className="h-6 w-6" />
           </div>
         </div>
 
-        <CardTitle>Administrator Portal</CardTitle>
+        <CardTitle>Sign in to HimVirasat</CardTitle>
 
         <CardDescription>
-          Sign in with your administrator credentials.
+          One account for contributors, experts, language heads, and admins.
         </CardDescription>
       </CardHeader>
 
@@ -105,6 +111,13 @@ export function AdminLoginForm() {
               "Sign In"
             )}
           </Button>
+
+          <p className="text-center text-sm text-muted-foreground">
+            New to HimVirasat?{" "}
+            <Link href="/signup" className="font-medium text-foreground">
+              Create an account
+            </Link>
+          </p>
         </form>
       </CardContent>
     </Card>

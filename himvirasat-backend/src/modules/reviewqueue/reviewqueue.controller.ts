@@ -118,12 +118,10 @@ export class ReviewQueueController {
     try {
       const id = this.getStringParam(req.params.id);
       if (!id) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            error: "Invalid or missing contribution ID",
-          });
+        res.status(400).json({
+          success: false,
+          error: "Invalid or missing contribution ID",
+        });
         return;
       }
 
@@ -169,12 +167,10 @@ export class ReviewQueueController {
     try {
       const id = this.getStringParam(req.params.id);
       if (!id) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            error: "Invalid or missing contribution ID",
-          });
+        res.status(400).json({
+          success: false,
+          error: "Invalid or missing contribution ID",
+        });
         return;
       }
 
@@ -226,12 +222,10 @@ export class ReviewQueueController {
     try {
       const id = this.getStringParam(req.params.id);
       if (!id) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            error: "Invalid or missing contribution ID",
-          });
+        res.status(400).json({
+          success: false,
+          error: "Invalid or missing contribution ID",
+        });
         return;
       }
 
@@ -253,7 +247,10 @@ export class ReviewQueueController {
         code: "STATUS_UPDATE_FAILED",
         path: req.originalUrl || req.path,
         method: req.method,
-        metadata: { id: req.params.id, attemptedStatus: parseResult.data.status },
+        metadata: {
+          id: req.params.id,
+          attemptedStatus: parseResult.data.status,
+        },
       });
 
       res.status(400).json({ success: false, error: errorMessage });
@@ -267,12 +264,10 @@ export class ReviewQueueController {
     try {
       const id = this.getStringParam(req.params.id);
       if (!id) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            error: "Invalid or missing contribution ID",
-          });
+        res.status(400).json({
+          success: false,
+          error: "Invalid or missing contribution ID",
+        });
         return;
       }
 
@@ -323,12 +318,10 @@ export class ReviewQueueController {
     try {
       const id = this.getStringParam(req.params.id);
       if (!id) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            error: "Invalid or missing contribution ID",
-          });
+        res.status(400).json({
+          success: false,
+          error: "Invalid or missing contribution ID",
+        });
         return;
       }
 

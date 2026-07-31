@@ -60,6 +60,16 @@ export class DataLookupService {
     const result = await response.json();
     return result.data;
   }
+  static async getAvailableRegions(): Promise<string[]> {
+    const response = await fetch(`${API_URL}/datalookup/available-regions`, {
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch available regions");
+    }
+    const result = await response.json();
+    return result.data;
+  }
 
   /**
    * Fetches activity logs matching filter criteria

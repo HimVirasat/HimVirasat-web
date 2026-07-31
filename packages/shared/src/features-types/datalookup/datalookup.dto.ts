@@ -85,3 +85,4 @@ export type GetLogsParams = z.infer<typeof GetLogsParamsSchema>;
 
 
 export type ErrorLog = z.infer<typeof ErrorLogSchema>;
+

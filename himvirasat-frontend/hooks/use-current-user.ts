@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { AdminAuthService } from "@/lib/services/admin/admin-auth-service";
+import { AuthService } from "@/lib/services/auth-service";
 
 export function useCurrentUser() {
   return useQuery({
     queryKey: ["currentUser"],
     queryFn: async () => {
       try {
-        const data = await AdminAuthService.me();
+        const data = await AuthService.me();
         // Your backend returns { success: true, user: { ... } }
         return data.user || null;
       } catch (error) {

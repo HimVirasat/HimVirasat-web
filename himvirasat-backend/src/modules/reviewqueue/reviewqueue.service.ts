@@ -302,7 +302,8 @@ export class ReviewQueueService {
       } catch (error: any) {
         await AuditLogger.logError({
           userId: actorId,
-          errorMessage: error.message || "Failed to award points during status approval",
+          errorMessage:
+            error.message || "Failed to award points during status approval",
           serviceCategory: "review_queue",
           stackTrace: error.stack,
           code: "AWARD_POINTS_FAILED",
@@ -310,10 +311,7 @@ export class ReviewQueueService {
           method: "PATCH",
           metadata: { contributionId: id, attemptedStatus: payload.status },
         });
-        console.error(
-          "Failed to award points during status approval:",
-          error,
-        );
+        console.error("Failed to award points during status approval:", error);
       }
     }
 
@@ -444,7 +442,8 @@ export class ReviewQueueService {
         } catch (error: any) {
           await AuditLogger.logError({
             userId: actorId,
-            errorMessage: error.message || "Failed to award points for accepted comment",
+            errorMessage:
+              error.message || "Failed to award points for accepted comment",
             serviceCategory: "review_queue",
             stackTrace: error.stack,
             code: "AWARD_COMMENT_POINTS_FAILED",

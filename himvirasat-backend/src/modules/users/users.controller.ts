@@ -24,7 +24,9 @@ export class UsersController {
       res.json({ success: true, experts });
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to fetch language experts";
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch language experts";
 
       await AuditLogger.logError({
         userId: actorId || null,
@@ -36,9 +38,7 @@ export class UsersController {
         method: req.method,
       });
 
-      res
-        .status(500)
-        .json({ success: false, message: errorMessage });
+      res.status(500).json({ success: false, message: errorMessage });
     }
   };
 
@@ -61,7 +61,9 @@ export class UsersController {
       });
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to create language expert";
+        error instanceof Error
+          ? error.message
+          : "Failed to create language expert";
 
       await AuditLogger.logError({
         userId: actorId || null,
@@ -74,9 +76,7 @@ export class UsersController {
         metadata: { username: req.body?.username },
       });
 
-      res
-        .status(500)
-        .json({ success: false, message: errorMessage });
+      res.status(500).json({ success: false, message: errorMessage });
     }
   };
 
@@ -119,9 +119,7 @@ export class UsersController {
         metadata: { targetId: req.body?.id },
       });
 
-      res
-        .status(500)
-        .json({ success: false, message: errorMessage });
+      res.status(500).json({ success: false, message: errorMessage });
     }
   };
 
@@ -134,7 +132,9 @@ export class UsersController {
       res.json({ success: true, heads });
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to fetch language heads";
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch language heads";
 
       await AuditLogger.logError({
         userId: actorId || null,
@@ -146,9 +146,7 @@ export class UsersController {
         method: req.method,
       });
 
-      res
-        .status(500)
-        .json({ success: false, message: errorMessage });
+      res.status(500).json({ success: false, message: errorMessage });
     }
   };
 
@@ -171,7 +169,9 @@ export class UsersController {
       });
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to create language head";
+        error instanceof Error
+          ? error.message
+          : "Failed to create language head";
 
       await AuditLogger.logError({
         userId: actorId || null,
@@ -184,9 +184,7 @@ export class UsersController {
         metadata: { username: req.body?.username },
       });
 
-      res
-        .status(500)
-        .json({ success: false, message: errorMessage });
+      res.status(500).json({ success: false, message: errorMessage });
     }
   };
 
@@ -229,9 +227,7 @@ export class UsersController {
         metadata: { targetId: req.body?.id },
       });
 
-      res
-        .status(500)
-        .json({ success: false, message: errorMessage });
+      res.status(500).json({ success: false, message: errorMessage });
     }
   };
 
@@ -248,7 +244,11 @@ export class UsersController {
         });
         return;
       }
-      const result = await this.service.updateExpertDialects(id, dialects, actorId);
+      const result = await this.service.updateExpertDialects(
+        id,
+        dialects,
+        actorId,
+      );
       if (!result.success) {
         res
           .status(result.statusCode ?? 500)
@@ -275,9 +275,7 @@ export class UsersController {
         metadata: { targetId: req.body?.id },
       });
 
-      res
-        .status(500)
-        .json({ success: false, message: errorMessage });
+      res.status(500).json({ success: false, message: errorMessage });
     }
   };
 
@@ -294,7 +292,11 @@ export class UsersController {
         });
         return;
       }
-      const result = await this.service.updateHeadDialects(id, dialects, actorId);
+      const result = await this.service.updateHeadDialects(
+        id,
+        dialects,
+        actorId,
+      );
       if (!result.success) {
         res
           .status(result.statusCode ?? 500)
@@ -308,7 +310,9 @@ export class UsersController {
       });
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to update managed dialects";
+        error instanceof Error
+          ? error.message
+          : "Failed to update managed dialects";
 
       await AuditLogger.logError({
         userId: actorId || null,
@@ -321,11 +325,15 @@ export class UsersController {
         metadata: { targetId: req.body?.id },
       });
 
-      res
-        .status(500)
-        .json({ success: false, message: errorMessage });
+      res.status(500).json({ success: false, message: errorMessage });
     }
   };
+  // getDetailedUserInfo: RequestHandler = async (req, res): Promise<void> => {
+  //   const authReq = req as AuthenticatedRequest;
+  //   const actorId = this.getUserId(authReq);
+
+
+  // }
 }
 
 export const usersController = new UsersController();

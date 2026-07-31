@@ -4,7 +4,7 @@
  */
 
 import { Request, Response } from "express";
-import { LoginRequestSchema } from "@himvirasat/shared";
+import { LoginRequestSchema, SignupRequestSchema } from "@himvirasat/shared";
 import { AuthService, authService } from "./auth.service.js";
 import { AuthenticatedRequest } from "../../middlewares/auth.middleware.js";
 import { AuditLogger } from "../../utils/audit-logger.js";
@@ -57,6 +57,58 @@ export class AuthController {
         path: req.originalUrl || req.path,
         method: req.method,
         metadata: { username: req.body?.username },
+      });
+
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
+    }
+  };
+
+  signup = async (req: Request, res: Response) => {
+    try {
+      const parseResult = SignupRequestSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({
+          success: false,
+          message:
+            parseResult.error.issues[0]?.message ?? "Invalid signup parameters",
+        });
+      }
+
+      const result = await this.service.signup(parseResult.data);
+
+      if (!result.success || !result.token) {
+        return res
+          .status(result.statusCode ?? 500)
+          .json({ success: false, message: result.message });
+      }
+
+      res.cookie("access_token", result.token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: result.message,
+        user: result.user,
+      });
+    } catch (error: any) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Internal server error";
+
+      await AuditLogger.logError({
+        userId: null,
+        errorMessage,
+        serviceCategory: "auth",
+        stackTrace: error.stack,
+        code: "SIGNUP_CRITICAL_ERROR",
+        path: req.originalUrl || req.path,
+        method: req.method,
+        metadata: { username: req.body?.username, email: req.body?.email },
       });
 
       return res

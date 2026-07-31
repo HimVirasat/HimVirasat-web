@@ -1,7 +1,6 @@
 import { ActivityLog, ErrorLog, GetLogsParams } from "@himvirasat/shared";
 import { API_URL } from "@/lib/constants";
 
-
 export interface GenerateMetadataPayload {
   word_devanagari: string;
   meaning_hindi?: string;

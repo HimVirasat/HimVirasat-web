@@ -25,7 +25,7 @@ router.get(
 router.get(
   "/available-regions",
   requireAuth,
-  dataLookupController.getAvailableRegions
+  dataLookupController.getAvailableRegions,
 );
 router.get(
   "/logs/activity",

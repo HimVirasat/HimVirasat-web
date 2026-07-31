@@ -62,7 +62,9 @@ function normalizeToNumericOptions(rawInput: any): OptionItem[] {
         item.pos_name ??
         item.region_name ??
         item.label ??
-        (rawId !== undefined && rawId !== null ? String(rawId) : `Option ${index + 1}`);
+        (rawId !== undefined && rawId !== null
+          ? String(rawId)
+          : `Option ${index + 1}`);
 
       const numericId = Number(rawId);
 
@@ -75,7 +77,9 @@ function normalizeToNumericOptions(rawInput: any): OptionItem[] {
         label: String(label),
       };
     })
-    .filter((opt: any): opt is OptionItem => opt !== null && !Number.isNaN(opt.id));
+    .filter(
+      (opt: any): opt is OptionItem => opt !== null && !Number.isNaN(opt.id)
+    );
 }
 
 export function DatasetExplorer() {
@@ -107,10 +111,22 @@ export function DatasetExplorer() {
     staleTime: Infinity,
   });
 
-  const dialects = useMemo(() => normalizeToNumericOptions(rawDialects), [rawDialects]);
-  const categories = useMemo(() => normalizeToNumericOptions(rawCategories), [rawCategories]);
-  const posList = useMemo(() => normalizeToNumericOptions(rawPosList), [rawPosList]);
-  const regions = useMemo(() => normalizeToNumericOptions(rawRegions), [rawRegions]);
+  const dialects = useMemo(
+    () => normalizeToNumericOptions(rawDialects),
+    [rawDialects]
+  );
+  const categories = useMemo(
+    () => normalizeToNumericOptions(rawCategories),
+    [rawCategories]
+  );
+  const posList = useMemo(
+    () => normalizeToNumericOptions(rawPosList),
+    [rawPosList]
+  );
+  const regions = useMemo(
+    () => normalizeToNumericOptions(rawRegions),
+    [rawRegions]
+  );
 
   // Debounced Search Sync
   useEffect(() => {
@@ -127,7 +143,12 @@ export function DatasetExplorer() {
   }, [searchTerm, queryParams.search, updateParams]);
 
   // Fetch Dataset Entries
-  const { data: response, isLoading, isFetching, isError } = useQuery<DatasetApiResponse>({
+  const {
+    data: response,
+    isLoading,
+    isFetching,
+    isError,
+  } = useQuery<DatasetApiResponse>({
     queryKey: ["dataset_entries", queryParams],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -155,7 +176,10 @@ export function DatasetExplorer() {
   });
 
   const columns = useMemo(() => getDatasetColumns(), []);
-  const entries: DatasetEntry[] = useMemo(() => response?.data || [], [response]);
+  const entries: DatasetEntry[] = useMemo(
+    () => response?.data || [],
+    [response]
+  );
   const pagination = useMemo(
     () =>
       response?.pagination || {
@@ -182,7 +206,9 @@ export function DatasetExplorer() {
     }
 
     if (queryParams.dialect_id) {
-      const match = dialects.find((d) => d.id === Number(queryParams.dialect_id));
+      const match = dialects.find(
+        (d) => d.id === Number(queryParams.dialect_id)
+      );
       filters.push({
         key: "dialect_id",
         label: `Dialect: ${match?.label || queryParams.dialect_id}`,
@@ -191,7 +217,9 @@ export function DatasetExplorer() {
     }
 
     if (queryParams.category_id) {
-      const match = categories.find((c) => c.id === Number(queryParams.category_id));
+      const match = categories.find(
+        (c) => c.id === Number(queryParams.category_id)
+      );
       filters.push({
         key: "category_id",
         label: `Category: ${match?.label || queryParams.category_id}`,
@@ -200,7 +228,9 @@ export function DatasetExplorer() {
     }
 
     if (queryParams.part_of_speech_id) {
-      const match = posList.find((p) => p.id === Number(queryParams.part_of_speech_id));
+      const match = posList.find(
+        (p) => p.id === Number(queryParams.part_of_speech_id)
+      );
       filters.push({
         key: "part_of_speech_id",
         label: `POS: ${match?.label || queryParams.part_of_speech_id}`,
@@ -221,7 +251,8 @@ export function DatasetExplorer() {
       filters.push({
         key: "contribution_source",
         label: `Source: ${queryParams.contribution_source}`,
-        onRemove: () => updateParams({ contribution_source: undefined, page: 1 }),
+        onRemove: () =>
+          updateParams({ contribution_source: undefined, page: 1 }),
       });
     }
 
@@ -271,12 +302,16 @@ export function DatasetExplorer() {
         ) : isError ? (
           <div className="flex h-full flex-col items-center justify-center p-8 text-center">
             <AlertCircle className="size-8 text-destructive mb-2" />
-            <p className="text-sm font-semibold">Failed to load dataset entries</p>
+            <p className="text-sm font-semibold">
+              Failed to load dataset entries
+            </p>
           </div>
         ) : entries.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center p-8 text-center">
             <Database className="size-8 text-muted-foreground mb-2 stroke-1" />
-            <p className="text-sm font-semibold">No entries match your search criteria</p>
+            <p className="text-sm font-semibold">
+              No entries match your search criteria
+            </p>
           </div>
         ) : (
           <div className="min-h-0 flex-1 overflow-auto">

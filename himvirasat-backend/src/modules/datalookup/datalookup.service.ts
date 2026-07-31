@@ -17,7 +17,7 @@ export type { DynamicLookupOption };
 
 export class DataLookupService {
   constructor(
-    private readonly repository: DataLookupRepository = dataLookupRepository
+    private readonly repository: DataLookupRepository = dataLookupRepository,
   ) {}
 
   async fetchDialects(): Promise<DynamicLookupOption[]> {
@@ -45,7 +45,7 @@ export class DataLookupService {
   }
 
   async generateLinguisticMetadata(
-    input: GenerateMetadataInput
+    input: GenerateMetadataInput,
   ): Promise<MetadataGenerationResult> {
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) throw new Error("OPENROUTER_API_KEY missing");
@@ -76,7 +76,7 @@ export class DataLookupService {
             { role: "user", content: prompt },
           ],
         }),
-      }
+      },
     );
 
     if (!response.ok) {

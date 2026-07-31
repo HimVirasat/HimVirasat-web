@@ -11,7 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ContributionSourceEnum, type ContributionSource } from "@himvirasat/shared";
+import {
+  ContributionSourceEnum,
+  type ContributionSource,
+} from "@himvirasat/shared";
 
 export interface OptionItem {
   id: number;
@@ -124,7 +127,9 @@ export function DatasetToolbar({
 
         {/* Dialect */}
         <Select
-          value={queryParams.dialect_id ? String(queryParams.dialect_id) : "all"}
+          value={
+            queryParams.dialect_id ? String(queryParams.dialect_id) : "all"
+          }
           onValueChange={(val) =>
             updateParams({
               dialect_id: val === "all" ? undefined : Number(val),
@@ -147,7 +152,9 @@ export function DatasetToolbar({
 
         {/* Category */}
         <Select
-          value={queryParams.category_id ? String(queryParams.category_id) : "all"}
+          value={
+            queryParams.category_id ? String(queryParams.category_id) : "all"
+          }
           onValueChange={(val) =>
             updateParams({
               category_id: val === "all" ? undefined : Number(val),
@@ -170,7 +177,11 @@ export function DatasetToolbar({
 
         {/* Part of Speech */}
         <Select
-          value={queryParams.part_of_speech_id ? String(queryParams.part_of_speech_id) : "all"}
+          value={
+            queryParams.part_of_speech_id
+              ? String(queryParams.part_of_speech_id)
+              : "all"
+          }
           onValueChange={(val) =>
             updateParams({
               part_of_speech_id: val === "all" ? undefined : Number(val),
@@ -219,7 +230,8 @@ export function DatasetToolbar({
           value={queryParams.contribution_source || "all"}
           onValueChange={(val) =>
             updateParams({
-              contribution_source: val === "all" ? undefined : (val as ContributionSource),
+              contribution_source:
+                val === "all" ? undefined : (val as ContributionSource),
               page: 1,
             })
           }

@@ -62,7 +62,7 @@ export class DataLookupRepository {
         metadata,
         created_at,
         users:actor_id ( full_name )
-      `
+      `,
       )
       .order("created_at", { ascending: false });
 
@@ -109,7 +109,7 @@ export class DataLookupRepository {
         status,
         created_at,
         users:user_id ( full_name )
-      `
+      `,
       )
       .order("created_at", { ascending: false });
 

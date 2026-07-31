@@ -140,7 +140,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                 variant="secondary"
                 className={cn(
                   "shrink-0 text-[10px]",
-                  ROLE_BADGE_STYLES[user.role],
+                  ROLE_BADGE_STYLES[user.role]
                 )}
               >
                 {ROLE_LABELS[user.role]}

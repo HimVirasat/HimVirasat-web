@@ -3,7 +3,15 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { DatasetEntry as BaseDatasetEntry } from "@himvirasat/shared";
 import { Badge } from "@/components/ui/badge";
-import { Disc, MessageSquare, UserX, Languages, User, Tag, MapPin } from "lucide-react";
+import {
+  Disc,
+  MessageSquare,
+  UserX,
+  Languages,
+  User,
+  Tag,
+  MapPin,
+} from "lucide-react";
 
 export interface DatasetEntry extends BaseDatasetEntry {
   contributor_name?: string | null;
@@ -86,13 +94,19 @@ export function getDatasetColumns(): ColumnDef<DatasetEntry>[] {
       cell: ({ row }) => (
         <div className="flex flex-wrap items-center gap-1">
           {row.original.category_name && (
-            <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-normal border-border/80">
+            <Badge
+              variant="outline"
+              className="text-[10px] py-0 px-1.5 font-normal border-border/80"
+            >
               <Tag className="mr-1 size-2.5 text-muted-foreground" />
               {row.original.category_name}
             </Badge>
           )}
           {row.original.pos_name && (
-            <Badge variant="secondary" className="text-[10px] py-0 px-1.5 font-normal bg-secondary/60">
+            <Badge
+              variant="secondary"
+              className="text-[10px] py-0 px-1.5 font-normal bg-secondary/60"
+            >
               {row.original.pos_name}
             </Badge>
           )}
@@ -113,7 +127,10 @@ export function getDatasetColumns(): ColumnDef<DatasetEntry>[] {
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-1.5">
               {!source || source === "anonymous" ? (
-                <Badge variant="outline" className="gap-1 border-border/60 text-muted-foreground font-normal text-[11px] py-0">
+                <Badge
+                  variant="outline"
+                  className="gap-1 border-border/60 text-muted-foreground font-normal text-[11px] py-0"
+                >
                   <UserX className="size-3" /> Anonymous
                 </Badge>
               ) : source === "discord" ? (
@@ -125,7 +142,9 @@ export function getDatasetColumns(): ColumnDef<DatasetEntry>[] {
                   <MessageSquare className="size-3" /> Reddit
                 </Badge>
               ) : (
-                <Badge variant="secondary" className="text-[11px] py-0">{source}</Badge>
+                <Badge variant="secondary" className="text-[11px] py-0">
+                  {source}
+                </Badge>
               )}
             </div>
 

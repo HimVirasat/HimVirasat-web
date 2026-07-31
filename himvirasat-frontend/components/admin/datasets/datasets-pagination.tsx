@@ -35,7 +35,8 @@ export function DatasetPagination({
       <div className="flex items-center gap-3">
         <span>
           Showing <strong className="text-foreground">{currentCount}</strong> of{" "}
-          <strong className="text-foreground">{pagination.total}</strong> results
+          <strong className="text-foreground">{pagination.total}</strong>{" "}
+          results
         </span>
         <span className="hidden h-3 w-px bg-border/60 sm:block" />
         <span>

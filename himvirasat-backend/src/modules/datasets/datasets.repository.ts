@@ -25,39 +25,39 @@ export interface PaginatedDatasetResult {
 
 export class DatasetsRepository {
   async findEntries(
-    filters: DatasetQueryFilters
+    filters: DatasetQueryFilters,
   ): Promise<PaginatedDatasetResult> {
     const page = Math.max(1, filters.page || 1);
     const limit = Math.min(100, Math.max(1, filters.limit || 20));
     const offset = (page - 1) * limit;
 
     // Join dialect name from dialects table so table columns can render string labels directly
-    let query = supabase
-      .from("dataset_entries")
-      .select(
-        `
+    let query = supabase.from("dataset_entries").select(
+      `
         *,
         dialects:dialect_id ( id, name ),
         categories:category_id ( id, name ),
         parts_of_speech:part_of_speech_id ( id, name ),
         regions:region_id ( id, name )
       `,
-        { count: "exact" }
-      );
+      { count: "exact" },
+    );
 
     // 1. Full-Text Search
     if (filters.search && filters.search.trim() !== "") {
       const term = `%${filters.search.trim()}%`;
       query = query.or(
-        `word_devanagari.ilike.${term},word_latin.ilike.${term},word_takri.ilike.${term},meaning_english.ilike.${term},meaning_hindi.ilike.${term}`
+        `word_devanagari.ilike.${term},word_latin.ilike.${term},word_takri.ilike.${term},meaning_english.ilike.${term},meaning_hindi.ilike.${term}`,
       );
     }
 
     // 2. Foreign Key Filters
-    if (filters.language_id) query = query.eq("language_id", filters.language_id);
+    if (filters.language_id)
+      query = query.eq("language_id", filters.language_id);
     if (filters.dialect_id) query = query.eq("dialect_id", filters.dialect_id);
     if (filters.region_id) query = query.eq("region_id", filters.region_id);
-    if (filters.category_id) query = query.eq("category_id", filters.category_id);
+    if (filters.category_id)
+      query = query.eq("category_id", filters.category_id);
     if (filters.part_of_speech_id)
       query = query.eq("part_of_speech_id", filters.part_of_speech_id);
 
@@ -110,7 +110,7 @@ export class DatasetsRepository {
         categories:category_id ( id, name ),
         parts_of_speech:part_of_speech_id ( id, name ),
         regions:region_id ( id, name )
-      `
+      `,
       )
       .eq("id", id)
       .maybeSingle();

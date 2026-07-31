@@ -9,7 +9,13 @@ import { FetchDatasetsQueryParams } from "@himvirasat/shared";
  * Strictly prevents NaN, "NaN", "undefined", "null", or negative/zero numbers.
  */
 function parseSafeIntParam(val: string | null): number | undefined {
-  if (!val || val === "NaN" || val === "undefined" || val === "null" || val === "all") {
+  if (
+    !val ||
+    val === "NaN" ||
+    val === "undefined" ||
+    val === "null" ||
+    val === "all"
+  ) {
     return undefined;
   }
   const parsed = Number(val);
@@ -35,7 +41,8 @@ export function useDatasetParams() {
     region_id: parseSafeIntParam(searchParams.get("region_id")),
     category_id: parseSafeIntParam(searchParams.get("category_id")),
     part_of_speech_id: parseSafeIntParam(searchParams.get("part_of_speech_id")),
-    contribution_source: (searchParams.get("contribution_source") as any) || undefined,
+    contribution_source:
+      (searchParams.get("contribution_source") as any) || undefined,
     sort_by: (searchParams.get("sort_by") as any) || "created_at",
     sort_order: (searchParams.get("sort_order") as any) || "desc",
   };

@@ -3,10 +3,7 @@ export {
   DatasetsController,
   datasetsController,
 } from "./datasets.controller.js";
-export {
-  DatasetsService,
-  datasetsService,
-} from "./datasets.service.js";
+export { DatasetsService, datasetsService } from "./datasets.service.js";
 export {
   DatasetsRepository,
   datasetsRepository,

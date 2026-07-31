@@ -332,7 +332,6 @@ export class UsersController {
   //   const authReq = req as AuthenticatedRequest;
   //   const actorId = this.getUserId(authReq);
 
-
   // }
 }
 

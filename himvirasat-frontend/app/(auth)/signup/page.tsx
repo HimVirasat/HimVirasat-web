@@ -50,7 +50,9 @@ export default function SignupPage() {
       // toast.success("Account created", {
       //   description: "Welcome to your contributor workspace.",
       // });
-      toast("Signup is currently under development. Please contact admins if you want to access the platform");
+      toast(
+        "Signup is currently under development. Please contact admins if you want to access the platform"
+      );
       // router.push("/user/dashboard");
     } catch (error) {
       console.error(error);

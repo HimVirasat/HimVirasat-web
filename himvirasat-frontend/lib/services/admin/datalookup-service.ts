@@ -1,7 +1,6 @@
 import { ActivityLog, ErrorLog, GetLogsParams } from "@himvirasat/shared";
 import { API_URL } from "@/lib/constants";
 
-
 export interface GenerateMetadataPayload {
   word_devanagari: string;
   meaning_hindi?: string;
@@ -57,6 +56,16 @@ export class DataLookupService {
       throw new Error("Failed to fetch available categories");
     }
 
+    const result = await response.json();
+    return result.data;
+  }
+  static async getAvailableRegions(): Promise<string[]> {
+    const response = await fetch(`${API_URL}/datalookup/available-regions`, {
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error("Failed to fetch available regions");
+    }
     const result = await response.json();
     return result.data;
   }

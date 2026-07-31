@@ -4,10 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
-import { LayoutDashboard, Users, Check, Send, Settings, Logs } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { getSidebarItems } from "@/lib/navigation/sidebar-items";
 
 import {
   Sidebar,
@@ -36,109 +35,11 @@ function getInitials(name: string) {
     .slice(0, 2);
 }
 
-const SUPER_ADMIN_ITEMS = [
-  {
-    title: "Dashboard",
-    url: "/admin/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Language Experts",
-    url: "/admin/dashboard/experts",
-    icon: Users,
-  },
-  {
-    title: "Language Heads",
-    url: "/admin/dashboard/heads",
-    icon: Users,
-  },
-  {
-    title: "Review Queue",
-    url: "/admin/dashboard/review-queue",
-    icon: Check,
-  },
-  {
-    title: "Submissions",
-    url: "/admin/dashboard/submissions/",
-    icon: Send,
-  },
-  {
-    title: "Logs",
-    url: "/admin/dashboard/logs/",
-    icon: Logs
-  },
-  {
-    title: "Settings",
-    url: "/admin/dashboard/settings",
-    icon: Settings,
-  },
-];
-
-const LANGUAGE_HEAD_ITEMS = [
-  {
-    title: "Dashboard",
-    url: "/admin/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Language Experts",
-    url: "/admin/dashboard/experts",
-    icon: Users,
-  },
-  {
-    title: "Review Queue",
-    url: "/admin/dashboard/review-queue",
-    icon: Check,
-  },
-  {
-    title: "Submissions",
-    url: "/admin/dashboard/submissions/",
-    icon: Send,
-  },
-  {
-    title: "Logs",
-    url: "/admin/dashboard/logs/",
-    icon: Logs
-  },
-  {
-    title: "Settings",
-    url: "/admin/dashboard/settings",
-    icon: Settings,
-  },
-];
-
-const LANGUAGE_EXPERT_ITEMS = [
-  {
-    title: "Dashboard",
-    url: "/admin/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Review Queue",
-    url: "/admin/dashboard/review-queue",
-    icon: Check,
-  },
-  {
-    title: "Submissions",
-    url: "/admin/dashboard/submissions/",
-    icon: Send,
-  },
-  {
-    title: "Settings",
-    url: "/admin/dashboard/settings",
-    icon: Settings,
-  },
-];
-const SIDEBAR_ITEMS = {
-  super_admin: SUPER_ADMIN_ITEMS,
-  language_head: LANGUAGE_HEAD_ITEMS,
-  language_expert: LANGUAGE_EXPERT_ITEMS,
-} as const;
-
 const ROLE_LABELS = {
   super_admin: "Super Admin",
   language_head: "Language Head",
   language_expert: "Language Expert",
+  contributor: "Contributor",
 } as const;
 
 const ROLE_BADGE_STYLES = {
@@ -150,11 +51,22 @@ const ROLE_BADGE_STYLES = {
 
   language_expert:
     "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400",
+
+  contributor:
+    "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
+} as const;
+
+const PRODUCT_AREAS = {
+  super_admin: "Super Admin Console",
+  language_head: "Language Head Console",
+  language_expert: "Language Expert Console",
+  contributor: "Contributor Workspace",
 } as const;
 
 export function AdminSidebar({ user }: AdminSidebarProps) {
   const pathname = usePathname();
-  const items = SIDEBAR_ITEMS[user.role];
+  const items = getSidebarItems(user.role);
+  const productArea = PRODUCT_AREAS[user.role];
   return (
     <Sidebar collapsible="icon" variant="sidebar">
       {/* Header */}
@@ -176,7 +88,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                 <span className="truncate font-semibold">HimVirasat</span>
 
                 <span className="truncate text-xs text-muted-foreground">
-                  Admin Console
+                  {productArea}
                 </span>
               </div>
             </SidebarMenuButton>
@@ -197,7 +109,11 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
                     <SidebarMenuButton
                       asChild
                       tooltip={item.title}
-                      isActive={pathname === item.url}
+                      isActive={
+                        pathname === item.url ||
+                        (item.url !== "/" &&
+                          pathname.startsWith(`${item.url}/`))
+                      }
                     >
                       <Link href={item.url}>
                         <Icon />

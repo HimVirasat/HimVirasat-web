@@ -1,41 +1,57 @@
 import { supabase } from "../../services/supabase.js";
 import { ActivityLog, ErrorLog, GetLogsParams } from "@himvirasat/shared";
 
+export interface DynamicLookupOption {
+  id: number;
+  name: string;
+}
+
 export class DataLookupRepository {
-  async getDialects(): Promise<string[]> {
+  async getDialects(): Promise<DynamicLookupOption[]> {
     const { data, error } = await supabase
       .from("dialects")
-      .select("name")
+      .select("id, name")
       .order("name", { ascending: true });
 
-    if (error) throw error;
-    return data ? data.map((row) => row.name) : [];
+    if (error) throw new Error(error.message);
+    return data || [];
   }
 
-  async getCategories(): Promise<string[]> {
+  async getCategories(): Promise<DynamicLookupOption[]> {
     const { data, error } = await supabase
       .from("categories")
-      .select("name")
+      .select("id, name")
       .order("name", { ascending: true });
 
-    if (error) throw error;
-    return data ? data.map((row) => row.name) : [];
+    if (error) throw new Error(error.message);
+    return data || [];
   }
 
-  async getPartsOfSpeech(): Promise<string[]> {
+  async getPartsOfSpeech(): Promise<DynamicLookupOption[]> {
     const { data, error } = await supabase
       .from("parts_of_speech")
-      .select("name")
+      .select("id, name")
       .order("name", { ascending: true });
 
-    if (error) throw error;
-    return data ? data.map((row) => row.name) : [];
+    if (error) throw new Error(error.message);
+    return data || [];
+  }
+
+  async getAvailableRegions(): Promise<DynamicLookupOption[]> {
+    const { data, error } = await supabase
+      .from("regions")
+      .select("id, name")
+      .order("name", { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return data || [];
   }
 
   async getActivityLogs(params: GetLogsParams): Promise<ActivityLog[]> {
     let query = supabase
       .from("activity_logs")
-      .select(`
+      .select(
+        `
         id,
         actor_id,
         action,
@@ -46,7 +62,8 @@ export class DataLookupRepository {
         metadata,
         created_at,
         users:actor_id ( full_name )
-      `)
+      `,
+      )
       .order("created_at", { ascending: false });
 
     if (params.service && params.service !== "ALL") {
@@ -77,7 +94,8 @@ export class DataLookupRepository {
   async getErrorLogs(params: GetLogsParams): Promise<ErrorLog[]> {
     let query = supabase
       .from("error_logs")
-      .select(`
+      .select(
+        `
         id,
         user_id,
         error_message,
@@ -91,7 +109,8 @@ export class DataLookupRepository {
         status,
         created_at,
         users:user_id ( full_name )
-      `)
+      `,
+      )
       .order("created_at", { ascending: false });
 
     if (params.service && params.service !== "ALL") {

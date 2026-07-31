@@ -6,11 +6,11 @@
 import bcrypt from "bcrypt";
 import { AuthRepository, authRepository } from "./auth.repository.js";
 import { generateToken } from "../../utils/jwt.js";
-import type { UserDto, LoginResponse } from "@himvirasat/shared";
+import type { LoginResponse, SignupRequest, UserDto } from "@himvirasat/shared";
 import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class AuthService {
-  constructor(private readonly repository: AuthRepository = authRepository) { }
+  constructor(private readonly repository: AuthRepository = authRepository) {}
 
   async login(
     username: string,
@@ -99,6 +99,73 @@ export class AuthService {
     return {
       success: true,
       message: "Login successful",
+      token,
+      user: userDto,
+    };
+  }
+
+  async signup(
+    payload: SignupRequest,
+  ): Promise<LoginResponse & { token?: string; statusCode?: number }> {
+    const existingUsername = await this.repository.findByUsername(
+      payload.username,
+    );
+
+    if (existingUsername) {
+      return {
+        success: false,
+        statusCode: 409,
+        message: "Username already exists",
+      };
+    }
+
+    const existingEmail = await this.repository.findByEmail(payload.email);
+
+    if (existingEmail) {
+      return {
+        success: false,
+        statusCode: 409,
+        message: "Email already exists",
+      };
+    }
+
+    const passwordHash = await bcrypt.hash(payload.password, 12);
+    const user = await this.repository.createUser({
+      username: payload.username,
+      password_hash: passwordHash,
+      full_name: payload.fullName,
+      email: payload.email,
+      role: "contributor",
+      dialects: payload.dialects ?? [],
+    });
+
+    const token = generateToken({
+      userId: user.id,
+      username: user.username,
+      role: user.role,
+    });
+
+    const userDto: UserDto = {
+      id: user.id,
+      username: user.username,
+      full_name: user.full_name,
+      role: user.role,
+      dialects: user.dialects,
+    };
+
+    await AuditLogger.logActivity({
+      actorId: user.id,
+      action: "CONTRIBUTOR_SIGNUP_SUCCESS",
+      entityType: "user",
+      entityId: user.id,
+      serviceCategory: "auth",
+      status: "SUCCESS",
+      metadata: { username: user.username, role: user.role },
+    });
+
+    return {
+      success: true,
+      message: "Signup successful",
       token,
       user: userDto,
     };

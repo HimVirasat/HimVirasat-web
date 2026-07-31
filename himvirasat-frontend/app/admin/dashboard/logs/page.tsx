@@ -53,15 +53,16 @@ import { cn } from "@/lib/utils";
 import { DataLookupService } from "@/lib/services/admin/datalookup-service";
 import { ActivityLog, ErrorLog, ServiceCategory } from "@himvirasat/shared";
 
-const SERVICE_CATEGORIES: { label: string; value: ServiceCategory | "ALL" }[] = [
-  { label: "All Services", value: "ALL" },
-  { label: "Auth", value: "auth" },
-  { label: "Dashboard", value: "dashboard" },
-  { label: "Data Lookup", value: "datalookup" },
-  { label: "Review Queue", value: "review_queue" },
-  { label: "Submissions", value: "submissions" },
-  { label: "Users", value: "users" },
-];
+const SERVICE_CATEGORIES: { label: string; value: ServiceCategory | "ALL" }[] =
+  [
+    { label: "All Services", value: "ALL" },
+    { label: "Auth", value: "auth" },
+    { label: "Dashboard", value: "dashboard" },
+    { label: "Data Lookup", value: "datalookup" },
+    { label: "Review Queue", value: "review_queue" },
+    { label: "Submissions", value: "submissions" },
+    { label: "Users", value: "users" },
+  ];
 
 export default function LogsDashboardPage() {
   const [activeTab, setActiveTab] = useState<"activity" | "error">("activity");
@@ -75,7 +76,9 @@ export default function LogsDashboardPage() {
   const [pageSize, setPageSize] = useState(15);
 
   // Inspector Drawer State
-  const [selectedLog, setSelectedLog] = useState<ActivityLog | ErrorLog | null>(null);
+  const [selectedLog, setSelectedLog] = useState<ActivityLog | ErrorLog | null>(
+    null
+  );
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
 
   // TanStack Query for Activity Logs
@@ -85,7 +88,13 @@ export default function LogsDashboardPage() {
     refetch: refetchActivity,
     isFetching: isFetchingActivity,
   } = useQuery<ActivityLog[]>({
-    queryKey: ["activity-logs", selectedService, statusFilter, currentPage, pageSize],
+    queryKey: [
+      "activity-logs",
+      selectedService,
+      statusFilter,
+      currentPage,
+      pageSize,
+    ],
     queryFn: () =>
       DataLookupService.getActivityLogs({
         service: selectedService !== "ALL" ? selectedService : undefined,
@@ -104,7 +113,13 @@ export default function LogsDashboardPage() {
     refetch: refetchError,
     isFetching: isFetchingError,
   } = useQuery<ErrorLog[]>({
-    queryKey: ["error-logs", selectedService, statusFilter, currentPage, pageSize],
+    queryKey: [
+      "error-logs",
+      selectedService,
+      statusFilter,
+      currentPage,
+      pageSize,
+    ],
     queryFn: () =>
       DataLookupService.getErrorLogs({
         service: selectedService !== "ALL" ? selectedService : undefined,
@@ -116,11 +131,14 @@ export default function LogsDashboardPage() {
     refetchInterval: isLiveTail ? 5000 : false,
   });
 
-  const isLoading = activeTab === "activity" ? isLoadingActivity : isLoadingError;
-  const isFetching = activeTab === "activity" ? isFetchingActivity : isFetchingError;
+  const isLoading =
+    activeTab === "activity" ? isLoadingActivity : isLoadingError;
+  const isFetching =
+    activeTab === "activity" ? isFetchingActivity : isFetchingError;
 
   // Pagination Calculations
-  const activeDataset = activeTab === "activity" ? rawActivityLogs : rawErrorLogs;
+  const activeDataset =
+    activeTab === "activity" ? rawActivityLogs : rawErrorLogs;
   const totalItems = activeDataset.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
@@ -132,14 +150,25 @@ export default function LogsDashboardPage() {
   // Telemetry Aggregation Metrics
   const metrics = useMemo(() => {
     if (activeTab === "activity") {
-      const successCount = rawActivityLogs.filter((l) => l.status === "SUCCESS").length;
-      const failedCount = rawActivityLogs.filter((l) => l.status === "FAILED").length;
-      return { total: rawActivityLogs.length, success: successCount, failed: failedCount };
+      const successCount = rawActivityLogs.filter(
+        (l) => l.status === "SUCCESS"
+      ).length;
+      const failedCount = rawActivityLogs.filter(
+        (l) => l.status === "FAILED"
+      ).length;
+      return {
+        total: rawActivityLogs.length,
+        success: successCount,
+        failed: failedCount,
+      };
     } else {
       return {
         total: rawErrorLogs.length,
-        critical: rawErrorLogs.filter((e) => e.code?.includes("CRITICAL") || e.code?.includes("500")).length,
-        standard: rawErrorLogs.filter((e) => !e.code?.includes("CRITICAL")).length,
+        critical: rawErrorLogs.filter(
+          (e) => e.code?.includes("CRITICAL") || e.code?.includes("500")
+        ).length,
+        standard: rawErrorLogs.filter((e) => !e.code?.includes("CRITICAL"))
+          .length,
       };
     }
   }, [activeTab, rawActivityLogs, rawErrorLogs]);
@@ -186,7 +215,10 @@ export default function LogsDashboardPage() {
             onClick={() => setIsLiveTail((prev) => !prev)}
           >
             <RefreshCw
-              className={cn("size-3.5", (isFetching || isLiveTail) && "animate-spin")}
+              className={cn(
+                "size-3.5",
+                (isFetching || isLiveTail) && "animate-spin"
+              )}
             />
             {isLiveTail ? "Live Tail: Active (5s)" : "Live Tail: Paused"}
           </Button>
@@ -196,7 +228,9 @@ export default function LogsDashboardPage() {
             className="h-8 gap-1.5 text-xs font-medium"
             onClick={handleRefresh}
           >
-            <RefreshCw className={cn("size-3.5", isFetching && "animate-spin")} />
+            <RefreshCw
+              className={cn("size-3.5", isFetching && "animate-spin")}
+            />
             Sync Now
           </Button>
         </div>
@@ -304,10 +338,16 @@ export default function LogsDashboardPage() {
             className="w-auto"
           >
             <TabsList className="grid w-64 grid-cols-2">
-              <TabsTrigger value="activity" className="gap-2 text-xs font-semibold">
+              <TabsTrigger
+                value="activity"
+                className="gap-2 text-xs font-semibold"
+              >
                 <Activity className="size-3.5" /> Activity Stream
               </TabsTrigger>
-              <TabsTrigger value="error" className="gap-2 text-xs font-semibold">
+              <TabsTrigger
+                value="error"
+                className="gap-2 text-xs font-semibold"
+              >
                 <AlertOctagon className="size-3.5" /> Exceptions
               </TabsTrigger>
             </TabsList>
@@ -327,7 +367,11 @@ export default function LogsDashboardPage() {
               </SelectTrigger>
               <SelectContent>
                 {SERVICE_CATEGORIES.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value} className="text-xs">
+                  <SelectItem
+                    key={cat.value}
+                    value={cat.value}
+                    className="text-xs"
+                  >
                     {cat.label}
                   </SelectItem>
                 ))}
@@ -346,9 +390,15 @@ export default function LogsDashboardPage() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL" className="text-xs">All Statuses</SelectItem>
-                <SelectItem value="SUCCESS" className="text-xs">SUCCESS</SelectItem>
-                <SelectItem value="FAILED" className="text-xs">FAILED</SelectItem>
+                <SelectItem value="ALL" className="text-xs">
+                  All Statuses
+                </SelectItem>
+                <SelectItem value="SUCCESS" className="text-xs">
+                  SUCCESS
+                </SelectItem>
+                <SelectItem value="FAILED" className="text-xs">
+                  FAILED
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -373,13 +423,27 @@ export default function LogsDashboardPage() {
               <Table>
                 <TableHeader className="bg-muted/80 sticky top-0 z-10 backdrop-blur-xs">
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="w-28 text-[11px] font-mono">TIMESTAMP</TableHead>
-                    <TableHead className="text-[11px] font-mono">ACTION / EVENT</TableHead>
-                    <TableHead className="text-[11px] font-mono">SERVICE</TableHead>
-                    <TableHead className="text-[11px] font-mono">TRIGGERED BY</TableHead>
-                    <TableHead className="w-56 text-[11px] font-mono">ENTITY TARGET</TableHead>
-                    <TableHead className="w-20 text-[11px] font-mono">STATUS</TableHead>
-                    <TableHead className="w-12 text-right text-[11px] font-mono">INSPECT</TableHead>
+                    <TableHead className="w-28 text-[11px] font-mono">
+                      TIMESTAMP
+                    </TableHead>
+                    <TableHead className="text-[11px] font-mono">
+                      ACTION / EVENT
+                    </TableHead>
+                    <TableHead className="text-[11px] font-mono">
+                      SERVICE
+                    </TableHead>
+                    <TableHead className="text-[11px] font-mono">
+                      TRIGGERED BY
+                    </TableHead>
+                    <TableHead className="w-56 text-[11px] font-mono">
+                      ENTITY TARGET
+                    </TableHead>
+                    <TableHead className="w-20 text-[11px] font-mono">
+                      STATUS
+                    </TableHead>
+                    <TableHead className="w-12 text-right text-[11px] font-mono">
+                      INSPECT
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody className="font-mono text-xs">
@@ -393,12 +457,18 @@ export default function LogsDashboardPage() {
                         {new Date(log.created_at).toLocaleTimeString()}
                       </TableCell>
                       <TableCell className="font-bold text-foreground">
-                        <Badge variant="outline" className="font-mono text-[10px] bg-primary/5 text-primary border-primary/20">
+                        <Badge
+                          variant="outline"
+                          className="font-mono text-[10px] bg-primary/5 text-primary border-primary/20"
+                        >
                           {log.action}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="text-[10px] uppercase font-mono bg-muted text-muted-foreground">
+                        <Badge
+                          variant="secondary"
+                          className="text-[10px] uppercase font-mono bg-muted text-muted-foreground"
+                        >
                           {log.service_category}
                         </Badge>
                       </TableCell>
@@ -417,7 +487,10 @@ export default function LogsDashboardPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {log.entity_type} {log.entity_id ? `(${log.entity_id.slice(0, 8)}...)` : ""}
+                        {log.entity_type}{" "}
+                        {log.entity_id
+                          ? `(${log.entity_id.slice(0, 8)}...)`
+                          : ""}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -445,13 +518,27 @@ export default function LogsDashboardPage() {
               <Table>
                 <TableHeader className="bg-muted/80 sticky top-0 z-10 backdrop-blur-xs">
                   <TableRow className="hover:bg-transparent">
-                    <TableHead className="w-28 text-[11px] font-mono">TIMESTAMP</TableHead>
-                    <TableHead className="text-[11px] font-mono">ERROR CODE</TableHead>
-                    <TableHead className="text-[11px] font-mono">SERVICE</TableHead>
-                    <TableHead className="text-[11px] font-mono">HTTP ROUTE</TableHead>
-                    <TableHead className="text-[11px] font-mono">MESSAGE EXCEPTION</TableHead>
-                    <TableHead className="text-[11px] font-mono">USER</TableHead>
-                    <TableHead className="w-12 text-right text-[11px] font-mono">INSPECT</TableHead>
+                    <TableHead className="w-28 text-[11px] font-mono">
+                      TIMESTAMP
+                    </TableHead>
+                    <TableHead className="text-[11px] font-mono">
+                      ERROR CODE
+                    </TableHead>
+                    <TableHead className="text-[11px] font-mono">
+                      SERVICE
+                    </TableHead>
+                    <TableHead className="text-[11px] font-mono">
+                      HTTP ROUTE
+                    </TableHead>
+                    <TableHead className="text-[11px] font-mono">
+                      MESSAGE EXCEPTION
+                    </TableHead>
+                    <TableHead className="text-[11px] font-mono">
+                      USER
+                    </TableHead>
+                    <TableHead className="w-12 text-right text-[11px] font-mono">
+                      INSPECT
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody className="font-mono text-xs">
@@ -465,12 +552,18 @@ export default function LogsDashboardPage() {
                         {new Date(log.created_at).toLocaleTimeString()}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="destructive" className="text-[10px] font-mono font-bold">
+                        <Badge
+                          variant="destructive"
+                          className="text-[10px] font-mono font-bold"
+                        >
                           {log.code || "500_EXC"}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="text-[10px] uppercase font-mono">
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] uppercase font-mono"
+                        >
                           {log.service_category}
                         </Badge>
                       </TableCell>
@@ -537,7 +630,9 @@ export default function LogsDashboardPage() {
                   size="icon"
                   className="size-7"
                   disabled={currentPage >= totalPages}
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
                 >
                   <ChevronRight className="size-3.5" />
                 </Button>
@@ -554,7 +649,10 @@ export default function LogsDashboardPage() {
             <>
               <SheetHeader className="p-6 border-b bg-muted/20 shrink-0">
                 <div className="flex items-center justify-between pr-6">
-                  <Badge variant="outline" className="font-mono text-[10px] uppercase">
+                  <Badge
+                    variant="outline"
+                    className="font-mono text-[10px] uppercase"
+                  >
                     {selectedLog.service_category}
                   </Badge>
                   <Button
@@ -572,10 +670,13 @@ export default function LogsDashboardPage() {
                   </Button>
                 </div>
                 <SheetTitle className="text-base font-bold font-mono tracking-tight mt-2 text-foreground">
-                  {"action" in selectedLog ? selectedLog.action : selectedLog.error_message}
+                  {"action" in selectedLog
+                    ? selectedLog.action
+                    : selectedLog.error_message}
                 </SheetTitle>
                 <SheetDescription className="text-xs font-mono text-muted-foreground">
-                  ID: {selectedLog.id} • {new Date(selectedLog.created_at).toLocaleString()}
+                  ID: {selectedLog.id} •{" "}
+                  {new Date(selectedLog.created_at).toLocaleString()}
                 </SheetDescription>
               </SheetHeader>
 
@@ -587,30 +688,45 @@ export default function LogsDashboardPage() {
                     </h4>
                     <div className="grid grid-cols-2 gap-2 text-xs font-mono">
                       <div className="rounded-lg border p-2.5 bg-card">
-                        <p className="text-[10px] text-muted-foreground uppercase">Status</p>
+                        <p className="text-[10px] text-muted-foreground uppercase">
+                          Status
+                        </p>
                         <p className="font-bold mt-0.5">{selectedLog.status}</p>
                       </div>
                       <div className="rounded-lg border p-2.5 bg-card">
-                        <p className="text-[10px] text-muted-foreground uppercase">Trigger Actor / User</p>
+                        <p className="text-[10px] text-muted-foreground uppercase">
+                          Trigger Actor / User
+                        </p>
                         <p className="font-bold mt-0.5 truncate">
                           {"user_name" in selectedLog
-                            ? selectedLog.user_name || selectedLog.user_id || "Anonymous"
+                            ? selectedLog.user_name ||
+                              selectedLog.user_id ||
+                              "Anonymous"
                             : "actor_name" in selectedLog
-                              ? selectedLog.actor_name || selectedLog.actor_id || "System"
+                              ? selectedLog.actor_name ||
+                                selectedLog.actor_id ||
+                                "System"
                               : "System"}
                         </p>
                       </div>
                       {"entity_type" in selectedLog && (
                         <div className="rounded-lg border p-2.5 bg-card col-span-2">
-                          <p className="text-[10px] text-muted-foreground uppercase">Target Entity</p>
+                          <p className="text-[10px] text-muted-foreground uppercase">
+                            Target Entity
+                          </p>
                           <p className="font-bold mt-0.5">
-                            {selectedLog.entity_type} {selectedLog.entity_id ? `(${selectedLog.entity_id})` : ""}
+                            {selectedLog.entity_type}{" "}
+                            {selectedLog.entity_id
+                              ? `(${selectedLog.entity_id})`
+                              : ""}
                           </p>
                         </div>
                       )}
                       {"path" in selectedLog && (
                         <div className="rounded-lg border p-2.5 bg-card col-span-2">
-                          <p className="text-[10px] text-muted-foreground uppercase">HTTP Route Execution</p>
+                          <p className="text-[10px] text-muted-foreground uppercase">
+                            HTTP Route Execution
+                          </p>
                           <p className="font-bold mt-0.5">
                             {selectedLog.method} {selectedLog.path}
                           </p>

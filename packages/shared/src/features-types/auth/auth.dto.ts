@@ -23,13 +23,21 @@ export const LoginRequestSchema = z.object({
 });
 export type LoginRequest = z.infer<typeof LoginRequestSchema>;
 
+export const SignupRequestSchema = z.object({
+  fullName: z.string().min(1, "Full name is required"),
+  email: z.string().email("A valid email is required"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  dialects: z.array(z.string()).optional(),
+});
+export type SignupRequest = z.infer<typeof SignupRequestSchema>;
+
 export const LoginResponseSchema = z.object({
   success: z.boolean(),
   message: z.string(),
   user: UserDtoSchema.optional(),
 });
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;
-
 
 export interface UserRecord extends UserDto {
   password_hash: string;

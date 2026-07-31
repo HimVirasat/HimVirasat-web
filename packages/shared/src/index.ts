@@ -12,3 +12,4 @@ export * from "./features-types/workflow/index.js";
 export * from "./features-types/datalookup/index.js"
 export * from "./features-types/reviewqueue/index.js"
 export * from "./features-types/users/index.js"
+export * from "./features-types/datasets/index.js"

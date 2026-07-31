@@ -20,7 +20,9 @@ export class DashboardController {
       res.status(200).json({ success: true, data: stats });
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to fetch dashboard statistics";
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch dashboard statistics";
 
       await AuditLogger.logError({
         userId: actorId || null,

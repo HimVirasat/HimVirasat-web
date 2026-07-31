@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "../../services/supabase.js";
-import type { UserRecord } from "@himvirasat/shared";
+import type { CreateUserPayloadBackend, UserRecord } from "@himvirasat/shared";
 
 export class AuthRepository {
   async findByUsername(username: string): Promise<UserRecord | null> {
@@ -15,6 +15,28 @@ export class AuthRepository {
       .single();
 
     if (error || !data) return null;
+    return data as UserRecord;
+  }
+
+  async findByEmail(email: string): Promise<UserRecord | null> {
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return data as UserRecord;
+  }
+
+  async createUser(userData: CreateUserPayloadBackend): Promise<UserRecord> {
+    const { data, error } = await supabase
+      .from("users")
+      .insert([userData])
+      .select()
+      .single();
+
+    if (error) throw error;
     return data as UserRecord;
   }
 

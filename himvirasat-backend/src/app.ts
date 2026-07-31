@@ -68,7 +68,7 @@ import { submissionsRouter } from "./modules/submissions/index.js";
 import reviewqueueRouter from "./modules/reviewqueue/reviewqueue.routes.js";
 import datalookupRouter from "./modules/datalookup/datalookup.routes.js";
 import { dashboardRouter } from "./modules/dashboard/index.js";
-
+import { datasetsRouter } from "./modules/datasets/index.js";
 // const app = express();
 app.use(express.json());
 app.use(cookieParser());
@@ -79,5 +79,5 @@ app.use("/submissions", submissionsRouter);
 app.use("/reviewqueue", reviewqueueRouter);
 app.use("/datalookup", datalookupRouter);
 app.use("/dashboard", dashboardRouter);
-
+app.use("/datasets", datasetsRouter);
 export default app;

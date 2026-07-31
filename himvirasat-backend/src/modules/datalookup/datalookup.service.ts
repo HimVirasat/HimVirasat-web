@@ -2,6 +2,7 @@
 import {
   DataLookupRepository,
   dataLookupRepository,
+  DynamicLookupOption,
 } from "./datalookup.repository.js";
 import {
   GenerateMetadataInput,
@@ -12,21 +13,27 @@ import {
   GetLogsParams,
 } from "@himvirasat/shared";
 
+export type { DynamicLookupOption };
+
 export class DataLookupService {
   constructor(
     private readonly repository: DataLookupRepository = dataLookupRepository,
-  ) { }
+  ) {}
 
-  async fetchDialects(): Promise<string[]> {
+  async fetchDialects(): Promise<DynamicLookupOption[]> {
     return await this.repository.getDialects();
   }
 
-  async fetchCategories(): Promise<string[]> {
+  async fetchCategories(): Promise<DynamicLookupOption[]> {
     return await this.repository.getCategories();
   }
 
-  async fetchPartsOfSpeech(): Promise<string[]> {
+  async fetchPartsOfSpeech(): Promise<DynamicLookupOption[]> {
     return await this.repository.getPartsOfSpeech();
+  }
+
+  async fetchAvailableRegions(): Promise<DynamicLookupOption[]> {
+    return await this.repository.getAvailableRegions();
   }
 
   async fetchActivityLogs(params: GetLogsParams): Promise<ActivityLog[]> {

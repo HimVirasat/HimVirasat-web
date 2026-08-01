@@ -12,10 +12,12 @@ import {
 import type { SystemRole } from "@himvirasat/shared";
 
 export interface SidebarItem {
+  [x: string]: any;
   title: string;
   url: string;
   icon: LucideIcon;
   allowedRoles: SystemRole[];
+  exact: true;
 }
 
 export const ADMIN_ROLES: SystemRole[] = [
@@ -27,63 +29,73 @@ export const ADMIN_ROLES: SystemRole[] = [
 export const SIDEBAR_ITEMS: SidebarItem[] = [
   {
     title: "Dashboard",
-    url: "/admin/dashboard",
+    url: "/admin",
     icon: LayoutDashboard,
     allowedRoles: ADMIN_ROLES,
+    exact: true,
   },
   {
     title: "Dashboard",
-    url: "/user/dashboard",
+    url: "/user",
     icon: LayoutDashboard,
     allowedRoles: ["contributor"],
+    exact: true,
   },
   {
     title: "Datasets", // <--- ADDED ITEM
-    url: "/admin/dashboard/datasets",
+    url: "/admin/datasets",
     icon: Database,
     allowedRoles: ["super_admin", "language_head"], // Restricts access to language_head & super_admin
+    exact: true,
   },
   {
     title: "Language Experts",
-    url: "/admin/dashboard/experts",
+    url: "/admin/experts",
     icon: Users,
     allowedRoles: ["super_admin", "language_head"],
+    exact: true,
   },
   {
     title: "Language Heads",
-    url: "/admin/dashboard/heads",
+    url: "/admin/heads",
     icon: Users,
     allowedRoles: ["super_admin"],
+    exact: true,
   },
   {
     title: "Review Queue",
-    url: "/admin/dashboard/review-queue",
+    url: "/admin/review-queue",
     icon: Check,
     allowedRoles: ADMIN_ROLES,
+    exact: true,
   },
   {
     title: "Submissions",
-    url: "/admin/dashboard/submissions",
+    url: "/admin/submissions",
     icon: Send,
     allowedRoles: ADMIN_ROLES,
+    exact: true,
   },
   {
     title: "My Submissions",
-    url: "/user/dashboard/submissions",
+    url: "/user/submissions",
     icon: Send,
     allowedRoles: ["contributor"],
+    exact: true,
   },
   {
     title: "Logs",
-    url: "/admin/dashboard/logs",
+    url: "/admin/logs",
     icon: Logs,
     allowedRoles: ["super_admin", "language_head"],
+    exact: true,
   },
   {
     title: "Settings",
-    url: "/admin/dashboard/settings",
+    url: "/admin/settings",
     icon: Settings,
     allowedRoles: ADMIN_ROLES,
+    exact: true,
   },
 ];
 

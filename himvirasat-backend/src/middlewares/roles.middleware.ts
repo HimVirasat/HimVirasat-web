@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { SystemRole } from "@himvirasat/shared";
-import type { AuthenticatedRequest } from "./auth.middleware.js";
+import type { AuthenticatedRequest } from "./../utils/get-authenticated-user.js";
 
 export function requireRole(...roles: SystemRole[]) {
   return (req: Request, res: Response, next: NextFunction) => {

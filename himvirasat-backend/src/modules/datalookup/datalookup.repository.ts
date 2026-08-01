@@ -56,39 +56,34 @@ export class DataLookupRepository {
         actor_id,
         action,
         entity_type,
-        entity_id,
         service_category,
         status,
+        backend_code,
         metadata,
-        created_at,
-        users:actor_id ( full_name )
+        created_at
       `,
       )
       .order("created_at", { ascending: false });
 
-    if (params.service && params.service !== "ALL") {
+    if (params.service) {
       query = query.eq("service_category", params.service);
     }
 
-    if (params.status && params.status !== "ALL") {
+    if (params.status) {
       query = query.eq("status", params.status);
     }
+
+    const page = params.page || 1;
+    const limit = params.limit || 20;
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    query = query.range(from, to);
 
     const { data, error } = await query;
     if (error) throw error;
 
-    return (data || []).map((row: any) => ({
-      id: row.id,
-      actor_id: row.actor_id,
-      actor_name: row.users?.full_name || "System",
-      action: row.action,
-      entity_type: row.entity_type,
-      entity_id: row.entity_id,
-      service_category: row.service_category,
-      status: row.status,
-      metadata: row.metadata || {},
-      created_at: row.created_at,
-    }));
+    return data as ActivityLog[];
   }
 
   async getErrorLogs(params: GetLogsParams): Promise<ErrorLog[]> {
@@ -98,47 +93,40 @@ export class DataLookupRepository {
         `
         id,
         user_id,
+        action,
         error_message,
         service_category,
         stack_trace,
-        code,
+        backend_code,
         path,
         method,
         request_id,
-        metadata,
         status,
-        created_at,
-        users:user_id ( full_name )
+        metadata,
+        created_at
       `,
       )
       .order("created_at", { ascending: false });
 
-    if (params.service && params.service !== "ALL") {
+    if (params.service) {
       query = query.eq("service_category", params.service);
     }
 
-    if (params.status && params.status !== "ALL") {
+    if (params.status) {
       query = query.eq("status", params.status);
     }
+
+    const page = params.page || 1;
+    const limit = params.limit || 20;
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    query = query.range(from, to);
 
     const { data, error } = await query;
     if (error) throw error;
 
-    return (data || []).map((row: any) => ({
-      id: row.id,
-      user_id: row.user_id,
-      user_name: row.users?.full_name || "System",
-      error_message: row.error_message,
-      service_category: row.service_category,
-      stack_trace: row.stack_trace,
-      code: row.code,
-      path: row.path,
-      method: row.method,
-      request_id: row.request_id,
-      metadata: row.metadata || {},
-      status: row.status,
-      created_at: row.created_at,
-    }));
+    return data as ErrorLog[];
   }
 }
 

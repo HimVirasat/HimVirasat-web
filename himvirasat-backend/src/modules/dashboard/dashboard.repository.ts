@@ -1,8 +1,3 @@
-/**
- * Dashboard Repository
- * File: dashboard.repository.ts
- */
-
 import { supabase } from "../../services/supabase.js";
 import { DashboardStats } from "@himvirasat/shared";
 

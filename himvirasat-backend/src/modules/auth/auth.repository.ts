@@ -1,8 +1,3 @@
-/**
- * Auth Repository
- * File: auth.repository.ts
- */
-
 import { supabase } from "../../services/supabase.js";
 import type { CreateUserPayloadBackend, UserRecord } from "@himvirasat/shared";
 

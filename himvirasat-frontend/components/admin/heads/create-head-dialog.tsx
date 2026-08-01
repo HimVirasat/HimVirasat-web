@@ -39,18 +39,18 @@ export function CreateHeadDialog({
     data: dbDialects = [],
     isLoading: isLoadingDialects,
     isError: isErrorDialects,
-  } = useQuery({
+  } = useQuery<any[]>({
     queryKey: ["datalookup", "dialects"],
     queryFn: DataLookupService.getAvailableDialects,
     staleTime: 5 * 60 * 1000,
     enabled: open,
   });
 
-  const handleToggleDialect = (dialect: string) => {
+  const handleToggleDialect = (dialectName: string) => {
     setSelectedDialects((prev) =>
-      prev.includes(dialect)
-        ? prev.filter((d) => d !== dialect)
-        : [...prev, dialect]
+      prev.includes(dialectName)
+        ? prev.filter((d) => d !== dialectName)
+        : [...prev, dialectName]
     );
   };
 
@@ -173,22 +173,23 @@ export function CreateHeadDialog({
               </div>
             ) : (
               <div className="space-y-2.5">
+                {/* Selected Dialects Badges */}
                 <div className="flex flex-wrap gap-1.5 min-h-8 p-1.5 border rounded-md bg-muted/10">
                   {selectedDialects.length === 0 ? (
                     <span className="text-xs text-muted-foreground self-center px-1">
                       No dialects selected. Click options below.
                     </span>
                   ) : (
-                    selectedDialects.map((dialect) => (
+                    selectedDialects.map((dialectName) => (
                       <Badge
-                        key={dialect}
+                        key={dialectName}
                         variant="secondary"
                         className="gap-1 pl-2 pr-1 text-[11px]"
                       >
-                        {dialect}
+                        {dialectName}
                         <button
                           type="button"
-                          onClick={() => handleToggleDialect(dialect)}
+                          onClick={() => handleToggleDialect(dialectName)}
                           className="rounded-full hover:bg-background p-0.5 cursor-pointer"
                         >
                           <X className="size-2.5 text-muted-foreground" />
@@ -197,21 +198,35 @@ export function CreateHeadDialog({
                     ))
                   )}
                 </div>
+
                 <div className="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto border p-2 rounded-md bg-background/50">
-                  {dbDialects.map((dialect) => {
-                    const isChecked = selectedDialects.includes(dialect);
+                  {dbDialects.map((item, index) => {
+                    // Extract name string safely regardless of whether item is string or object
+                    const dialectName =
+                      typeof item === "string"
+                        ? item
+                        : item?.name || item?.dialect || String(item);
+
+                    // Extract unique key
+                    const dialectKey =
+                      typeof item === "object" && item !== null
+                        ? item.id || item.name || index
+                        : item;
+
+                    const isChecked = selectedDialects.includes(dialectName);
+
                     return (
                       <button
-                        key={dialect}
+                        key={dialectKey}
                         type="button"
-                        onClick={() => handleToggleDialect(dialect)}
+                        onClick={() => handleToggleDialect(dialectName)}
                         className={`flex items-center justify-between px-2.5 py-1.5 text-xs font-medium rounded border transition-all cursor-pointer ${
                           isChecked
                             ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/30 dark:text-indigo-400"
                             : "hover:bg-muted/40 text-muted-foreground border-transparent"
                         }`}
                       >
-                        <span>{dialect}</span>
+                        <span>{dialectName}</span>
                         {isChecked && (
                           <Check className="size-3 text-indigo-600 dark:text-indigo-400" />
                         )}

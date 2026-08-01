@@ -1,29 +1,31 @@
-/**
- * Review Queue Controller
- * File: reviewqueue.controller.ts
- */
-
 import { RequestHandler } from "express";
 import {
   ReviewQueueService,
   reviewQueueService,
 } from "./reviewqueue.service.js";
-import { AuthenticatedRequest } from "../../middlewares/auth.middleware.js";
+import {
+  AuthenticatedRequest,
+  StrictAuthenticatedRequest,
+  SecurityContext,
+  getAuthenticatedUser,
+} from "../../utils/get-authenticated-user.js";
 import {
   ContributionFiltersSchema,
   UpdateStatusPayloadSchema,
   AddCommentPayloadSchema,
   UpdateCommentStatusPayloadSchema,
 } from "@himvirasat/shared";
-import { AuditLogger } from "../../utils/audit-logger.js";
+// import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class ReviewQueueController {
   constructor(
     private readonly service: ReviewQueueService = reviewQueueService,
   ) {}
 
-  private getUserId(req: AuthenticatedRequest): string | undefined {
-    return req.user?.userId;
+  private getSecurityContext(req: StrictAuthenticatedRequest): SecurityContext {
+    return {
+      actor: req._cachedUser,
+    };
   }
 
   private getStringParam(param: string | string[] | undefined): string | null {
@@ -32,44 +34,52 @@ export class ReviewQueueController {
   }
 
   createReviewQueue: RequestHandler = async (req, res): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const contributor_id = this.getUserId(authReq);
-
-    if (!contributor_id) {
-      res
-        .status(401)
-        .json({ success: false, error: "Authentication missing." });
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({
+        success: false,
+        error: "Authentication or user profile missing.",
+      });
       return;
     }
 
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
+
     try {
-      const data = await this.service.createContribution(
-        contributor_id,
-        req.body,
-      );
+      const data = await this.service.createContribution(ctx, req.body);
       res.status(201).json({ success: true, data });
     } catch (error: any) {
       const errorMessage =
         error instanceof Error ? error.message : "Error creating item";
 
-      await AuditLogger.logError({
-        userId: contributor_id,
-        errorMessage,
-        serviceCategory: "review_queue",
-        stackTrace: error.stack,
-        code: "CREATE_CONTRIBUTION_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { body: req.body },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "review_queue",
+      //   stackTrace: error.stack,
+      //   code: "CREATE_CONTRIBUTION_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { body: req.body, detailed_user: ctx.actor },
+      // });
 
       res.status(400).json({ success: false, error: errorMessage });
     }
   };
 
   getReviewQueue: RequestHandler = async (req, res): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const userId = this.getUserId(authReq);
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({
+        success: false,
+        error: "Authentication or user profile missing.",
+      });
+      return;
+    }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
 
     try {
       const filterValidation = ContributionFiltersSchema.safeParse({
@@ -90,30 +100,42 @@ export class ReviewQueueController {
         return;
       }
 
-      const data = await this.service.fetchContributions(filterValidation.data);
+      const data = await this.service.fetchContributions(
+        ctx,
+        filterValidation.data,
+      );
       res.status(200).json({ success: true, data });
     } catch (error: any) {
       const errorMessage =
         error instanceof Error ? error.message : "Error fetching items";
 
-      await AuditLogger.logError({
-        userId: userId || null,
-        errorMessage,
-        serviceCategory: "review_queue",
-        stackTrace: error.stack,
-        code: "FETCH_CONTRIBUTIONS_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { query: req.query },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "review_queue",
+      //   stackTrace: error.stack,
+      //   code: "FETCH_CONTRIBUTIONS_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { query: req.query, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, error: errorMessage });
     }
   };
 
   getReviewQueueById: RequestHandler = async (req, res): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const userId = this.getUserId(authReq);
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({
+        success: false,
+        error: "Authentication or user profile missing.",
+      });
+      return;
+    }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
 
     try {
       const id = this.getStringParam(req.params.id);
@@ -125,7 +147,7 @@ export class ReviewQueueController {
         return;
       }
 
-      const item = await this.service.fetchContributionById(id);
+      const item = await this.service.fetchContributionById(ctx, id);
       if (!item) {
         res
           .status(404)
@@ -138,31 +160,33 @@ export class ReviewQueueController {
       const errorMessage =
         error instanceof Error ? error.message : "Error fetching item";
 
-      await AuditLogger.logError({
-        userId: userId || null,
-        errorMessage,
-        serviceCategory: "review_queue",
-        stackTrace: error.stack,
-        code: "FETCH_CONTRIBUTION_BY_ID_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { id: req.params.id },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "review_queue",
+      //   stackTrace: error.stack,
+      //   code: "FETCH_CONTRIBUTION_BY_ID_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { id: req.params.id, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, error: errorMessage });
     }
   };
 
   updateReviewQueue: RequestHandler = async (req, res): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const actor_id = this.getUserId(authReq);
-
-    if (!actor_id) {
-      res
-        .status(401)
-        .json({ success: false, error: "Authentication missing." });
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({
+        success: false,
+        error: "Authentication or user profile missing.",
+      });
       return;
     }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
 
     try {
       const id = this.getStringParam(req.params.id);
@@ -174,41 +198,39 @@ export class ReviewQueueController {
         return;
       }
 
-      const data = await this.service.updateContribution(
-        id,
-        actor_id,
-        req.body,
-      );
+      const data = await this.service.updateContribution(ctx, id, req.body);
       res.status(200).json({ success: true, data });
     } catch (error: any) {
       const errorMessage =
         error instanceof Error ? error.message : "Error updating item";
 
-      await AuditLogger.logError({
-        userId: actor_id,
-        errorMessage,
-        serviceCategory: "review_queue",
-        stackTrace: error.stack,
-        code: "UPDATE_CONTRIBUTION_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { id: req.params.id, body: req.body },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "review_queue",
+      //   stackTrace: error.stack,
+      //   code: "UPDATE_CONTRIBUTION_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { id: req.params.id, body: req.body, detailed_user: ctx.actor },
+      // });
 
       res.status(400).json({ success: false, error: errorMessage });
     }
   };
 
   updateReviewQueueStatus: RequestHandler = async (req, res): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const actor_id = this.getUserId(authReq);
-
-    if (!actor_id) {
-      res
-        .status(401)
-        .json({ success: false, error: "Authentication missing." });
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({
+        success: false,
+        error: "Authentication or user profile missing.",
+      });
       return;
     }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
 
     const parseResult = UpdateStatusPayloadSchema.safeParse(req.body);
     if (!parseResult.success) {
@@ -230,8 +252,8 @@ export class ReviewQueueController {
       }
 
       const data = await this.service.updateContributionStatus(
+        ctx,
         id,
-        actor_id,
         parseResult.data,
       );
       res.status(200).json({ success: true, data });
@@ -239,27 +261,37 @@ export class ReviewQueueController {
       const errorMessage =
         error instanceof Error ? error.message : "Error updating status";
 
-      await AuditLogger.logError({
-        userId: actor_id,
-        errorMessage,
-        serviceCategory: "review_queue",
-        stackTrace: error.stack,
-        code: "STATUS_UPDATE_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: {
-          id: req.params.id,
-          attemptedStatus: parseResult.data.status,
-        },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "review_queue",
+      //   stackTrace: error.stack,
+      //   code: "STATUS_UPDATE_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: {
+      //     id: req.params.id,
+      //     attemptedStatus: parseResult.data.status,
+      //     detailed_user: ctx.actor,
+      //   },
+      // });
 
       res.status(400).json({ success: false, error: errorMessage });
     }
   };
 
   deleteReviewQueue: RequestHandler = async (req, res): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const actor_id = this.getUserId(authReq);
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({
+        success: false,
+        error: "Authentication or user profile missing.",
+      });
+      return;
+    }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
 
     try {
       const id = this.getStringParam(req.params.id);
@@ -271,7 +303,7 @@ export class ReviewQueueController {
         return;
       }
 
-      await this.service.deleteContribution(id);
+      await this.service.deleteContribution(ctx, id);
       res
         .status(200)
         .json({ success: true, message: "Review queue item deleted cleanly." });
@@ -279,31 +311,33 @@ export class ReviewQueueController {
       const errorMessage =
         error instanceof Error ? error.message : "Error deleting item";
 
-      await AuditLogger.logError({
-        userId: actor_id || null,
-        errorMessage,
-        serviceCategory: "review_queue",
-        stackTrace: error.stack,
-        code: "DELETE_CONTRIBUTION_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { id: req.params.id },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "review_queue",
+      //   stackTrace: error.stack,
+      //   code: "DELETE_CONTRIBUTION_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { id: req.params.id, detailed_user: ctx.actor },
+      // });
 
       res.status(400).json({ success: false, error: errorMessage });
     }
   };
 
   addReviewQueueComment: RequestHandler = async (req, res): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const author_id = this.getUserId(authReq);
-
-    if (!author_id) {
-      res
-        .status(401)
-        .json({ success: false, error: "Authentication missing." });
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({
+        success: false,
+        error: "Authentication or user profile missing.",
+      });
       return;
     }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
 
     const parseResult = AddCommentPayloadSchema.safeParse(req.body);
     if (!parseResult.success) {
@@ -329,7 +363,7 @@ export class ReviewQueueController {
       const cleanFieldName =
         field_name && field_name.trim() !== "" ? field_name.trim() : "General";
 
-      const comment = await this.service.addContributionComment(id, author_id, {
+      const comment = await this.service.addContributionComment(ctx, id, {
         field_name: cleanFieldName,
         message,
       });
@@ -339,16 +373,16 @@ export class ReviewQueueController {
       const errorMessage =
         error instanceof Error ? error.message : "Error adding comment";
 
-      await AuditLogger.logError({
-        userId: author_id,
-        errorMessage,
-        serviceCategory: "review_queue",
-        stackTrace: error.stack,
-        code: "ADD_COMMENT_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { id: req.params.id, body: req.body },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "review_queue",
+      //   stackTrace: error.stack,
+      //   code: "ADD_COMMENT_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { id: req.params.id, body: req.body, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, error: errorMessage });
     }
@@ -358,15 +392,17 @@ export class ReviewQueueController {
     req,
     res,
   ): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const actor_id = this.getUserId(authReq);
-
-    if (!actor_id) {
-      res
-        .status(401)
-        .json({ success: false, error: "Authentication missing." });
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({
+        success: false,
+        error: "Authentication or user profile missing.",
+      });
       return;
     }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
 
     const parseResult = UpdateCommentStatusPayloadSchema.safeParse(req.body);
     if (!parseResult.success) {
@@ -389,8 +425,8 @@ export class ReviewQueueController {
       }
 
       const data = await this.service.updateCommentStatus(
+        ctx,
         commentId,
-        actor_id,
         parseResult.data,
       );
 
@@ -401,16 +437,20 @@ export class ReviewQueueController {
           ? error.message
           : "Error updating comment status";
 
-      await AuditLogger.logError({
-        userId: actor_id,
-        errorMessage,
-        serviceCategory: "review_queue",
-        stackTrace: error.stack,
-        code: "UPDATE_COMMENT_STATUS_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { commentId: req.params.commentId, body: req.body },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "review_queue",
+      //   stackTrace: error.stack,
+      //   code: "UPDATE_COMMENT_STATUS_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: {
+      //     commentId: req.params.commentId,
+      //     body: req.body,
+      //     detailed_user: ctx.actor,
+      //   },
+      // });
 
       res.status(400).json({ success: false, error: errorMessage });
     }

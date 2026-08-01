@@ -1,8 +1,3 @@
-/**
- * Users Repository
- * File: users.repository.ts
- */
-
 import { supabase } from "../../services/supabase.js";
 import {
   UserRow,
@@ -13,7 +8,6 @@ import {
 import { logger } from "../../utils/logger.js";
 
 export class UsersRepository {
-  [x: string]: any;
   async findUsersByRole(role: string): Promise<Partial<UserRow>[]> {
     const { data, error } = await supabase
       .from("users")

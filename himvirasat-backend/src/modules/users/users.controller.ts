@@ -1,26 +1,34 @@
-/**
- * Users Controller
- * File: users.controller.ts
- */
-
 import { RequestHandler } from "express";
 import { UsersService, usersService } from "./users.service.js";
-import { AuthenticatedRequest } from "../../middlewares/auth.middleware.js";
-import { AuditLogger } from "../../utils/audit-logger.js";
+import {
+  AuthenticatedRequest,
+  StrictAuthenticatedRequest,
+  SecurityContext,
+  getAuthenticatedUser,
+} from "../../utils/get-authenticated-user.js";
+// import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class UsersController {
   constructor(private readonly service: UsersService = usersService) {}
 
-  private getUserId(req: AuthenticatedRequest): string | undefined {
-    return req.user?.userId;
+  private getSecurityContext(req: StrictAuthenticatedRequest): SecurityContext {
+    return {
+      actor: req._cachedUser,
+    };
   }
 
   getLanguageExperts: RequestHandler = async (req, res): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const actorId = this.getUserId(authReq);
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
 
     try {
-      const experts = await this.service.fetchLanguageExperts(actorId);
+      const experts = await this.service.fetchLanguageExperts(ctx);
       res.json({ success: true, experts });
     } catch (error: any) {
       const errorMessage =
@@ -28,26 +36,33 @@ export class UsersController {
           ? error.message
           : "Failed to fetch language experts";
 
-      await AuditLogger.logError({
-        userId: actorId || null,
-        errorMessage,
-        serviceCategory: "users",
-        stackTrace: error.stack,
-        code: "FETCH_LANGUAGE_EXPERTS_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "users",
+      //   stackTrace: error.stack,
+      //   code: "FETCH_LANGUAGE_EXPERTS_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, message: errorMessage });
     }
   };
 
   createLanguageExpert: RequestHandler = async (req, res): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const actorId = this.getUserId(authReq);
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
 
     try {
-      const result = await this.service.createLanguageExpert(req.body, actorId);
+      const result = await this.service.createLanguageExpert(ctx, req.body);
       if (!result.success) {
         res
           .status(result.statusCode ?? 500)
@@ -65,24 +80,30 @@ export class UsersController {
           ? error.message
           : "Failed to create language expert";
 
-      await AuditLogger.logError({
-        userId: actorId || null,
-        errorMessage,
-        serviceCategory: "users",
-        stackTrace: error.stack,
-        code: "CREATE_LANGUAGE_EXPERT_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { username: req.body?.username },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "users",
+      //   stackTrace: error.stack,
+      //   code: "CREATE_LANGUAGE_EXPERT_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { username: req.body?.username, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, message: errorMessage });
     }
   };
 
   deleteLanguageExpert: RequestHandler = async (req, res): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const actorId = this.getUserId(authReq);
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
 
     try {
       const { id } = req.body;
@@ -92,7 +113,7 @@ export class UsersController {
           .json({ success: false, message: "User ID is required" });
         return;
       }
-      const result = await this.service.deleteLanguageExpert(id, actorId);
+      const result = await this.service.deleteLanguageExpert(ctx, id);
       if (!result.success) {
         res
           .status(result.statusCode ?? 500)
@@ -108,27 +129,33 @@ export class UsersController {
       const errorMessage =
         error instanceof Error ? error.message : "Internal server error";
 
-      await AuditLogger.logError({
-        userId: actorId || null,
-        errorMessage,
-        serviceCategory: "users",
-        stackTrace: error.stack,
-        code: "DELETE_LANGUAGE_EXPERT_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { targetId: req.body?.id },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "users",
+      //   stackTrace: error.stack,
+      //   code: "DELETE_LANGUAGE_EXPERT_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { targetId: req.body?.id, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, message: errorMessage });
     }
   };
 
   getLanguageHeads: RequestHandler = async (req, res): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const actorId = this.getUserId(authReq);
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
 
     try {
-      const heads = await this.service.fetchLanguageHeads(actorId);
+      const heads = await this.service.fetchLanguageHeads(ctx);
       res.json({ success: true, heads });
     } catch (error: any) {
       const errorMessage =
@@ -136,26 +163,33 @@ export class UsersController {
           ? error.message
           : "Failed to fetch language heads";
 
-      await AuditLogger.logError({
-        userId: actorId || null,
-        errorMessage,
-        serviceCategory: "users",
-        stackTrace: error.stack,
-        code: "FETCH_LANGUAGE_HEADS_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "users",
+      //   stackTrace: error.stack,
+      //   code: "FETCH_LANGUAGE_HEADS_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, message: errorMessage });
     }
   };
 
   createLanguageHead: RequestHandler = async (req, res): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const actorId = this.getUserId(authReq);
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
 
     try {
-      const result = await this.service.createLanguageHead(req.body, actorId);
+      const result = await this.service.createLanguageHead(ctx, req.body);
       if (!result.success) {
         res
           .status(result.statusCode ?? 500)
@@ -173,24 +207,30 @@ export class UsersController {
           ? error.message
           : "Failed to create language head";
 
-      await AuditLogger.logError({
-        userId: actorId || null,
-        errorMessage,
-        serviceCategory: "users",
-        stackTrace: error.stack,
-        code: "CREATE_LANGUAGE_HEAD_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { username: req.body?.username },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "users",
+      //   stackTrace: error.stack,
+      //   code: "CREATE_LANGUAGE_HEAD_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { username: req.body?.username, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, message: errorMessage });
     }
   };
 
   deleteLanguageHead: RequestHandler = async (req, res): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const actorId = this.getUserId(authReq);
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
 
     try {
       const { id } = req.body;
@@ -200,7 +240,7 @@ export class UsersController {
           .json({ success: false, message: "User ID is required" });
         return;
       }
-      const result = await this.service.deleteLanguageHead(id, actorId);
+      const result = await this.service.deleteLanguageHead(ctx, id);
       if (!result.success) {
         res
           .status(result.statusCode ?? 500)
@@ -216,24 +256,30 @@ export class UsersController {
       const errorMessage =
         error instanceof Error ? error.message : "Internal server error";
 
-      await AuditLogger.logError({
-        userId: actorId || null,
-        errorMessage,
-        serviceCategory: "users",
-        stackTrace: error.stack,
-        code: "DELETE_LANGUAGE_HEAD_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { targetId: req.body?.id },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "users",
+      //   stackTrace: error.stack,
+      //   code: "DELETE_LANGUAGE_HEAD_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { targetId: req.body?.id, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, message: errorMessage });
     }
   };
 
   updateExpertDialects: RequestHandler = async (req, res): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const actorId = this.getUserId(authReq);
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
 
     try {
       const { id, dialects } = req.body;
@@ -244,11 +290,7 @@ export class UsersController {
         });
         return;
       }
-      const result = await this.service.updateExpertDialects(
-        id,
-        dialects,
-        actorId,
-      );
+      const result = await this.service.updateExpertDialects(ctx, id, dialects);
       if (!result.success) {
         res
           .status(result.statusCode ?? 500)
@@ -264,24 +306,30 @@ export class UsersController {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to update dialects";
 
-      await AuditLogger.logError({
-        userId: actorId || null,
-        errorMessage,
-        serviceCategory: "users",
-        stackTrace: error.stack,
-        code: "UPDATE_EXPERT_DIALECTS_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { targetId: req.body?.id },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "users",
+      //   stackTrace: error.stack,
+      //   code: "UPDATE_EXPERT_DIALECTS_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { targetId: req.body?.id, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, message: errorMessage });
     }
   };
 
   updateHeadDialects: RequestHandler = async (req, res): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const actorId = this.getUserId(authReq);
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
 
     try {
       const { id, dialects } = req.body;
@@ -292,11 +340,7 @@ export class UsersController {
         });
         return;
       }
-      const result = await this.service.updateHeadDialects(
-        id,
-        dialects,
-        actorId,
-      );
+      const result = await this.service.updateHeadDialects(ctx, id, dialects);
       if (!result.success) {
         res
           .status(result.statusCode ?? 500)
@@ -314,25 +358,20 @@ export class UsersController {
           ? error.message
           : "Failed to update managed dialects";
 
-      await AuditLogger.logError({
-        userId: actorId || null,
-        errorMessage,
-        serviceCategory: "users",
-        stackTrace: error.stack,
-        code: "UPDATE_HEAD_DIALECTS_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { targetId: req.body?.id },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "users",
+      //   stackTrace: error.stack,
+      //   code: "UPDATE_HEAD_DIALECTS_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { targetId: req.body?.id, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, message: errorMessage });
     }
   };
-  // getDetailedUserInfo: RequestHandler = async (req, res): Promise<void> => {
-  //   const authReq = req as AuthenticatedRequest;
-  //   const actorId = this.getUserId(authReq);
-
-  // }
 }
 
 export const usersController = new UsersController();

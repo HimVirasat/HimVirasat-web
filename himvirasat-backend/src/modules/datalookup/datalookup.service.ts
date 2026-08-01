@@ -1,4 +1,4 @@
-// import { AuditLogger } from "../../utils/audit-logger.js";
+import { AuditLogger } from "../../utils/audit-logger.js";
 import {
   DataLookupRepository,
   dataLookupRepository,
@@ -12,6 +12,7 @@ import {
   ErrorLog,
   GetLogsParams,
 } from "@himvirasat/shared";
+import { SecurityContext } from "../../utils/get-authenticated-user.js";
 
 export type { DynamicLookupOption };
 
@@ -20,31 +21,42 @@ export class DataLookupService {
     private readonly repository: DataLookupRepository = dataLookupRepository,
   ) {}
 
-  async fetchDialects(): Promise<DynamicLookupOption[]> {
+  async fetchDialects(_ctx: SecurityContext): Promise<DynamicLookupOption[]> {
     return await this.repository.getDialects();
   }
 
-  async fetchCategories(): Promise<DynamicLookupOption[]> {
+  async fetchCategories(_ctx: SecurityContext): Promise<DynamicLookupOption[]> {
     return await this.repository.getCategories();
   }
 
-  async fetchPartsOfSpeech(): Promise<DynamicLookupOption[]> {
+  async fetchPartsOfSpeech(
+    _ctx: SecurityContext,
+  ): Promise<DynamicLookupOption[]> {
     return await this.repository.getPartsOfSpeech();
   }
 
-  async fetchAvailableRegions(): Promise<DynamicLookupOption[]> {
+  async fetchAvailableRegions(
+    _ctx: SecurityContext,
+  ): Promise<DynamicLookupOption[]> {
     return await this.repository.getAvailableRegions();
   }
 
-  async fetchActivityLogs(params: GetLogsParams): Promise<ActivityLog[]> {
+  async fetchActivityLogs(
+    _ctx: SecurityContext,
+    params: GetLogsParams,
+  ): Promise<ActivityLog[]> {
     return await this.repository.getActivityLogs(params);
   }
 
-  async fetchErrorLogs(params: GetLogsParams): Promise<ErrorLog[]> {
+  async fetchErrorLogs(
+    _ctx: SecurityContext,
+    params: GetLogsParams,
+  ): Promise<ErrorLog[]> {
     return await this.repository.getErrorLogs(params);
   }
 
   async generateLinguisticMetadata(
+    ctx: SecurityContext,
     input: GenerateMetadataInput,
   ): Promise<MetadataGenerationResult> {
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -88,6 +100,16 @@ export class DataLookupService {
     const rawContent = data.choices?.[0]?.message?.content || "{}";
     const parsed = this.parseCleanJSON(rawContent) as LinguisticMetadata;
 
+    await AuditLogger.logActivity({
+      actorUserId: ctx.actor.id,
+      action: "GET_ENTRIES",
+      entityType: "hv_system",
+      backendModuleCategory: "datalookup",
+      backendCode: "DATALOOKUP_SERVICE:SUCCESS_GET_ENTRIES",
+      logStatus: "SUCCESS",
+      metadata: { input, model, actor: ctx.actor },
+    });
+
     return { model, data: parsed };
   }
 
@@ -100,27 +122,27 @@ export class DataLookupService {
     } = input;
 
     return `You are an expert linguist specializing in Western Pahadi / Himachali dialects, Devanagari script, Takri script, and IPA phonetics.
-Based on the following lexical entry:
-- Word (Devanagari): ${word_devanagari}
-- Hindi Meaning: ${meaning_hindi || "N/A"}
-- English Meaning: ${meaning_english || "N/A"}
-- Example Sentence (Pahadi Devanagari): ${example_sentence || "N/A"}
-
-Generate the following metadata accurately:
-1. "word_latin": Accurate Romanization/Latin transliteration for the word.
-2. "word_takri": Transliteration of the word into Takri script (Unicode).
-3. "ipa": International Phonetic Alphabet representation of the word.
-4. "example_sentence_latin": Romanised transliteration of the example sentence.
-5. "example_sentence_takri": Takri script transcription of the example sentence.
-
-Respond ONLY with a valid JSON object matching this structure:
-{
-  "word_latin": "...",
-  "word_takri": "...",
-  "ipa": "...",
-  "example_sentence_latin": "...",
-  "example_sentence_takri": "..."
-}`;
+            Based on the following lexical entry:
+            - Word (Devanagari): ${word_devanagari}
+            - Hindi Meaning: ${meaning_hindi || "N/A"}
+            - English Meaning: ${meaning_english || "N/A"}
+            - Example Sentence (Pahadi Devanagari): ${example_sentence || "N/A"}
+              
+            Generate the following metadata accurately:
+            1. "word_latin": Accurate Romanization/Latin transliteration for the word.
+            2. "word_takri": Transliteration of the word into Takri script (Unicode).
+            3. "ipa": International Phonetic Alphabet representation of the word.
+            4. "example_sentence_latin": Romanised transliteration of the example sentence.
+            5. "example_sentence_takri": Takri script transcription of the example sentence.
+              
+            Respond ONLY with a valid JSON object matching this structure:
+            {
+              "word_latin": "...",
+              "word_takri": "...",
+              "ipa": "...",
+              "example_sentence_latin": "...",
+              "example_sentence_takri": "..."
+            }`;
   }
 
   private parseCleanJSON(raw: string): unknown {

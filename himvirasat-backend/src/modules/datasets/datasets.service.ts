@@ -1,18 +1,19 @@
 import {
   DatasetsRepository,
+  datasetsRepository,
   type DatasetQueryFilters,
   type PaginatedDatasetResult,
 } from "./datasets.repository.js";
 import type { DatasetEntry } from "@himvirasat/shared";
+import { SecurityContext } from "../../utils/get-authenticated-user.js";
 
 export class DatasetsService {
-  private repository: DatasetsRepository;
-
-  constructor() {
-    this.repository = new DatasetsRepository();
-  }
+  constructor(
+    private readonly repository: DatasetsRepository = datasetsRepository,
+  ) {}
 
   async getEntries(
+    _ctx: SecurityContext,
     query: Record<string, unknown>,
   ): Promise<PaginatedDatasetResult> {
     const filters: DatasetQueryFilters = {
@@ -37,7 +38,7 @@ export class DatasetsService {
     return await this.repository.findEntries(filters);
   }
 
-  async getEntryById(id: string): Promise<DatasetEntry> {
+  async getEntryById(_ctx: SecurityContext, id: string): Promise<DatasetEntry> {
     const entry = await this.repository.findEntryById(id);
     if (!entry) {
       throw new Error("Dataset entry not found");
@@ -45,4 +46,5 @@ export class DatasetsService {
     return entry;
   }
 }
+
 export const datasetsService = new DatasetsService();

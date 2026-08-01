@@ -2,11 +2,11 @@ import bcrypt from "bcrypt";
 import { AuthRepository, authRepository } from "./auth.repository.js";
 import { generateToken } from "../../utils/jwt.js";
 import type { LoginResponse, SignupRequest, UserDto } from "@himvirasat/shared";
-import { AuditLogger } from "../../utils/audit-logger.js";
+// import { AuditLogger } from "../../utils/audit-logger.js";
 import { SecurityContext } from "../../utils/get-authenticated-user.js";
 
 export class AuthService {
-  constructor(private readonly repository: AuthRepository = authRepository) {}
+  constructor(private readonly repository: AuthRepository = authRepository) { }
 
   async login(
     username: string,

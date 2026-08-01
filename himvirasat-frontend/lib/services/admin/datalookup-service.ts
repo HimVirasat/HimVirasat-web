@@ -30,6 +30,7 @@ export class DataLookupService {
     }
 
     const result = await response.json();
+    console.log(result.data);
     return result.data;
   }
   static async getAvailablePartsOfSpeech(): Promise<string[]> {

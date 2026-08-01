@@ -1,8 +1,3 @@
-/**
- * Submissions Repository
- * File: submissions.repository.ts
- */
-
 import { supabase } from "../../services/supabase.js";
 import {
   InsertContributionPayload,

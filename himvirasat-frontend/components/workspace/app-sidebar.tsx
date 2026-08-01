@@ -97,16 +97,15 @@ export function AppSidebar({ user }: AppSidebarProps) {
               {items.map((item) => {
                 const Icon = item.icon;
 
+                // Exact matching for every menu item to prevent cross-highlighting
+                const isActive = pathname === item.url;
+
                 return (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton
                       asChild
                       tooltip={item.title}
-                      isActive={
-                        pathname === item.url ||
-                        (item.url !== "/" &&
-                          pathname.startsWith(`${item.url}/`))
-                      }
+                      isActive={isActive}
                     >
                       <Link href={item.url}>
                         <Icon />

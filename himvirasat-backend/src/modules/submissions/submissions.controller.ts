@@ -1,14 +1,14 @@
-/**
- * Submissions Controller
- * File: submissions.controller.ts
- */
-
 import { RequestHandler } from "express";
 import {
   SubmissionsService,
   submissionsService,
 } from "./submissions.service.js";
-import { AuthenticatedRequest } from "../../middlewares/auth.middleware.js";
+import {
+  AuthenticatedRequest,
+  StrictAuthenticatedRequest,
+  SecurityContext,
+  getAuthenticatedUser,
+} from "../../utils/get-authenticated-user.js";
 import { CreateSubmissionSchema } from "@himvirasat/shared";
 import { AuditLogger } from "../../utils/audit-logger.js";
 
@@ -17,20 +17,23 @@ export class SubmissionsController {
     private readonly service: SubmissionsService = submissionsService,
   ) {}
 
-  private getUserId(req: AuthenticatedRequest): string | undefined {
-    return req.user?.userId;
+  private getSecurityContext(req: StrictAuthenticatedRequest): SecurityContext {
+    return {
+      actor: req._cachedUser,
+    };
   }
 
   createSubmission: RequestHandler = async (req, res): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const contributor_id = this.getUserId(authReq);
-
-    if (!contributor_id) {
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
       res
         .status(401)
-        .json({ success: false, error: "Authentication missing." });
+        .json({ success: false, error: "Authentication or user profile missing." });
       return;
     }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
 
     const validationResult = CreateSubmissionSchema.safeParse({
       ...req.body,
@@ -54,7 +57,7 @@ export class SubmissionsController {
 
     try {
       const contribution = await this.service.createSubmission(
-        contributor_id,
+        ctx,
         validationResult.data,
       );
 
@@ -68,14 +71,14 @@ export class SubmissionsController {
         error instanceof Error ? error.message : "Internal server error";
 
       await AuditLogger.logError({
-        userId: contributor_id,
+        userId: ctx.actor.id,
         errorMessage,
         serviceCategory: "submissions",
         stackTrace: error.stack,
         code: "CREATE_SUBMISSION_FAILED",
         path: req.originalUrl || req.path,
         method: req.method,
-        metadata: { body: req.body },
+        metadata: { body: req.body, detailed_user: ctx.actor },
       });
 
       res.status(500).json({ success: false, error: errorMessage });

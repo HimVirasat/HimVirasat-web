@@ -13,6 +13,7 @@ import { logger } from "../../utils/logger.js";
 import type { HistoryEventType, CommentStatus } from "@himvirasat/shared";
 import { usersRepository } from "../users/users.repository.js";
 import { AuditLogger } from "../../utils/audit-logger.js";
+import { SecurityContext } from "../../utils/get-authenticated-user.js";
 
 export class ReviewQueueService {
   constructor(
@@ -55,26 +56,26 @@ export class ReviewQueueService {
   }
 
   async createContribution(
-    contributorId: string,
+    ctx: SecurityContext,
     payload: Record<string, unknown>,
   ) {
     const customUUID = randomUUID();
 
     await this.repository.insertContribution({
       id: customUUID,
-      contributor_id: contributorId,
+      contributor_id: ctx.actor.id,
       ...payload,
     });
 
     await this.repository.insertHistory({
       contribution_id: customUUID,
-      actor_id: contributorId,
+      actor_id: ctx.actor.id,
       type: "submitted",
       message: "Contribution submitted for review.",
     });
 
     await AuditLogger.logActivity({
-      actorId: contributorId,
+      actorId: ctx.actor.id,
       action: "CONTRIBUTION_SUBMITTED",
       entityType: "contribution",
       entityId: customUUID,
@@ -83,6 +84,7 @@ export class ReviewQueueService {
       metadata: {
         wordDevanagari: payload.word_devanagari || null,
         dialectId: payload.dialect_id || null,
+        detailed_user: ctx.actor,
       },
     });
 
@@ -94,7 +96,7 @@ export class ReviewQueueService {
     return this.formatContribution(enriched);
   }
 
-  async fetchContributions(filters: ContributionFilters) {
+  async fetchContributions(_ctx: SecurityContext, filters: ContributionFilters) {
     const data = await this.repository.fetchContributions(
       filters,
       CONTRIBUTION_SELECT_QUERY,
@@ -102,7 +104,7 @@ export class ReviewQueueService {
     return data.map((item) => this.formatContribution(item));
   }
 
-  async fetchContributionById(id: string) {
+  async fetchContributionById(_ctx: SecurityContext, id: string) {
     const item = await this.repository.fetchContributionById(
       id,
       CONTRIBUTION_SELECT_QUERY,
@@ -120,8 +122,8 @@ export class ReviewQueueService {
   }
 
   async updateContribution(
+    ctx: SecurityContext,
     id: string,
-    actorId: string,
     payload: Record<string, unknown>,
   ) {
     const currentData = await this.repository.fetchContributionRaw(id);
@@ -168,7 +170,7 @@ export class ReviewQueueService {
 
     const historyRows = diffEntries.map((diff) => ({
       contribution_id: id,
-      actor_id: actorId,
+      actor_id: ctx.actor.id,
       type: "field_updated" as HistoryEventType,
       field_name: diff.field_name,
       old_value: diff.old_value,
@@ -186,7 +188,7 @@ export class ReviewQueueService {
       );
 
     await AuditLogger.logActivity({
-      actorId,
+      actorId: ctx.actor.id,
       action: "CONTRIBUTION_UPDATED",
       entityType: "contribution",
       entityId: id,
@@ -194,6 +196,7 @@ export class ReviewQueueService {
       status: "SUCCESS",
       metadata: {
         updatedFields: diffEntries.map((d) => d.field_name),
+        detailed_user: ctx.actor,
       },
     });
 
@@ -206,8 +209,8 @@ export class ReviewQueueService {
   }
 
   async updateContributionStatus(
+    ctx: SecurityContext,
     id: string,
-    actorId: string,
     payload: { status: string; reason?: string | undefined },
   ) {
     const { status, reason } = payload;
@@ -228,16 +231,16 @@ export class ReviewQueueService {
 
     if (status === "flagged") {
       statusUpdates.flag_reason = reason;
-      statusUpdates.flagged_by = actorId;
+      statusUpdates.flagged_by = ctx.actor.id;
       statusUpdates.flagged_at = new Date().toISOString();
       historyType = "flagged";
     } else if (status === "approved") {
-      statusUpdates.approved_by = actorId;
+      statusUpdates.approved_by = ctx.actor.id;
       statusUpdates.approved_at = new Date().toISOString();
       historyType = "approved";
     } else if (status === "rejected") {
       statusUpdates.rejected_reason = reason;
-      statusUpdates.rejected_by = actorId;
+      statusUpdates.rejected_by = ctx.actor.id;
       historyType = "rejected";
     } else if (status === "under_review") {
       statusUpdates.flag_reason = null;
@@ -248,13 +251,13 @@ export class ReviewQueueService {
 
     await this.repository.insertHistory({
       contribution_id: contributionUuid,
-      actor_id: actorId,
+      actor_id: ctx.actor.id,
       type: historyType,
       message: reason || `Status updated to ${status}.`,
     });
 
     await AuditLogger.logActivity({
-      actorId,
+      actorId: ctx.actor.id,
       action: `CONTRIBUTION_${payload.status.toUpperCase()}`,
       entityType: "contribution",
       entityId: id,
@@ -266,6 +269,7 @@ export class ReviewQueueService {
         reason: payload.reason || null,
         wordDevanagari: existingContribution.word_devanagari,
         contributorId: existingContribution.contributor_id,
+        detailed_user: ctx.actor,
       },
     });
 
@@ -289,9 +293,9 @@ export class ReviewQueueService {
           });
         }
 
-        if (actorId && actorId !== contributorId) {
+        if (ctx.actor.id && ctx.actor.id !== contributorId) {
           await usersRepository.awardPoints({
-            userId: actorId,
+            userId: ctx.actor.id,
             points: POINT_REWARDS.REVIEWER_APPROVED,
             reason: "review_completed",
             referenceId: contributionUuid,
@@ -301,7 +305,7 @@ export class ReviewQueueService {
         }
       } catch (error: any) {
         await AuditLogger.logError({
-          userId: actorId,
+          userId: ctx.actor.id,
           errorMessage:
             error.message || "Failed to award points during status approval",
           serviceCategory: "review_queue",
@@ -309,7 +313,11 @@ export class ReviewQueueService {
           code: "AWARD_POINTS_FAILED",
           path: `/api/contributions/${id}/status`,
           method: "PATCH",
-          metadata: { contributionId: id, attemptedStatus: payload.status },
+          metadata: {
+            contributionId: id,
+            attemptedStatus: payload.status,
+            detailed_user: ctx.actor,
+          },
         });
         console.error("Failed to award points during status approval:", error);
       }
@@ -323,23 +331,23 @@ export class ReviewQueueService {
     return this.formatContribution(enriched);
   }
 
-  async deleteContribution(id: string, actorId?: string) {
+  async deleteContribution(ctx: SecurityContext, id: string) {
     await this.repository.deleteContribution(id);
 
     await AuditLogger.logActivity({
-      actorId: actorId || null,
+      actorId: ctx.actor.id,
       action: "CONTRIBUTION_DELETED",
       entityType: "contribution",
       entityId: id,
       serviceCategory: "review_queue",
       status: "SUCCESS",
-      metadata: { contributionId: id },
+      metadata: { contributionId: id, detailed_user: ctx.actor },
     });
   }
 
   async addContributionComment(
+    ctx: SecurityContext,
     contributionId: string,
-    authorId: string,
     payload: { field_name: string; message: string },
   ) {
     const { field_name, message } = payload;
@@ -348,7 +356,7 @@ export class ReviewQueueService {
 
     const comment = await this.repository.insertComment({
       contribution_id: contributionId,
-      author_id: authorId,
+      author_id: ctx.actor.id,
       field_name: cleanFieldName,
       message,
       status: "open",
@@ -356,13 +364,13 @@ export class ReviewQueueService {
 
     await this.repository.insertHistory({
       contribution_id: contributionId,
-      actor_id: authorId,
+      actor_id: ctx.actor.id,
       type: "comment_added",
       message: `Added review comment under [${cleanFieldName}]: "${message}"`,
     });
 
     await AuditLogger.logActivity({
-      actorId: authorId,
+      actorId: ctx.actor.id,
       action: "COMMENT_ADDED",
       entityType: "contribution_comment",
       entityId: String(comment.id || contributionId),
@@ -372,6 +380,7 @@ export class ReviewQueueService {
         contributionId,
         fieldName: cleanFieldName,
         message,
+        detailed_user: ctx.actor,
       },
     });
 
@@ -379,8 +388,8 @@ export class ReviewQueueService {
   }
 
   async updateCommentStatus(
+    ctx: SecurityContext,
     commentId: string,
-    actorId: string,
     payload: { status: CommentStatus; fieldValueToAccept?: unknown },
   ) {
     const { status, fieldValueToAccept } = payload;
@@ -388,7 +397,7 @@ export class ReviewQueueService {
 
     if (status === "resolved") {
       patchData.resolved_at = new Date().toISOString();
-      patchData.resolved_by = actorId;
+      patchData.resolved_by = ctx.actor.id;
     }
 
     const updatedComment = await this.repository.updateComment(
@@ -416,7 +425,7 @@ export class ReviewQueueService {
 
         await this.repository.insertHistory({
           contribution_id: contributionId,
-          actor_id: actorId,
+          actor_id: ctx.actor.id,
           type: "field_updated",
           field_name: commentFieldName,
           old_value: oldVal,
@@ -441,13 +450,13 @@ export class ReviewQueueService {
           });
         } catch (error: any) {
           await AuditLogger.logError({
-            userId: actorId,
+            userId: ctx.actor.id,
             errorMessage:
               error.message || "Failed to award points for accepted comment",
             serviceCategory: "review_queue",
             stackTrace: error.stack,
             code: "AWARD_COMMENT_POINTS_FAILED",
-            metadata: { commentId, commentAuthorId },
+            metadata: { commentId, commentAuthorId, detailed_user: ctx.actor },
           });
         }
       }
@@ -473,13 +482,13 @@ export class ReviewQueueService {
 
     await this.repository.insertHistory({
       contribution_id: contributionId,
-      actor_id: actorId,
+      actor_id: ctx.actor.id,
       type: historyTypeMap[status],
       message: historyMessage,
     });
 
     await AuditLogger.logActivity({
-      actorId,
+      actorId: ctx.actor.id,
       action: `COMMENT_${status.toUpperCase()}`,
       entityType: "contribution_comment",
       entityId: commentId,
@@ -489,6 +498,7 @@ export class ReviewQueueService {
         contributionId,
         commentStatus: status,
         fieldValueToAccept: fieldValueToAccept ?? null,
+        detailed_user: ctx.actor,
       },
     });
 

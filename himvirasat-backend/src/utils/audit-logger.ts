@@ -3,21 +3,25 @@ import { logger } from "./logger.js";
 import { ServiceCategory, LogStatus } from "@himvirasat/shared";
 
 export interface LogActivityParams {
-  actorId?: string | null;
   action: string;
   entityType: string;
-  entityId?: string | null;
   serviceCategory: ServiceCategory;
+  actorId?: string | null;
   status?: LogStatus;
+  code?: string,
   metadata?: Record<string, unknown>;
+  entityId?: string | null;
+  backend_code?: string | undefined;
+
 }
 
 export interface LogErrorParams {
-  userId?: string | null | undefined;
   errorMessage: string;
   serviceCategory: ServiceCategory;
+  userId?: string | null | undefined;
   stackTrace?: string | null | undefined;
   code?: string | undefined;
+  backend_code?: string | undefined;
   path?: string | null | undefined;
   method?: string | null | undefined;
   requestId?: string | null | undefined;

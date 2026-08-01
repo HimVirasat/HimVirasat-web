@@ -31,7 +31,6 @@ export class DatasetsRepository {
     const limit = Math.min(100, Math.max(1, filters.limit || 20));
     const offset = (page - 1) * limit;
 
-    // Join dialect name from dialects table so table columns can render string labels directly
     let query = supabase.from("dataset_entries").select(
       `
         *,
@@ -80,7 +79,6 @@ export class DatasetsRepository {
       throw new Error(`Database Error: ${error.message}`);
     }
 
-    // Map nested Supabase objects to flat structures or custom properties if needed
     const formattedData = (data || []).map((entry: any) => ({
       ...entry,
       dialect_name: entry.dialects?.name || null,

@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/card";
 import { AuthService } from "@/lib/services/auth-service";
 
-export function AdminLoginForm() {
+export function LoginForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -57,11 +57,7 @@ export function AdminLoginForm() {
         toast.success("Successfully logged in", { duration: 5000 });
       }
 
-      router.push(
-        response.user?.role === "contributor"
-          ? "/user/dashboard"
-          : "/admin/dashboard"
-      );
+      router.push(response.user?.role === "contributor" ? "/user" : "/admin");
     } catch (error) {
       console.error(error);
       toast.error(error instanceof Error ? error.message : "Login failed");

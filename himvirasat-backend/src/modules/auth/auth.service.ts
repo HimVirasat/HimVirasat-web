@@ -1,13 +1,9 @@
-/**
- * Auth Service
- * File: auth.service.ts
- */
-
 import bcrypt from "bcrypt";
 import { AuthRepository, authRepository } from "./auth.repository.js";
 import { generateToken } from "../../utils/jwt.js";
 import type { LoginResponse, SignupRequest, UserDto } from "@himvirasat/shared";
 import { AuditLogger } from "../../utils/audit-logger.js";
+import { SecurityContext } from "../../utils/get-authenticated-user.js";
 
 export class AuthService {
   constructor(private readonly repository: AuthRepository = authRepository) {}
@@ -171,18 +167,9 @@ export class AuthService {
     };
   }
 
-  async getUserProfile(userId: string): Promise<UserDto | null> {
-    const user = await this.repository.findById(userId);
+  async getUserProfile(ctx: SecurityContext): Promise<UserDto | null> {
+    const user = await this.repository.findById(ctx.actor.id);
     if (!user) return null;
-
-    // await AuditLogger.logActivity({
-    //   actorId: userId,
-    //   action: "GET_USER_PROFILE",
-    //   entityType: "user",
-    //   entityId: userId,
-    //   serviceCategory: "auth",
-    //   status: "SUCCESS",
-    // });
 
     return {
       id: user.id,
@@ -194,11 +181,11 @@ export class AuthService {
   }
 
   async resetPassword(
-    userId: string,
+    ctx: SecurityContext,
     oldPassword: string,
     newPassword: string,
   ): Promise<{ success: boolean; message?: string; statusCode?: number }> {
-    const user = await this.repository.findById(userId);
+    const user = await this.repository.findById(ctx.actor.id);
     if (!user) {
       return { success: false, statusCode: 404, message: "User not found" };
     }
@@ -209,13 +196,13 @@ export class AuthService {
     );
     if (!isPasswordValid) {
       await AuditLogger.logActivity({
-        actorId: userId,
+        actorId: ctx.actor.id,
         action: "RESET_PASSWORD_FAILED",
         entityType: "user",
-        entityId: userId,
+        entityId: ctx.actor.id,
         serviceCategory: "auth",
         status: "FAILED",
-        metadata: { reason: "Incorrect current password" },
+        metadata: { reason: "Incorrect current password", detailed_user: ctx.actor },
       });
 
       return {
@@ -227,19 +214,19 @@ export class AuthService {
 
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
     const isUpdated = await this.repository.updatePassword(
-      userId,
+      ctx.actor.id,
       hashedNewPassword,
     );
 
     if (!isUpdated) {
       await AuditLogger.logActivity({
-        actorId: userId,
+        actorId: ctx.actor.id,
         action: "RESET_PASSWORD_FAILED",
         entityType: "user",
-        entityId: userId,
+        entityId: ctx.actor.id,
         serviceCategory: "auth",
         status: "FAILED",
-        metadata: { reason: "Database update failed" },
+        metadata: { reason: "Database update failed", detailed_user: ctx.actor },
       });
 
       return {
@@ -250,12 +237,13 @@ export class AuthService {
     }
 
     await AuditLogger.logActivity({
-      actorId: userId,
+      actorId: ctx.actor.id,
       action: "RESET_PASSWORD_SUCCESS",
       entityType: "user",
-      entityId: userId,
+      entityId: ctx.actor.id,
       serviceCategory: "auth",
       status: "SUCCESS",
+      metadata: { detailed_user: ctx.actor },
     });
 
     return { success: true, message: "Password reset successfully" };

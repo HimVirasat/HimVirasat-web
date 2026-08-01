@@ -1,8 +1,3 @@
-/**
- * Users Service
- * File: users.service.ts
- */
-
 import bcrypt from "bcrypt";
 import { UsersRepository, usersRepository } from "./users.repository.js";
 import {
@@ -11,28 +6,19 @@ import {
   SoftDeleteResult,
 } from "@himvirasat/shared";
 import { AuditLogger } from "../../utils/audit-logger.js";
+import { SecurityContext } from "../../utils/get-authenticated-user.js";
 
 export class UsersService {
   constructor(private readonly repository: UsersRepository = usersRepository) {}
 
-  async fetchLanguageExperts(_actorId?: string) {
+  async fetchLanguageExperts(_ctx: SecurityContext) {
     const data = await this.repository.findUsersByRole("language_expert");
-
-    // await AuditLogger.logActivity({
-    //   actorId: actorId || null,
-    //   action: "FETCH_LANGUAGE_EXPERTS",
-    //   entityType: "user",
-    //   serviceCategory: "users",
-    //   status: "SUCCESS",
-    //   metadata: { count: data.length },
-    // });
-
     return data;
   }
 
   async createLanguageExpert(
+    ctx: SecurityContext,
     payload: CreateUserPayloadFrontend,
-    actorId?: string,
   ): Promise<ServiceResult> {
     const { fullName, email, username, password, dialects } = payload;
     const existing = await this.repository.findUserByUsername(username);
@@ -56,21 +42,31 @@ export class UsersService {
     });
 
     if (!user) {
+      await AuditLogger.logError({
+        userId: ctx.actor.id,
+        errorMessage: "Unable to create Language Expert",
+        serviceCategory: "auth",
+        backend_code: "USER_SERVICE:FAILED_CREATE_LANGUAGE_EXPERT",
+        code: "500",
+        status: "FAILED",
+        metadata: { detailed_user: ctx.actor },
+      });
       return {
         success: false,
         statusCode: 500,
-        message: "Failed to create user",
+        message: "Failed to create Language Expert",
       };
     }
 
     await AuditLogger.logActivity({
-      actorId: actorId || null,
+      actorId: ctx.actor.id,
       action: "CREATE_LANGUAGE_EXPERT",
       entityType: "user",
       entityId: user.id,
+      backend_code: "USER_SERVICE:SUCCESS_CREATE_LANGUAGE_EXPERT",
       serviceCategory: "users",
       status: "SUCCESS",
-      metadata: { username: user.username, dialects: user.dialects },
+      metadata: { username: user.username, detailed_user: ctx.actor },
     });
 
     return {
@@ -80,43 +76,50 @@ export class UsersService {
   }
 
   async deleteLanguageExpert(
+    ctx: SecurityContext,
     id: string,
-    actorId?: string,
   ): Promise<SoftDeleteResult> {
     const result = await this.repository.softDeleteUser(id);
 
     if (result.success) {
       await AuditLogger.logActivity({
-        actorId: actorId || null,
+        actorId: ctx.actor.id,
         action: "DELETE_LANGUAGE_EXPERT",
+        backend_code: "USER_SERVICE:SUCCESS_DELETE_LANGUAGE_EXPERT",
         entityType: "user",
         entityId: id,
         serviceCategory: "users",
         status: "SUCCESS",
+        metadata: { detailed_user: ctx.actor },
       });
+    } else {
+      await AuditLogger.logError({
+        userId: ctx.actor.id,
+        errorMessage: result.message || "Unable to delete the Language Expert",
+        serviceCategory: "users",
+        backend_code: "USER_SERVICE:FAILED_TO_DELETE_LANGUAGE_EXPERT",
+        code: "500",
+        status: "FAILED",
+        metadata: { detailed_user: ctx.actor },
+      });
+      return {
+        success: false,
+        statusCode: 500,
+        message: "Failed to Delete Language Expert",
+      };
     }
 
     return result;
   }
 
-  async fetchLanguageHeads(_actorId?: string) {
+  async fetchLanguageHeads(_ctx: SecurityContext) {
     const data = await this.repository.findUsersByRole("language_head");
-
-    // await AuditLogger.logActivity({
-    //   actorId: actorId || null,
-    //   action: "FETCH_LANGUAGE_HEADS",
-    //   entityType: "user",
-    //   serviceCategory: "users",
-    //   status: "SUCCESS",
-    //   metadata: { count: data.length },
-    // });
-
     return data;
   }
 
   async createLanguageHead(
+    ctx: SecurityContext,
     payload: CreateUserPayloadFrontend,
-    actorId?: string,
   ): Promise<ServiceResult> {
     const { fullName, email, username, password, dialects } = payload;
     const existing = await this.repository.findUserByUsername(username);
@@ -140,6 +143,15 @@ export class UsersService {
     });
 
     if (!user) {
+      await AuditLogger.logError({
+        userId: ctx.actor.id,
+        errorMessage: "Unable to create a Language Head",
+        serviceCategory: "users",
+        backend_code: "USER_SERVICE:FAILED_TO_CREATE_LANGUAGE_HEAD",
+        code: "500",
+        status: "FAILED",
+        metadata: { detailed_user: ctx.actor },
+      });
       return {
         success: false,
         statusCode: 500,
@@ -148,13 +160,14 @@ export class UsersService {
     }
 
     await AuditLogger.logActivity({
-      actorId: actorId || null,
+      actorId: ctx.actor.id,
       action: "CREATE_LANGUAGE_HEAD",
       entityType: "user",
       entityId: user.id,
+      backend_code: "USER_SERVICE:SUCCESS_CREATE_LANGUAGE_HEAD",
       serviceCategory: "users",
       status: "SUCCESS",
-      metadata: { username: user.username, dialects: user.dialects },
+      metadata: { username: user.username, detailed_user: ctx.actor },
     });
 
     return {
@@ -164,19 +177,21 @@ export class UsersService {
   }
 
   async deleteLanguageHead(
+    ctx: SecurityContext,
     id: string,
-    actorId?: string,
   ): Promise<SoftDeleteResult> {
     const result = await this.repository.softDeleteUser(id);
 
     if (result.success) {
       await AuditLogger.logActivity({
-        actorId: actorId || null,
+        actorId: ctx.actor.id,
         action: "DELETE_LANGUAGE_HEAD",
+        backend_code: "USER_SERVICE:DELETE_LANGUAGE_HEAD",
         entityType: "user",
         entityId: id,
         serviceCategory: "users",
         status: "SUCCESS",
+        metadata: { detailed_user: ctx.actor },
       });
     }
 
@@ -184,9 +199,9 @@ export class UsersService {
   }
 
   async updateExpertDialects(
+    ctx: SecurityContext,
     id: string,
     dialects: string[],
-    actorId?: string,
   ): Promise<ServiceResult> {
     const updated = await this.repository.updateUserDialects(id, dialects);
     if (!updated) {
@@ -194,22 +209,23 @@ export class UsersService {
     }
 
     await AuditLogger.logActivity({
-      actorId: actorId || null,
+      actorId: ctx.actor.id,
       action: "UPDATE_EXPERT_DIALECTS",
+      backend_code: "USER_SERVICE:SUCCESS_UPDATE_EXPERT_DIALECT",
       entityType: "user",
       entityId: id,
       serviceCategory: "users",
       status: "SUCCESS",
-      metadata: { updatedDialects: dialects },
+      metadata: { updatedDialects: dialects, detailed_user: ctx.actor },
     });
 
     return { success: true, data: updated };
   }
 
   async updateHeadDialects(
+    ctx: SecurityContext,
     id: string,
     dialects: string[],
-    actorId?: string,
   ): Promise<ServiceResult> {
     const updated = await this.repository.updateUserDialects(id, dialects);
     if (!updated) {
@@ -217,13 +233,14 @@ export class UsersService {
     }
 
     await AuditLogger.logActivity({
-      actorId: actorId || null,
+      actorId: ctx.actor.id,
       action: "UPDATE_HEAD_DIALECTS",
       entityType: "user",
       entityId: id,
       serviceCategory: "users",
+      backend_code: "USER_SERVICE:SUCCESS_UPDATE_HEAD_DIALECTS",
       status: "SUCCESS",
-      metadata: { updatedDialects: dialects },
+      metadata: { updatedDialects: dialects, detailed_user: ctx.actor },
     });
 
     return { success: true, data: updated };

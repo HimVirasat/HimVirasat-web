@@ -39,18 +39,18 @@ export function CreateExpertDialog({
     data: dbDialects = [],
     isLoading: isLoadingDialects,
     isError: isErrorDialects,
-  } = useQuery({
+  } = useQuery<any[]>({
     queryKey: ["datalookup", "dialects"],
     queryFn: DataLookupService.getAvailableDialects,
     staleTime: 5 * 60 * 1000,
     enabled: open,
   });
 
-  const handleToggleDialect = (dialect: string) => {
+  const handleToggleDialect = (dialectName: string) => {
     setSelectedDialects((prev) =>
-      prev.includes(dialect)
-        ? prev.filter((d) => d !== dialect)
-        : [...prev, dialect]
+      prev.includes(dialectName)
+        ? prev.filter((d) => d !== dialectName)
+        : [...prev, dialectName]
     );
   };
 
@@ -198,20 +198,30 @@ export function CreateExpertDialog({
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto border p-2 rounded-md bg-background/50">
-                  {dbDialects.map((dialect) => {
-                    const isChecked = selectedDialects.includes(dialect);
+                  {dbDialects.map((item, index) => {
+                    const dialectName =
+                      typeof item === "string"
+                        ? item
+                        : item?.name || item?.dialect || String(item);
+
+                    const dialectKey =
+                      typeof item === "object" && item !== null
+                        ? item.id || item.name || index
+                        : item;
+
+                    const isChecked = selectedDialects.includes(dialectName);
+
                     return (
                       <button
-                        key={dialect}
+                        key={dialectKey}
                         type="button"
-                        onClick={() => handleToggleDialect(dialect)}
-                        className={`flex items-center justify-between px-2.5 py-1.5 text-xs font-medium rounded border transition-all cursor-pointer ${
-                          isChecked
+                        onClick={() => handleToggleDialect(dialectName)}
+                        className={`flex items-center justify-between px-2.5 py-1.5 text-xs font-medium rounded border transition-all cursor-pointer ${isChecked
                             ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30 dark:text-emerald-400"
                             : "hover:bg-muted/40 text-muted-foreground border-transparent"
-                        }`}
+                          }`}
                       >
-                        <span>{dialect}</span>
+                        <span>{dialectName}</span>
                         {isChecked && (
                           <Check className="size-3 text-emerald-600 dark:text-emerald-400" />
                         )}

@@ -1,17 +1,15 @@
 "use client";
 
 import { WorkspaceAuthLayout } from "@/components/workspace/workspace-auth-layout";
+import { ADMIN_ROLES } from "@/lib/navigation/sidebar-items";
 
-export default function UserDashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <WorkspaceAuthLayout
-      allowedRoles={["contributor"]}
-      fallbackPath="/admin/dashboard"
-    >
+    <WorkspaceAuthLayout allowedRoles={ADMIN_ROLES} fallbackPath="/user">
       {children}
     </WorkspaceAuthLayout>
   );

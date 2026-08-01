@@ -193,20 +193,6 @@ export default function LogsDashboardPage() {
     <div className="flex h-dvh w-full flex-col overflow-hidden bg-background text-foreground">
       {/* 1. Top Header */}
       <header className="flex h-14 shrink-0 items-center justify-between border-b px-6 bg-card/60 backdrop-blur-md z-10">
-        <div className="flex items-center gap-3">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Terminal className="size-4" />
-          </div>
-          <div>
-            <h1 className="text-sm font-bold tracking-tight leading-none">
-              System Audit & Exception Telemetry
-            </h1>
-            <p className="text-[11px] text-muted-foreground mt-0.5 font-mono">
-              Real-time server log stream & error diagnostics
-            </p>
-          </div>
-        </div>
-
         <div className="flex items-center gap-2">
           <Button
             variant={isLiveTail ? "default" : "outline"}
@@ -236,9 +222,7 @@ export default function LogsDashboardPage() {
         </div>
       </header>
 
-      {/* 2. Main Container with flex layout constraints for dynamic zooms */}
       <main className="flex flex-1 flex-col min-h-0 overflow-hidden p-4 md:p-6 gap-4 bg-muted/20">
-        {/* Telemetry Header Cards */}
         <div className="grid shrink-0 grid-cols-1 gap-4 sm:grid-cols-3">
           <Card className="bg-card/70 border-border/60 shadow-xs">
             <CardContent className="p-4 flex items-center justify-between">

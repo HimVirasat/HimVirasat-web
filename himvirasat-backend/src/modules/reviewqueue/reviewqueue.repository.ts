@@ -1,8 +1,3 @@
-/**
- * Review Queue Repository
- * File: reviewqueue.repository.ts
- */
-
 import { supabase } from "../../services/supabase.js";
 import {
   RawContribution,

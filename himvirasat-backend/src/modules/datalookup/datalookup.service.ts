@@ -1,4 +1,4 @@
-// import { AuditLogger } from "../../utils/audit-logger.js";
+import { AuditLogger } from "../../utils/audit-logger.js";
 import {
   DataLookupRepository,
   dataLookupRepository,
@@ -12,6 +12,7 @@ import {
   ErrorLog,
   GetLogsParams,
 } from "@himvirasat/shared";
+import { SecurityContext } from "../../utils/get-authenticated-user.js";
 
 export type { DynamicLookupOption };
 
@@ -20,31 +21,38 @@ export class DataLookupService {
     private readonly repository: DataLookupRepository = dataLookupRepository,
   ) {}
 
-  async fetchDialects(): Promise<DynamicLookupOption[]> {
+  async fetchDialects(_ctx: SecurityContext): Promise<DynamicLookupOption[]> {
     return await this.repository.getDialects();
   }
 
-  async fetchCategories(): Promise<DynamicLookupOption[]> {
+  async fetchCategories(_ctx: SecurityContext): Promise<DynamicLookupOption[]> {
     return await this.repository.getCategories();
   }
 
-  async fetchPartsOfSpeech(): Promise<DynamicLookupOption[]> {
+  async fetchPartsOfSpeech(_ctx: SecurityContext): Promise<DynamicLookupOption[]> {
     return await this.repository.getPartsOfSpeech();
   }
 
-  async fetchAvailableRegions(): Promise<DynamicLookupOption[]> {
+  async fetchAvailableRegions(_ctx: SecurityContext): Promise<DynamicLookupOption[]> {
     return await this.repository.getAvailableRegions();
   }
 
-  async fetchActivityLogs(params: GetLogsParams): Promise<ActivityLog[]> {
+  async fetchActivityLogs(
+    _ctx: SecurityContext,
+    params: GetLogsParams,
+  ): Promise<ActivityLog[]> {
     return await this.repository.getActivityLogs(params);
   }
 
-  async fetchErrorLogs(params: GetLogsParams): Promise<ErrorLog[]> {
+  async fetchErrorLogs(
+    _ctx: SecurityContext,
+    params: GetLogsParams,
+  ): Promise<ErrorLog[]> {
     return await this.repository.getErrorLogs(params);
   }
 
   async generateLinguisticMetadata(
+    ctx: SecurityContext,
     input: GenerateMetadataInput,
   ): Promise<MetadataGenerationResult> {
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -87,6 +95,15 @@ export class DataLookupService {
     const data = await response.json();
     const rawContent = data.choices?.[0]?.message?.content || "{}";
     const parsed = this.parseCleanJSON(rawContent) as LinguisticMetadata;
+
+    await AuditLogger.logActivity({
+      actorId: ctx.actor.id,
+      action: "GENERATE_LINGUISTIC_METADATA",
+      entityType: "linguistic_metadata",
+      serviceCategory: "datalookup",
+      status: "SUCCESS",
+      metadata: { input, model, detailed_user: ctx.actor },
+    });
 
     return { model, data: parsed };
   }

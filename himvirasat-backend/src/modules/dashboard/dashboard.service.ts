@@ -11,7 +11,7 @@ export class DashboardService {
     private readonly repository: DashboardRepository = dashboardRepository,
   ) {}
 
-  async fetchDashboardStats(ctx: SecurityContext): Promise<DashboardStats> {
+  async fetchDashboardStats(_ctx: SecurityContext): Promise<DashboardStats> {
     const stats = await this.repository.getDashboardStats();
 
     // await AuditLogger.logActivity({

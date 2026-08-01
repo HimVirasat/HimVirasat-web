@@ -6,7 +6,6 @@ import type { JwtUser } from "@himvirasat/shared";
 export interface DetailedUser {
   id: string;
   role: string;
-  email: string;
   points: number;
   dialects: string[];
   username: string;
@@ -25,13 +24,13 @@ export interface AuthenticatedRequest extends Request {
 
 export interface StrictAuthenticatedRequest extends AuthenticatedRequest {
   user: JwtUser;
-  _cachedUser: DetailedUser; 
+  _cachedUser: DetailedUser;
 }
 export interface SecurityContext {
   actor: DetailedUser;
 }
 export async function getAuthenticatedUser(
-  req: AuthenticatedRequest
+  req: AuthenticatedRequest,
 ): Promise<DetailedUser | null> {
   if (req._cachedUser) {
     return req._cachedUser;
@@ -41,18 +40,16 @@ export async function getAuthenticatedUser(
   if (!userId) return null;
 
   try {
-    // 2. Query DB once
     const { data: user, error } = await supabase
       .from("users")
       .select(
-        "id, role, email, points, dialects, username, full_name, is_active, created_at, updated_at, total_reviews, total_contributions"
+        "id, role, points, dialects, username, full_name, is_active, created_at, updated_at, total_reviews, total_contributions",
       )
       .eq("id", userId)
       .single();
 
     if (error || !user) return null;
 
-    // 3. Cache on request object
     req._cachedUser = user as DetailedUser;
 
     return req._cachedUser;
@@ -60,7 +57,6 @@ export async function getAuthenticatedUser(
     return null;
   }
 }
-// src/utils/get-user.ts
 
 export async function getAuthenticatedUserById(userId?: string) {
   if (!userId) return null;
@@ -69,7 +65,7 @@ export async function getAuthenticatedUserById(userId?: string) {
     const { data: user, error } = await supabase
       .from("users")
       .select(
-        "id, role, email, points, dialects, username, full_name, is_active, created_at, updated_at, total_reviews, total_contributions"
+        "id, role, email, points, dialects, username, full_name, is_active, created_at, updated_at, total_reviews, total_contributions",
       )
       .eq("id", userId)
       .single();

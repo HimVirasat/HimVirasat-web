@@ -15,14 +15,14 @@ export class AuthService {
     const user = await this.repository.findByUsername(username);
 
     if (!user) {
-      await AuditLogger.logActivity({
-        actorId: null,
-        action: "LOGIN_FAILED",
-        entityType: "user",
-        serviceCategory: "auth",
-        status: "FAILED",
-        metadata: { username, reason: "User not found" },
-      });
+      // await AuditLogger.logActivity({
+      //   actorId: null,
+      //   action: "LOGIN_FAILED",
+      //   entityType: "user",
+      //   serviceCategory: "auth",
+      //   status: "FAILED",
+      //   metadata: { username, reason: "User not found" },
+      // });
 
       return {
         success: false,
@@ -32,15 +32,15 @@ export class AuthService {
     }
 
     if (!user.is_active) {
-      await AuditLogger.logActivity({
-        actorId: user.id,
-        action: "LOGIN_FAILED",
-        entityType: "user",
-        entityId: user.id,
-        serviceCategory: "auth",
-        status: "FAILED",
-        metadata: { username, reason: "Account disabled" },
-      });
+      // await AuditLogger.logActivity({
+      //   actorId: user.id,
+      //   action: "LOGIN_FAILED",
+      //   entityType: "user",
+      //   entityId: user.id,
+      //   serviceCategory: "auth",
+      //   status: "FAILED",
+      //   metadata: { username, reason: "Account disabled" },
+      // });
 
       return {
         success: false,
@@ -51,15 +51,15 @@ export class AuthService {
 
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordValid) {
-      await AuditLogger.logActivity({
-        actorId: user.id,
-        action: "LOGIN_FAILED",
-        entityType: "user",
-        entityId: user.id,
-        serviceCategory: "auth",
-        status: "FAILED",
-        metadata: { username, reason: "Invalid password" },
-      });
+      // await AuditLogger.logActivity({
+      //   actorId: user.id,
+      //   action: "LOGIN_FAILED",
+      //   entityType: "user",
+      //   entityId: user.id,
+      //   serviceCategory: "auth",
+      //   status: "FAILED",
+      //   metadata: { username, reason: "Invalid password" },
+      // });
 
       return {
         success: false,
@@ -82,15 +82,15 @@ export class AuthService {
       dialects: user.dialects,
     };
 
-    await AuditLogger.logActivity({
-      actorId: user.id,
-      action: "LOGIN_SUCCESS",
-      entityType: "user",
-      entityId: user.id,
-      serviceCategory: "auth",
-      status: "SUCCESS",
-      metadata: { username: user.username, role: user.role },
-    });
+    // await AuditLogger.logActivity({
+    //   actorId: user.id,
+    //   action: "LOGIN_SUCCESS",
+    //   entityType: "user",
+    //   entityId: user.id,
+    //   serviceCategory: "auth",
+    //   status: "SUCCESS",
+    //   metadata: { username: user.username, role: user.role },
+    // });
 
     return {
       success: true,
@@ -149,15 +149,15 @@ export class AuthService {
       dialects: user.dialects,
     };
 
-    await AuditLogger.logActivity({
-      actorId: user.id,
-      action: "CONTRIBUTOR_SIGNUP_SUCCESS",
-      entityType: "user",
-      entityId: user.id,
-      serviceCategory: "auth",
-      status: "SUCCESS",
-      metadata: { username: user.username, role: user.role },
-    });
+    // await AuditLogger.logActivity({
+    //   actorId: user.id,
+    //   action: "CONTRIBUTOR_SIGNUP_SUCCESS",
+    //   entityType: "user",
+    //   entityId: user.id,
+    //   serviceCategory: "auth",
+    //   status: "SUCCESS",
+    //   metadata: { username: user.username, role: user.role },
+    // });
 
     return {
       success: true,
@@ -195,15 +195,18 @@ export class AuthService {
       user.password_hash,
     );
     if (!isPasswordValid) {
-      await AuditLogger.logActivity({
-        actorId: ctx.actor.id,
-        action: "RESET_PASSWORD_FAILED",
-        entityType: "user",
-        entityId: ctx.actor.id,
-        serviceCategory: "auth",
-        status: "FAILED",
-        metadata: { reason: "Incorrect current password", detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logActivity({
+      //   actorId: ctx.actor.id,
+      //   action: "RESET_PASSWORD_FAILED",
+      //   entityType: "user",
+      //   entityId: ctx.actor.id,
+      //   serviceCategory: "auth",
+      //   status: "FAILED",
+      //   metadata: {
+      //     reason: "Incorrect current password",
+      //     detailed_user: ctx.actor,
+      //   },
+      // });
 
       return {
         success: false,
@@ -219,15 +222,18 @@ export class AuthService {
     );
 
     if (!isUpdated) {
-      await AuditLogger.logActivity({
-        actorId: ctx.actor.id,
-        action: "RESET_PASSWORD_FAILED",
-        entityType: "user",
-        entityId: ctx.actor.id,
-        serviceCategory: "auth",
-        status: "FAILED",
-        metadata: { reason: "Database update failed", detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logActivity({
+      //   actorId: ctx.actor.id,
+      //   action: "RESET_PASSWORD_FAILED",
+      //   entityType: "user",
+      //   entityId: ctx.actor.id,
+      //   serviceCategory: "auth",
+      //   status: "FAILED",
+      //   metadata: {
+      //     reason: "Database update failed",
+      //     detailed_user: ctx.actor,
+      //   },
+      // });
 
       return {
         success: false,
@@ -236,15 +242,15 @@ export class AuthService {
       };
     }
 
-    await AuditLogger.logActivity({
-      actorId: ctx.actor.id,
-      action: "RESET_PASSWORD_SUCCESS",
-      entityType: "user",
-      entityId: ctx.actor.id,
-      serviceCategory: "auth",
-      status: "SUCCESS",
-      metadata: { detailed_user: ctx.actor },
-    });
+    // await AuditLogger.logActivity({
+    //   actorId: ctx.actor.id,
+    //   action: "RESET_PASSWORD_SUCCESS",
+    //   entityType: "user",
+    //   entityId: ctx.actor.id,
+    //   serviceCategory: "auth",
+    //   status: "SUCCESS",
+    //   metadata: { detailed_user: ctx.actor },
+    // });
 
     return { success: true, message: "Password reset successfully" };
   }

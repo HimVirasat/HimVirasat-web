@@ -6,7 +6,7 @@ import {
   SecurityContext,
   getAuthenticatedUser,
 } from "../../utils/get-authenticated-user.js";
-import { AuditLogger } from "../../utils/audit-logger.js";
+// import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class DashboardController {
   constructor(private readonly service: DashboardService = dashboardService) {}
@@ -20,9 +20,10 @@ export class DashboardController {
   getDashboardStats: RequestHandler = async (req, res): Promise<void> => {
     const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
     if (!cachedUser) {
-      res
-        .status(401)
-        .json({ success: false, error: "Authentication or user profile missing." });
+      res.status(401).json({
+        success: false,
+        error: "Authentication or user profile missing.",
+      });
       return;
     }
 
@@ -38,16 +39,16 @@ export class DashboardController {
           ? error.message
           : "Failed to fetch dashboard statistics";
 
-      await AuditLogger.logError({
-        userId: ctx.actor.id,
-        errorMessage,
-        serviceCategory: "datalookup",
-        stackTrace: error.stack,
-        code: "FETCH_DASHBOARD_STATS_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { query: req.query, detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "datalookup",
+      //   stackTrace: error.stack,
+      //   code: "FETCH_DASHBOARD_STATS_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { query: req.query, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({
         success: false,

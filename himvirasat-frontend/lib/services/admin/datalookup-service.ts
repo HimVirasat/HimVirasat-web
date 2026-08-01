@@ -17,9 +17,6 @@ export interface GeneratedMetadataResult {
 }
 
 export class DataLookupService {
-  /**
-   * Fetches all dynamic dialect strings from the database
-   */
   static async getAvailableDialects(): Promise<string[]> {
     const response = await fetch(`${API_URL}/datalookup/available-dialects`, {
       credentials: "include",
@@ -33,6 +30,7 @@ export class DataLookupService {
     console.log(result.data);
     return result.data;
   }
+
   static async getAvailablePartsOfSpeech(): Promise<string[]> {
     const response = await fetch(`${API_URL}/datalookup/available-pos`, {
       credentials: "include",
@@ -45,9 +43,7 @@ export class DataLookupService {
     const result = await response.json();
     return result.data;
   }
-  /**
-   * Fetches all functional category strings from the database
-   */
+
   static async getAvailableCategories(): Promise<string[]> {
     const response = await fetch(`${API_URL}/datalookup/available-categories`, {
       credentials: "include",
@@ -60,6 +56,7 @@ export class DataLookupService {
     const result = await response.json();
     return result.data;
   }
+
   static async getAvailableRegions(): Promise<string[]> {
     const response = await fetch(`${API_URL}/datalookup/available-regions`, {
       credentials: "include",
@@ -71,16 +68,19 @@ export class DataLookupService {
     return result.data;
   }
 
-  /**
-   * Fetches activity logs matching filter criteria
-   */
   static async getActivityLogs(params: GetLogsParams): Promise<ActivityLog[]> {
     const queryParams = new URLSearchParams();
-    if (params.status && params.status !== "ALL") {
+    if (params.status && (params.status as string) !== "ALL") {
       queryParams.append("status", params.status);
     }
-    if (params.service && params.service !== "ALL") {
+    if (params.service && (params.service as string) !== "ALL") {
       queryParams.append("service", params.service);
+    }
+    if (params.page !== undefined) {
+      queryParams.append("page", String(params.page));
+    }
+    if (params.limit !== undefined) {
+      queryParams.append("limit", String(params.limit));
     }
 
     const response = await fetch(
@@ -96,16 +96,19 @@ export class DataLookupService {
     return result.data;
   }
 
-  /**
-   * Fetches error exception logs matching filter criteria
-   */
   static async getErrorLogs(params: GetLogsParams): Promise<ErrorLog[]> {
     const queryParams = new URLSearchParams();
-    if (params.status && params.status !== "ALL") {
+    if (params.status && (params.status as string) !== "ALL") {
       queryParams.append("status", params.status);
     }
-    if (params.service && params.service !== "ALL") {
+    if (params.service && (params.service as string) !== "ALL") {
       queryParams.append("service", params.service);
+    }
+    if (params.page !== undefined) {
+      queryParams.append("page", String(params.page));
+    }
+    if (params.limit !== undefined) {
+      queryParams.append("limit", String(params.limit));
     }
 
     const response = await fetch(
@@ -120,6 +123,7 @@ export class DataLookupService {
     const result = await response.json();
     return result.data;
   }
+
   static async generateMetadata(
     payload: GenerateMetadataPayload
   ): Promise<GeneratedMetadataResult> {

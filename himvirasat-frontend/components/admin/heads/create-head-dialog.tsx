@@ -220,10 +220,11 @@ export function CreateHeadDialog({
                         key={dialectKey}
                         type="button"
                         onClick={() => handleToggleDialect(dialectName)}
-                        className={`flex items-center justify-between px-2.5 py-1.5 text-xs font-medium rounded border transition-all cursor-pointer ${isChecked
+                        className={`flex items-center justify-between px-2.5 py-1.5 text-xs font-medium rounded border transition-all cursor-pointer ${
+                          isChecked
                             ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/30 dark:text-indigo-400"
                             : "hover:bg-muted/40 text-muted-foreground border-transparent"
-                          }`}
+                        }`}
                       >
                         <span>{dialectName}</span>
                         {isChecked && (

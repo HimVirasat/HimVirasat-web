@@ -38,10 +38,7 @@ export class DatasetsService {
     return await this.repository.findEntries(filters);
   }
 
-  async getEntryById(
-    _ctx: SecurityContext,
-    id: string,
-  ): Promise<DatasetEntry> {
+  async getEntryById(_ctx: SecurityContext, id: string): Promise<DatasetEntry> {
     const entry = await this.repository.findEntryById(id);
     if (!entry) {
       throw new Error("Dataset entry not found");

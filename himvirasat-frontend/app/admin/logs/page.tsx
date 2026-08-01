@@ -9,10 +9,8 @@ import {
   RefreshCw,
   Check,
   Code2,
-  Terminal,
   Loader2,
   Layers,
-  Globe,
   ChevronLeft,
   ChevronRight,
   ShieldAlert,
@@ -21,6 +19,8 @@ import {
   ExternalLink,
   Info,
   Copy,
+  Terminal,
+  Fingerprint,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,39 +51,50 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { DataLookupService } from "@/lib/services/admin/datalookup-service";
-import { ActivityLog, ErrorLog, ServiceCategory } from "@himvirasat/shared";
+import {
+  ActivityLog,
+  ErrorLog,
+  BACKEND_MODULE_CATEGORIES,
+  LOG_STATUS,
+} from "@himvirasat/shared";
 
-const SERVICE_CATEGORIES: { label: string; value: ServiceCategory | "ALL" }[] =
-  [
-    { label: "All Services", value: "ALL" },
-    { label: "Auth", value: "auth" },
-    { label: "Dashboard", value: "dashboard" },
-    { label: "Data Lookup", value: "datalookup" },
-    { label: "Review Queue", value: "review_queue" },
-    { label: "Submissions", value: "submissions" },
-    { label: "Users", value: "users" },
-  ];
+const isErrorLog = (log: ActivityLog | ErrorLog): log is ErrorLog => {
+  return "error_message" in log;
+};
+
+const SERVICE_CATEGORIES: {
+  label: string;
+  value: BACKEND_MODULE_CATEGORIES | "ALL";
+}[] = [
+  { label: "All Services", value: "ALL" },
+  { label: "Auth", value: "auth" },
+  { label: "Dashboard", value: "dashboard" },
+  { label: "Data Lookup", value: "datalookup" },
+  { label: "Review Queue", value: "review_queue" },
+  { label: "Submissions", value: "submissions" },
+  { label: "Users", value: "users" },
+  { label: "Datasets", value: "datasets" },
+];
 
 export default function LogsDashboardPage() {
   const [activeTab, setActiveTab] = useState<"activity" | "error">("activity");
-  const [selectedService, setSelectedService] = useState<string>("ALL");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [selectedService, setSelectedService] = useState<
+    BACKEND_MODULE_CATEGORIES | "ALL"
+  >("ALL");
+  const [statusFilter, setStatusFilter] = useState<LOG_STATUS | "ALL">("ALL");
   const [isLiveTail, setIsLiveTail] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
 
-  // Inspector Drawer State
   const [selectedLog, setSelectedLog] = useState<ActivityLog | ErrorLog | null>(
     null
   );
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
 
-  // TanStack Query for Activity Logs
   const {
-    data: rawActivityLogs = [],
+    data: activityLogs = [],
     isLoading: isLoadingActivity,
     refetch: refetchActivity,
     isFetching: isFetchingActivity,
@@ -106,9 +117,8 @@ export default function LogsDashboardPage() {
     refetchInterval: isLiveTail ? 5000 : false,
   });
 
-  // TanStack Query for Error Logs
   const {
-    data: rawErrorLogs = [],
+    data: errorLogs = [],
     isLoading: isLoadingError,
     refetch: refetchError,
     isFetching: isFetchingError,
@@ -136,44 +146,30 @@ export default function LogsDashboardPage() {
   const isFetching =
     activeTab === "activity" ? isFetchingActivity : isFetchingError;
 
-  // Pagination Calculations
-  const activeDataset =
-    activeTab === "activity" ? rawActivityLogs : rawErrorLogs;
-  const totalItems = activeDataset.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const activeDataset = activeTab === "activity" ? activityLogs : errorLogs;
+  const hasNextPage = activeDataset.length === pageSize;
 
-  const paginatedLogs = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    return activeDataset.slice(startIndex, startIndex + pageSize);
-  }, [activeDataset, currentPage, pageSize]);
-
-  // Telemetry Aggregation Metrics
   const metrics = useMemo(() => {
     if (activeTab === "activity") {
-      const successCount = rawActivityLogs.filter(
-        (l) => l.status === "SUCCESS"
-      ).length;
-      const failedCount = rawActivityLogs.filter(
-        (l) => l.status === "FAILED"
-      ).length;
       return {
-        total: rawActivityLogs.length,
-        success: successCount,
-        failed: failedCount,
+        total: activityLogs.length,
+        success: activityLogs.filter((l) => l.status === "SUCCESS").length,
+        failed: activityLogs.filter((l) => l.status === "FAILED").length,
       };
     } else {
       return {
-        total: rawErrorLogs.length,
-        critical: rawErrorLogs.filter(
-          (e) => e.code?.includes("CRITICAL") || e.code?.includes("500")
+        total: errorLogs.length,
+        critical: errorLogs.filter(
+          (e) => e.code?.includes("500") || e.code?.includes("501")
         ).length,
-        standard: rawErrorLogs.filter((e) => !e.code?.includes("CRITICAL"))
-          .length,
+        standard: errorLogs.filter(
+          (e) => !e.code?.includes("500") && !e.code?.includes("501")
+        ).length,
       };
     }
-  }, [activeTab, rawActivityLogs, rawErrorLogs]);
+  }, [activeTab, activityLogs, errorLogs]);
 
-  const handleCopyJson = (data: any) => {
+  const handleCopyJson = (data: unknown) => {
     navigator.clipboard.writeText(JSON.stringify(data, null, 2));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -228,7 +224,7 @@ export default function LogsDashboardPage() {
             <CardContent className="p-4 flex items-center justify-between">
               <div>
                 <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider font-mono">
-                  Total Telemetry Events
+                  Events on Page
                 </p>
                 <p className="text-2xl font-bold font-mono tracking-tight mt-1">
                   {metrics.total}
@@ -246,7 +242,7 @@ export default function LogsDashboardPage() {
                 <CardContent className="p-4 flex items-center justify-between">
                   <div>
                     <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wider font-mono">
-                      Successful Operations
+                      Successful Ops
                     </p>
                     <p className="text-2xl font-bold font-mono tracking-tight text-emerald-600 dark:text-emerald-400 mt-1">
                       {metrics.success}
@@ -262,7 +258,7 @@ export default function LogsDashboardPage() {
                 <CardContent className="p-4 flex items-center justify-between">
                   <div>
                     <p className="text-[11px] font-medium text-rose-600 dark:text-rose-400 uppercase tracking-wider font-mono">
-                      Failed Execution Attempts
+                      Failed Attempts
                     </p>
                     <p className="text-2xl font-bold font-mono tracking-tight text-rose-600 dark:text-rose-400 mt-1">
                       {metrics.failed}
@@ -280,7 +276,7 @@ export default function LogsDashboardPage() {
                 <CardContent className="p-4 flex items-center justify-between">
                   <div>
                     <p className="text-[11px] font-medium text-destructive uppercase tracking-wider font-mono">
-                      Critical Exceptions
+                      Critical Exceptions (5xx)
                     </p>
                     <p className="text-2xl font-bold font-mono tracking-tight text-destructive mt-1">
                       {metrics.critical}
@@ -296,7 +292,7 @@ export default function LogsDashboardPage() {
                 <CardContent className="p-4 flex items-center justify-between">
                   <div>
                     <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wider font-mono">
-                      Standard Exception Logs
+                      Standard Logged Errors
                     </p>
                     <p className="text-2xl font-bold font-mono tracking-tight text-amber-600 dark:text-amber-400 mt-1">
                       {metrics.standard}
@@ -316,7 +312,7 @@ export default function LogsDashboardPage() {
           <Tabs
             value={activeTab}
             onValueChange={(v) => {
-              setActiveTab(v as any);
+              setActiveTab(v as "activity" | "error");
               setCurrentPage(1);
             }}
             className="w-auto"
@@ -341,7 +337,7 @@ export default function LogsDashboardPage() {
             <Select
               value={selectedService}
               onValueChange={(val) => {
-                setSelectedService(val);
+                setSelectedService(val as BACKEND_MODULE_CATEGORIES | "ALL");
                 setCurrentPage(1);
               }}
             >
@@ -365,7 +361,7 @@ export default function LogsDashboardPage() {
             <Select
               value={statusFilter}
               onValueChange={(val) => {
-                setStatusFilter(val);
+                setStatusFilter(val as LOG_STATUS | "ALL");
                 setCurrentPage(1);
               }}
             >
@@ -388,20 +384,21 @@ export default function LogsDashboardPage() {
           </div>
         </div>
 
-        {/* Table + Footer Wrapper (min-h-0 allows flex child scrolling) */}
+        {/* Table + Footer Wrapper */}
         <div className="flex flex-1 flex-col min-h-0 rounded-xl border bg-card shadow-xs overflow-hidden">
-          {/* Scrollable Table Content Area */}
           <div className="relative flex-1 min-h-0 overflow-auto">
             {isLoading ? (
               <div className="flex h-full min-h-48 items-center justify-center text-xs text-muted-foreground gap-2">
                 <Loader2 className="size-4 animate-spin text-primary" />
                 Retrieving telemetry logs...
               </div>
-            ) : paginatedLogs.length === 0 ? (
+            ) : activeDataset.length === 0 ? (
               <div className="flex h-full min-h-48 flex-col items-center justify-center gap-2 text-center text-xs text-muted-foreground p-6">
                 <Info className="size-8 text-muted-foreground/50" />
                 <p className="font-semibold">No telemetry log entries found</p>
-                <p className="text-[11px]">Try resetting selected filters.</p>
+                <p className="text-[11px]">
+                  Try adjusting your filters or checking a different page.
+                </p>
               </div>
             ) : activeTab === "activity" ? (
               <Table>
@@ -417,7 +414,7 @@ export default function LogsDashboardPage() {
                       SERVICE
                     </TableHead>
                     <TableHead className="text-[11px] font-mono">
-                      TRIGGERED BY
+                      ACTOR ID
                     </TableHead>
                     <TableHead className="w-56 text-[11px] font-mono">
                       ENTITY TARGET
@@ -431,7 +428,7 @@ export default function LogsDashboardPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody className="font-mono text-xs">
-                  {(paginatedLogs as ActivityLog[]).map((log) => (
+                  {(activeDataset as ActivityLog[]).map((log) => (
                     <TableRow
                       key={log.id}
                       onClick={() => handleOpenLog(log)}
@@ -457,24 +454,12 @@ export default function LogsDashboardPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-sans font-medium text-foreground max-w-40">
-                        <div className="flex flex-col min-w-0">
-                          {/* Unique Identifier / Handle */}
-                          <span className="font-mono text-xs font-semibold truncate">
-                            {log.actor_id || "System"}
-                          </span>
-                          {/* Display Name as muted subtext */}
-                          {log.actor_name && (
-                            <span className="text-[10px] text-muted-foreground truncate">
-                              {log.actor_name}
-                            </span>
-                          )}
-                        </div>
+                        <span className="font-mono text-xs font-semibold truncate block">
+                          {log.actor_id || "System"}
+                        </span>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {log.entity_type}{" "}
-                        {log.entity_id
-                          ? `(${log.entity_id.slice(0, 8)}...)`
-                          : ""}
+                        {log.entity_type}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -518,7 +503,7 @@ export default function LogsDashboardPage() {
                       MESSAGE EXCEPTION
                     </TableHead>
                     <TableHead className="text-[11px] font-mono">
-                      USER
+                      USER ID
                     </TableHead>
                     <TableHead className="w-12 text-right text-[11px] font-mono">
                       INSPECT
@@ -526,7 +511,7 @@ export default function LogsDashboardPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody className="font-mono text-xs">
-                  {(paginatedLogs as ErrorLog[]).map((log) => (
+                  {(activeDataset as ErrorLog[]).map((log) => (
                     <TableRow
                       key={log.id}
                       onClick={() => handleOpenLog(log)}
@@ -540,7 +525,7 @@ export default function LogsDashboardPage() {
                           variant="destructive"
                           className="text-[10px] font-mono font-bold"
                         >
-                          {log.code || "500_EXC"}
+                          {log.code || "500"}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -552,13 +537,13 @@ export default function LogsDashboardPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-semibold text-foreground">
-                        {log.method || "POST"} {log.path || "/"}
+                        {log.method || "N/A"} {log.path || "/"}
                       </TableCell>
                       <TableCell className="max-w-xs truncate text-muted-foreground font-sans">
                         {log.error_message}
                       </TableCell>
-                      <TableCell className="font-sans font-medium">
-                        {log.user_name || log.user_id || "Anonymous"}
+                      <TableCell className="font-sans font-medium truncate max-w-28 text-muted-foreground">
+                        {log.user_id || "Anonymous"}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="icon" className="size-7">
@@ -572,7 +557,7 @@ export default function LogsDashboardPage() {
             )}
           </div>
 
-          {/* Locked Pagination Controls Footer */}
+          {/* Pagination Footer */}
           <div className="flex shrink-0 items-center justify-between border-t px-4 py-2.5 bg-card text-xs">
             <div className="flex items-center gap-2 text-muted-foreground font-mono">
               <span>Rows per page:</span>
@@ -597,14 +582,14 @@ export default function LogsDashboardPage() {
 
             <div className="flex items-center gap-4">
               <span className="text-muted-foreground font-mono">
-                Page {currentPage} of {totalPages}
+                Page {currentPage}
               </span>
               <div className="flex items-center gap-1">
                 <Button
                   variant="outline"
                   size="icon"
                   className="size-7"
-                  disabled={currentPage === 1}
+                  disabled={currentPage === 1 || isFetching}
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 >
                   <ChevronLeft className="size-3.5" />
@@ -613,10 +598,8 @@ export default function LogsDashboardPage() {
                   variant="outline"
                   size="icon"
                   className="size-7"
-                  disabled={currentPage >= totalPages}
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
+                  disabled={!hasNextPage || isFetching}
+                  onClick={() => setCurrentPage((p) => p + 1)}
                 >
                   <ChevronRight className="size-3.5" />
                 </Button>
@@ -628,14 +611,14 @@ export default function LogsDashboardPage() {
 
       {/* Drawer Inspector */}
       <Sheet open={isInspectorOpen} onOpenChange={setIsInspectorOpen}>
-        <SheetContent className="sm:max-w-xl w-full flex flex-col p-0 gap-0 bg-background overflow-hidden">
+        <SheetContent className="sm:max-w-2xl w-full flex flex-col p-0 gap-0 bg-background overflow-hidden border-l border-border">
           {selectedLog && (
             <>
               <SheetHeader className="p-6 border-b bg-muted/20 shrink-0">
                 <div className="flex items-center justify-between pr-6">
                   <Badge
                     variant="outline"
-                    className="font-mono text-[10px] uppercase"
+                    className="font-mono text-[10px] uppercase bg-background"
                   >
                     {selectedLog.service_category}
                   </Badge>
@@ -653,10 +636,10 @@ export default function LogsDashboardPage() {
                     Copy JSON
                   </Button>
                 </div>
-                <SheetTitle className="text-base font-bold font-mono tracking-tight mt-2 text-foreground">
-                  {"action" in selectedLog
-                    ? selectedLog.action
-                    : selectedLog.error_message}
+                <SheetTitle className="text-base font-bold font-mono tracking-tight mt-2 text-foreground wrap-break-word">
+                  {isErrorLog(selectedLog)
+                    ? selectedLog.error_message
+                    : selectedLog.action}
                 </SheetTitle>
                 <SheetDescription className="text-xs font-mono text-muted-foreground">
                   ID: {selectedLog.id} •{" "}
@@ -664,78 +647,141 @@ export default function LogsDashboardPage() {
                 </SheetDescription>
               </SheetHeader>
 
-              <ScrollArea className="flex-1 p-6">
-                <div className="space-y-6">
-                  <div className="space-y-2">
+              {/* Scrollable Detail View */}
+              <ScrollArea className="flex-1 min-h-0">
+                <div className="p-6 space-y-6">
+                  {/* Overview Attributes */}
+                  <div className="space-y-3">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono flex items-center gap-1.5">
-                      <Server className="size-3.5" /> Overview & Attributes
+                      <Server className="size-3.5" /> Overview Attributes
                     </h4>
-                    <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                      <div className="rounded-lg border p-2.5 bg-card">
-                        <p className="text-[10px] text-muted-foreground uppercase">
-                          Status
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
+                      <div className="rounded-lg border border-border/60 p-3 bg-card shadow-sm">
+                        <p className="text-[10px] text-muted-foreground uppercase flex items-center gap-1">
+                          <Activity className="size-3" /> Status & Action
                         </p>
-                        <p className="font-bold mt-0.5">{selectedLog.status}</p>
-                      </div>
-                      <div className="rounded-lg border p-2.5 bg-card">
-                        <p className="text-[10px] text-muted-foreground uppercase">
-                          Trigger Actor / User
-                        </p>
-                        <p className="font-bold mt-0.5 truncate">
-                          {"user_name" in selectedLog
-                            ? selectedLog.user_name ||
-                              selectedLog.user_id ||
-                              "Anonymous"
-                            : "actor_name" in selectedLog
-                              ? selectedLog.actor_name ||
-                                selectedLog.actor_id ||
-                                "System"
-                              : "System"}
-                        </p>
-                      </div>
-                      {"entity_type" in selectedLog && (
-                        <div className="rounded-lg border p-2.5 bg-card col-span-2">
-                          <p className="text-[10px] text-muted-foreground uppercase">
-                            Target Entity
-                          </p>
-                          <p className="font-bold mt-0.5">
-                            {selectedLog.entity_type}{" "}
-                            {selectedLog.entity_id
-                              ? `(${selectedLog.entity_id})`
-                              : ""}
-                          </p>
+                        <div className="mt-1.5 flex items-center gap-2">
+                          <span
+                            className={cn(
+                              "size-2 rounded-full",
+                              selectedLog.status === "SUCCESS"
+                                ? "bg-emerald-500"
+                                : "bg-rose-500"
+                            )}
+                          />
+                          <span className="font-bold">
+                            {selectedLog.status}
+                          </span>
                         </div>
-                      )}
-                      {"path" in selectedLog && (
-                        <div className="rounded-lg border p-2.5 bg-card col-span-2">
-                          <p className="text-[10px] text-muted-foreground uppercase">
-                            HTTP Route Execution
-                          </p>
-                          <p className="font-bold mt-0.5">
-                            {selectedLog.method} {selectedLog.path}
-                          </p>
+                        <p className="mt-1 font-semibold text-muted-foreground truncate">
+                          {selectedLog.action}
+                        </p>
+                      </div>
+
+                      <div className="rounded-lg border border-border/60 p-3 bg-card shadow-sm">
+                        <p className="text-[10px] text-muted-foreground uppercase flex items-center gap-1">
+                          <Terminal className="size-3" /> Backend Code mapping
+                        </p>
+                        <Badge
+                          variant="secondary"
+                          className="mt-2 text-[10px] break-all"
+                        >
+                          {selectedLog.backend_code}
+                        </Badge>
+                      </div>
+
+                      <div className="rounded-lg border border-border/60 p-3 bg-card shadow-sm sm:col-span-2">
+                        <p className="text-[10px] text-muted-foreground uppercase flex items-center gap-1">
+                          <Fingerprint className="size-3" /> Trigger Actor /
+                          Target
+                        </p>
+                        <div className="mt-2 grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-[10px] text-muted-foreground block mb-0.5">
+                              Actor ID
+                            </span>
+                            <span className="font-semibold break-all">
+                              {isErrorLog(selectedLog)
+                                ? selectedLog.user_id || "System / Anonymous"
+                                : selectedLog.actor_id || "System / Anonymous"}
+                            </span>
+                          </div>
+                          {!isErrorLog(selectedLog) && (
+                            <div>
+                              <span className="text-[10px] text-muted-foreground block mb-0.5">
+                                Entity Type Target
+                              </span>
+                              <Badge variant="outline" className="text-[10px]">
+                                {selectedLog.entity_type}
+                              </Badge>
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
-                  {"stack_trace" in selectedLog && selectedLog.stack_trace && (
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-destructive font-mono flex items-center gap-1.5">
-                        <Code2 className="size-3.5" /> Exception Stack Trace
+
+                  {/* Error Specific Details (Rendered strictly using the type guard) */}
+                  {isErrorLog(selectedLog) && (
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-rose-500 font-mono flex items-center gap-1.5">
+                        <AlertOctagon className="size-3.5" /> Exception Context
                       </h4>
-                      <pre className="p-4 rounded-xl border bg-black text-red-400 font-mono text-[11px] overflow-x-auto leading-relaxed max-h-60">
-                        {selectedLog.stack_trace}
-                      </pre>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
+                        <div className="rounded-lg border border-border/60 p-3 bg-card shadow-sm">
+                          <span className="text-[10px] text-muted-foreground uppercase block mb-1">
+                            Status Code
+                          </span>
+                          <span className="font-bold text-destructive">
+                            {selectedLog.code}
+                          </span>
+                        </div>
+                        <div className="rounded-lg border border-border/60 p-3 bg-card shadow-sm col-span-2">
+                          <span className="text-[10px] text-muted-foreground uppercase block mb-1">
+                            HTTP Route Execution
+                          </span>
+                          <span className="font-bold">
+                            {selectedLog.method || "N/A"}{" "}
+                            {selectedLog.path || "No Path"}
+                          </span>
+                        </div>
+                        {selectedLog.request_id && (
+                          <div className="rounded-lg border border-border/60 p-3 bg-card shadow-sm sm:col-span-3">
+                            <span className="text-[10px] text-muted-foreground uppercase block mb-1">
+                              Trace Request ID
+                            </span>
+                            <span className="font-semibold text-muted-foreground break-all">
+                              {selectedLog.request_id}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
 
-                  <div className="space-y-2">
+                  {isErrorLog(selectedLog) && selectedLog.stack_trace && (
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-destructive font-mono flex items-center gap-1.5">
+                        <Code2 className="size-3.5" /> Stack Trace
+                      </h4>
+                      <ScrollArea className="h-64 rounded-xl border border-destructive/20 bg-[#0d0d0d]">
+                        <pre className="p-4 text-rose-400/90 font-mono text-[11px] leading-relaxed whitespace-pre-wrap break-all">
+                          {selectedLog.stack_trace}
+                        </pre>
+                      </ScrollArea>
+                    </div>
+                  )}
+
+                  {/* Metadata Context Payload */}
+                  <div className="space-y-3">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono flex items-center gap-1.5">
                       <FileJson className="size-3.5" /> Context Metadata Payload
                     </h4>
-                    <div className="p-4 rounded-xl border bg-muted/40 font-mono text-xs overflow-x-auto">
-                      <pre className="text-foreground leading-relaxed">
-                        {JSON.stringify(selectedLog.metadata || {}, null, 2)}
+                    <div className="rounded-xl border border-border/60 bg-muted/30 font-mono text-xs overflow-x-auto p-4 shadow-inner">
+                      <pre className="text-foreground/80 leading-relaxed">
+                        {Object.keys(selectedLog.metadata).length > 0
+                          ? JSON.stringify(selectedLog.metadata, null, 2)
+                          : "// No metadata attached to this log."}
                       </pre>
                     </div>
                   </div>

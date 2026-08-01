@@ -42,7 +42,6 @@ export class DatasetsRepository {
       { count: "exact" },
     );
 
-    // 1. Full-Text Search
     if (filters.search && filters.search.trim() !== "") {
       const term = `%${filters.search.trim()}%`;
       query = query.or(
@@ -50,7 +49,6 @@ export class DatasetsRepository {
       );
     }
 
-    // 2. Foreign Key Filters
     if (filters.language_id)
       query = query.eq("language_id", filters.language_id);
     if (filters.dialect_id) query = query.eq("dialect_id", filters.dialect_id);
@@ -65,7 +63,6 @@ export class DatasetsRepository {
       query = query.eq("contribution_source", filters.contribution_source);
     }
 
-    // 4. Dynamic Sorting
     const sortBy = filters.sort_by || "created_at";
     const isAscending = filters.sort_order === "asc";
     query = query.order(sortBy, { ascending: isAscending });

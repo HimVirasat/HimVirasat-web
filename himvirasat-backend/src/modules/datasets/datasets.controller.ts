@@ -9,9 +9,7 @@ import {
 // import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class DatasetsController {
-  constructor(
-    private readonly service: DatasetsService = datasetsService,
-  ) {}
+  constructor(private readonly service: DatasetsService = datasetsService) {}
 
   private getSecurityContext(req: StrictAuthenticatedRequest): SecurityContext {
     return {
@@ -22,9 +20,7 @@ export class DatasetsController {
   getEntries = async (req: Request, res: Response): Promise<Response> => {
     const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
     if (!cachedUser) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Unauthorized" });
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
     const authReq = req as StrictAuthenticatedRequest;
@@ -69,9 +65,7 @@ export class DatasetsController {
   getEntryById = async (req: Request, res: Response): Promise<Response> => {
     const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
     if (!cachedUser) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Unauthorized" });
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
     const authReq = req as StrictAuthenticatedRequest;

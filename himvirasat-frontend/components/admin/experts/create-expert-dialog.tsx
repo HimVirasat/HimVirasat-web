@@ -216,10 +216,11 @@ export function CreateExpertDialog({
                         key={dialectKey}
                         type="button"
                         onClick={() => handleToggleDialect(dialectName)}
-                        className={`flex items-center justify-between px-2.5 py-1.5 text-xs font-medium rounded border transition-all cursor-pointer ${isChecked
+                        className={`flex items-center justify-between px-2.5 py-1.5 text-xs font-medium rounded border transition-all cursor-pointer ${
+                          isChecked
                             ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30 dark:text-emerald-400"
                             : "hover:bg-muted/40 text-muted-foreground border-transparent"
-                          }`}
+                        }`}
                       >
                         <span>{dialectName}</span>
                         {isChecked && (

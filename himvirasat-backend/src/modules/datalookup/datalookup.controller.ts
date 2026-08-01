@@ -7,6 +7,7 @@ import {
   getAuthenticatedUser,
 } from "../../utils/get-authenticated-user.js";
 import { AuditLogger } from "../../utils/audit-logger.js";
+import { METHODS } from "@himvirasat/shared";
 
 export class DataLookupController {
   constructor(
@@ -35,14 +36,17 @@ export class DataLookupController {
       console.error("DataLookup Controller [getDialects] error:", error);
 
       await AuditLogger.logError({
-        userId: ctx.actor.id,
+        actorUserId: ctx.actor.id,
+        action: "GET_ENTRIES",
         errorMessage: error.message || "Failed to retrieve dialects",
         serviceCategory: "datalookup",
-        stackTrace: error.stack,
-        code: "FETCH_DIALECTS_FAILED",
+        backendCode: "DATALOOKUP_CONTROLLER:FAILED_GET_DIALECTS",
+        code: "500",
+        method: req.method as METHODS,
         path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { detailed_user: ctx.actor },
+        stackTrace: error.stack,
+        metadata: { actor: ctx.actor },
+        logStatus: "FAILED",
       });
 
       return res
@@ -67,14 +71,17 @@ export class DataLookupController {
       console.error("DataLookup Controller [getCategories] error:", error);
 
       await AuditLogger.logError({
-        userId: ctx.actor.id,
+        actorUserId: ctx.actor.id,
+        action: "GET_ENTRIES",
         errorMessage: error.message || "Failed to retrieve categories",
         serviceCategory: "datalookup",
-        stackTrace: error.stack,
-        code: "FETCH_CATEGORIES_FAILED",
+        backendCode: "DATALOOKUP_CONTROLLER:FAILED_GET_CATEGORIES",
+        code: "500",
+        method: req.method as METHODS,
         path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { detailed_user: ctx.actor },
+        stackTrace: error.stack,
+        metadata: { actor: ctx.actor },
+        logStatus: "FAILED",
       });
 
       return res
@@ -99,14 +106,17 @@ export class DataLookupController {
       console.error("DataLookup Controller [getPartsOfSpeech] error:", error);
 
       await AuditLogger.logError({
-        userId: ctx.actor.id,
+        actorUserId: ctx.actor.id,
+        action: "GET_ENTRIES",
         errorMessage: error.message || "Failed to retrieve parts of speech",
         serviceCategory: "datalookup",
-        stackTrace: error.stack,
-        code: "FETCH_PARTS_OF_SPEECH_FAILED",
+        backendCode: "DATALOOKUP_CONTROLLER:FAILED_GET_PARTS_OF_SPEECH",
+        code: "500",
+        method: req.method as METHODS,
         path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { detailed_user: ctx.actor },
+        stackTrace: error.stack,
+        metadata: { actor: ctx.actor },
+        logStatus: "FAILED",
       });
 
       return res.status(500).json({
@@ -127,6 +137,15 @@ export class DataLookupController {
 
     try {
       const data = await this.service.fetchAvailableRegions(ctx);
+      await AuditLogger.logActivity({
+        actorUserId: ctx.actor.id,
+        action: "GET_ENTRIES",
+        backendCode: "DATALOOKUP_SERVICE:SUCCESS_GET_AVAILABLE_REGIONS",
+        backendModuleCategory: "datalookup",
+        entityType: "user",
+        logStatus: "SUCCESS",
+        metadata: { cachedUser },
+      });
       return res.status(200).json({ success: true, data });
     } catch (error: any) {
       console.error(
@@ -135,14 +154,17 @@ export class DataLookupController {
       );
 
       await AuditLogger.logError({
-        userId: ctx.actor.id,
+        actorUserId: ctx.actor.id,
+        action: "GET_ENTRIES",
         errorMessage: error.message || "Failed to retrieve available regions",
         serviceCategory: "datalookup",
-        stackTrace: error.stack,
-        code: "FETCH_AVAILABLE_REGIONS_FAILED",
+        backendCode: "DATALOOKUP_CONTROLLER:FAILED_GET_ENTRIES",
+        code: "500",
+        method: req.method as METHODS,
         path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { detailed_user: ctx.actor },
+        stackTrace: error.stack,
+        metadata: { actor: ctx.actor },
+        logStatus: "FAILED",
       });
 
       return res.status(500).json({
@@ -162,24 +184,29 @@ export class DataLookupController {
     const ctx = this.getSecurityContext(authReq);
 
     try {
-      const { status, service } = req.query;
+      const { status, service, page, limit } = req.query;
       const data = await this.service.fetchActivityLogs(ctx, {
-        status: status as string,
-        service: service as string,
+        status: status ? (status as any) : undefined,
+        service: service ? (service as any) : undefined,
+        page: page ? Number(page) : 1,
+        limit: limit ? Number(limit) : 20,
       });
       return res.status(200).json({ success: true, data });
     } catch (error: any) {
       console.error("DataLookup Controller [getActivityLogs] error:", error);
 
       await AuditLogger.logError({
-        userId: ctx.actor.id,
+        actorUserId: ctx.actor.id,
+        action: "GET_ENTRIES",
         errorMessage: error.message || "Failed to retrieve activity logs",
         serviceCategory: "datalookup",
-        stackTrace: error.stack,
-        code: "FETCH_ACTIVITY_LOGS_FAILED",
+        backendCode: "DATALOOKUP_CONTROLLER:FAILED_GET_ACTIVITY_LOGS",
+        code: "500",
+        method: req.method as METHODS,
         path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { query: req.query, detailed_user: ctx.actor },
+        stackTrace: error.stack,
+        metadata: { query: req.query, actor: ctx.actor },
+        logStatus: "FAILED",
       });
 
       return res
@@ -198,24 +225,29 @@ export class DataLookupController {
     const ctx = this.getSecurityContext(authReq);
 
     try {
-      const { status, service } = req.query;
+      const { status, service, page, limit } = req.query;
       const data = await this.service.fetchErrorLogs(ctx, {
-        status: status as string,
-        service: service as string,
+        status: status ? (status as any) : undefined,
+        service: service ? (service as any) : undefined,
+        page: page ? Number(page) : 1,
+        limit: limit ? Number(limit) : 20,
       });
       return res.status(200).json({ success: true, data });
     } catch (error: any) {
       console.error("DataLookup Controller [getErrorLogs] error:", error);
 
       await AuditLogger.logError({
-        userId: ctx.actor.id,
+        actorUserId: ctx.actor.id,
+        action: "GET_ENTRIES",
         errorMessage: error.message || "Failed to retrieve error logs",
         serviceCategory: "datalookup",
-        stackTrace: error.stack,
-        code: "FETCH_ERROR_LOGS_FAILED",
+        backendCode: "DATALOOKUP_CONTROLLER:FAILED_GET_ERROR_LOGS",
+        code: "500",
+        method: req.method as METHODS,
         path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { query: req.query, detailed_user: ctx.actor },
+        stackTrace: error.stack,
+        metadata: { query: req.query, actor: ctx.actor },
+        logStatus: "FAILED",
       });
 
       return res
@@ -263,14 +295,17 @@ export class DataLookupController {
         error instanceof Error ? error.message : "Failed to generate metadata";
 
       await AuditLogger.logError({
-        userId: ctx.actor.id,
+        actorUserId: ctx.actor.id,
+        action: "GET_ENTRIES",
         errorMessage,
         serviceCategory: "datalookup",
-        stackTrace: error.stack,
-        code: "GENERATE_METADATA_FAILED",
+        backendCode: "DATALOOKUP_CONTROLLER:FAILED_GENERATE_METADATA",
+        code: "500",
+        method: req.method as METHODS,
         path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { body: req.body, detailed_user: ctx.actor },
+        stackTrace: error.stack,
+        metadata: { body: req.body, actor: ctx.actor },
+        logStatus: "FAILED",
       });
 
       return res.status(500).json({

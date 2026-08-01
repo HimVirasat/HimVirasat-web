@@ -6,7 +6,7 @@ import {
   SecurityContext,
   getAuthenticatedUser,
 } from "../../utils/get-authenticated-user.js";
-import { AuditLogger } from "../../utils/audit-logger.js";
+// import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class UsersController {
   constructor(private readonly service: UsersService = usersService) {}
@@ -36,16 +36,16 @@ export class UsersController {
           ? error.message
           : "Failed to fetch language experts";
 
-      await AuditLogger.logError({
-        userId: ctx.actor.id,
-        errorMessage,
-        serviceCategory: "users",
-        stackTrace: error.stack,
-        code: "FETCH_LANGUAGE_EXPERTS_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "users",
+      //   stackTrace: error.stack,
+      //   code: "FETCH_LANGUAGE_EXPERTS_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, message: errorMessage });
     }
@@ -80,16 +80,16 @@ export class UsersController {
           ? error.message
           : "Failed to create language expert";
 
-      await AuditLogger.logError({
-        userId: ctx.actor.id,
-        errorMessage,
-        serviceCategory: "users",
-        stackTrace: error.stack,
-        code: "CREATE_LANGUAGE_EXPERT_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { username: req.body?.username, detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "users",
+      //   stackTrace: error.stack,
+      //   code: "CREATE_LANGUAGE_EXPERT_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { username: req.body?.username, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, message: errorMessage });
     }
@@ -129,16 +129,16 @@ export class UsersController {
       const errorMessage =
         error instanceof Error ? error.message : "Internal server error";
 
-      await AuditLogger.logError({
-        userId: ctx.actor.id,
-        errorMessage,
-        serviceCategory: "users",
-        stackTrace: error.stack,
-        code: "DELETE_LANGUAGE_EXPERT_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { targetId: req.body?.id, detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "users",
+      //   stackTrace: error.stack,
+      //   code: "DELETE_LANGUAGE_EXPERT_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { targetId: req.body?.id, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, message: errorMessage });
     }
@@ -163,16 +163,16 @@ export class UsersController {
           ? error.message
           : "Failed to fetch language heads";
 
-      await AuditLogger.logError({
-        userId: ctx.actor.id,
-        errorMessage,
-        serviceCategory: "users",
-        stackTrace: error.stack,
-        code: "FETCH_LANGUAGE_HEADS_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "users",
+      //   stackTrace: error.stack,
+      //   code: "FETCH_LANGUAGE_HEADS_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, message: errorMessage });
     }
@@ -207,16 +207,16 @@ export class UsersController {
           ? error.message
           : "Failed to create language head";
 
-      await AuditLogger.logError({
-        userId: ctx.actor.id,
-        errorMessage,
-        serviceCategory: "users",
-        stackTrace: error.stack,
-        code: "CREATE_LANGUAGE_HEAD_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { username: req.body?.username, detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "users",
+      //   stackTrace: error.stack,
+      //   code: "CREATE_LANGUAGE_HEAD_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { username: req.body?.username, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, message: errorMessage });
     }
@@ -256,16 +256,16 @@ export class UsersController {
       const errorMessage =
         error instanceof Error ? error.message : "Internal server error";
 
-      await AuditLogger.logError({
-        userId: ctx.actor.id,
-        errorMessage,
-        serviceCategory: "users",
-        stackTrace: error.stack,
-        code: "DELETE_LANGUAGE_HEAD_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { targetId: req.body?.id, detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "users",
+      //   stackTrace: error.stack,
+      //   code: "DELETE_LANGUAGE_HEAD_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { targetId: req.body?.id, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, message: errorMessage });
     }
@@ -290,11 +290,7 @@ export class UsersController {
         });
         return;
       }
-      const result = await this.service.updateExpertDialects(
-        ctx,
-        id,
-        dialects,
-      );
+      const result = await this.service.updateExpertDialects(ctx, id, dialects);
       if (!result.success) {
         res
           .status(result.statusCode ?? 500)
@@ -310,16 +306,16 @@ export class UsersController {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to update dialects";
 
-      await AuditLogger.logError({
-        userId: ctx.actor.id,
-        errorMessage,
-        serviceCategory: "users",
-        stackTrace: error.stack,
-        code: "UPDATE_EXPERT_DIALECTS_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { targetId: req.body?.id, detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "users",
+      //   stackTrace: error.stack,
+      //   code: "UPDATE_EXPERT_DIALECTS_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { targetId: req.body?.id, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, message: errorMessage });
     }
@@ -344,11 +340,7 @@ export class UsersController {
         });
         return;
       }
-      const result = await this.service.updateHeadDialects(
-        ctx,
-        id,
-        dialects,
-      );
+      const result = await this.service.updateHeadDialects(ctx, id, dialects);
       if (!result.success) {
         res
           .status(result.statusCode ?? 500)
@@ -366,16 +358,16 @@ export class UsersController {
           ? error.message
           : "Failed to update managed dialects";
 
-      await AuditLogger.logError({
-        userId: ctx.actor.id,
-        errorMessage,
-        serviceCategory: "users",
-        stackTrace: error.stack,
-        code: "UPDATE_HEAD_DIALECTS_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { targetId: req.body?.id, detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "users",
+      //   stackTrace: error.stack,
+      //   code: "UPDATE_HEAD_DIALECTS_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { targetId: req.body?.id, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, message: errorMessage });
     }

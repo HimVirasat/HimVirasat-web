@@ -12,7 +12,7 @@ import {
 import { logger } from "../../utils/logger.js";
 import type { HistoryEventType, CommentStatus } from "@himvirasat/shared";
 import { usersRepository } from "../users/users.repository.js";
-import { AuditLogger } from "../../utils/audit-logger.js";
+// import { AuditLogger } from "../../utils/audit-logger.js";
 import { SecurityContext } from "../../utils/get-authenticated-user.js";
 
 export class ReviewQueueService {
@@ -74,19 +74,19 @@ export class ReviewQueueService {
       message: "Contribution submitted for review.",
     });
 
-    await AuditLogger.logActivity({
-      actorId: ctx.actor.id,
-      action: "CONTRIBUTION_SUBMITTED",
-      entityType: "contribution",
-      entityId: customUUID,
-      serviceCategory: "review_queue",
-      status: "SUCCESS",
-      metadata: {
-        wordDevanagari: payload.word_devanagari || null,
-        dialectId: payload.dialect_id || null,
-        detailed_user: ctx.actor,
-      },
-    });
+    // await AuditLogger.logActivity({
+    //   actorId: ctx.actor.id,
+    //   action: "CONTRIBUTION_SUBMITTED",
+    //   entityType: "contribution",
+    //   entityId: customUUID,
+    //   serviceCategory: "review_queue",
+    //   status: "SUCCESS",
+    //   metadata: {
+    //     wordDevanagari: payload.word_devanagari || null,
+    //     dialectId: payload.dialect_id || null,
+    //     detailed_user: ctx.actor,
+    //   },
+    // });
 
     const enriched = await this.repository.fetchContributionById(
       customUUID,
@@ -96,7 +96,10 @@ export class ReviewQueueService {
     return this.formatContribution(enriched);
   }
 
-  async fetchContributions(_ctx: SecurityContext, filters: ContributionFilters) {
+  async fetchContributions(
+    _ctx: SecurityContext,
+    filters: ContributionFilters,
+  ) {
     const data = await this.repository.fetchContributions(
       filters,
       CONTRIBUTION_SELECT_QUERY,
@@ -187,18 +190,18 @@ export class ReviewQueueService {
         ),
       );
 
-    await AuditLogger.logActivity({
-      actorId: ctx.actor.id,
-      action: "CONTRIBUTION_UPDATED",
-      entityType: "contribution",
-      entityId: id,
-      serviceCategory: "review_queue",
-      status: "SUCCESS",
-      metadata: {
-        updatedFields: diffEntries.map((d) => d.field_name),
-        detailed_user: ctx.actor,
-      },
-    });
+    // await AuditLogger.logActivity({
+    //   actorId: ctx.actor.id,
+    //   action: "CONTRIBUTION_UPDATED",
+    //   entityType: "contribution",
+    //   entityId: id,
+    //   serviceCategory: "review_queue",
+    //   status: "SUCCESS",
+    //   metadata: {
+    //     updatedFields: diffEntries.map((d) => d.field_name),
+    //     detailed_user: ctx.actor,
+    //   },
+    // });
 
     const enriched = await this.repository.fetchContributionById(
       id,
@@ -256,22 +259,22 @@ export class ReviewQueueService {
       message: reason || `Status updated to ${status}.`,
     });
 
-    await AuditLogger.logActivity({
-      actorId: ctx.actor.id,
-      action: `CONTRIBUTION_${payload.status.toUpperCase()}`,
-      entityType: "contribution",
-      entityId: id,
-      serviceCategory: "review_queue",
-      status: "SUCCESS",
-      metadata: {
-        previousStatus: existingContribution.status,
-        newStatus: payload.status,
-        reason: payload.reason || null,
-        wordDevanagari: existingContribution.word_devanagari,
-        contributorId: existingContribution.contributor_id,
-        detailed_user: ctx.actor,
-      },
-    });
+    // await AuditLogger.logActivity({
+    //   actorId: ctx.actor.id,
+    //   action: `CONTRIBUTION_${payload.status.toUpperCase()}`,
+    //   entityType: "contribution",
+    //   entityId: id,
+    //   serviceCategory: "review_queue",
+    //   status: "SUCCESS",
+    //   metadata: {
+    //     previousStatus: existingContribution.status,
+    //     newStatus: payload.status,
+    //     reason: payload.reason || null,
+    //     wordDevanagari: existingContribution.word_devanagari,
+    //     contributorId: existingContribution.contributor_id,
+    //     detailed_user: ctx.actor,
+    //   },
+    // });
 
     if (status === "approved" && previousStatus !== "approved") {
       const contributorId = existingContribution.contributor_id as
@@ -304,21 +307,21 @@ export class ReviewQueueService {
           });
         }
       } catch (error: any) {
-        await AuditLogger.logError({
-          userId: ctx.actor.id,
-          errorMessage:
-            error.message || "Failed to award points during status approval",
-          serviceCategory: "review_queue",
-          stackTrace: error.stack,
-          code: "AWARD_POINTS_FAILED",
-          path: `/api/contributions/${id}/status`,
-          method: "PATCH",
-          metadata: {
-            contributionId: id,
-            attemptedStatus: payload.status,
-            detailed_user: ctx.actor,
-          },
-        });
+        // await AuditLogger.logError({
+        //   userId: ctx.actor.id,
+        //   errorMessage:
+        //     error.message || "Failed to award points during status approval",
+        //   serviceCategory: "review_queue",
+        //   stackTrace: error.stack,
+        //   code: "AWARD_POINTS_FAILED",
+        //   path: `/api/contributions/${id}/status`,
+        //   method: "PATCH",
+        //   metadata: {
+        //     contributionId: id,
+        //     attemptedStatus: payload.status,
+        //     detailed_user: ctx.actor,
+        //   },
+        // });
         console.error("Failed to award points during status approval:", error);
       }
     }
@@ -331,18 +334,18 @@ export class ReviewQueueService {
     return this.formatContribution(enriched);
   }
 
-  async deleteContribution(ctx: SecurityContext, id: string) {
+  async deleteContribution(_ctx: SecurityContext, id: string) {
     await this.repository.deleteContribution(id);
 
-    await AuditLogger.logActivity({
-      actorId: ctx.actor.id,
-      action: "CONTRIBUTION_DELETED",
-      entityType: "contribution",
-      entityId: id,
-      serviceCategory: "review_queue",
-      status: "SUCCESS",
-      metadata: { contributionId: id, detailed_user: ctx.actor },
-    });
+    // await AuditLogger.logActivity({
+    //   actorId: ctx.actor.id,
+    //   action: "CONTRIBUTION_DELETED",
+    //   entityType: "contribution",
+    //   entityId: id,
+    //   serviceCategory: "review_queue",
+    //   status: "SUCCESS",
+    //   metadata: { contributionId: id, detailed_user: ctx.actor },
+    // });
   }
 
   async addContributionComment(
@@ -369,20 +372,20 @@ export class ReviewQueueService {
       message: `Added review comment under [${cleanFieldName}]: "${message}"`,
     });
 
-    await AuditLogger.logActivity({
-      actorId: ctx.actor.id,
-      action: "COMMENT_ADDED",
-      entityType: "contribution_comment",
-      entityId: String(comment.id || contributionId),
-      serviceCategory: "review_queue",
-      status: "SUCCESS",
-      metadata: {
-        contributionId,
-        fieldName: cleanFieldName,
-        message,
-        detailed_user: ctx.actor,
-      },
-    });
+    // await AuditLogger.logActivity({
+    //   actorId: ctx.actor.id,
+    //   action: "COMMENT_ADDED",
+    //   entityType: "contribution_comment",
+    //   entityId: String(comment.id || contributionId),
+    //   serviceCategory: "review_queue",
+    //   status: "SUCCESS",
+    //   metadata: {
+    //     contributionId,
+    //     fieldName: cleanFieldName,
+    //     message,
+    //     detailed_user: ctx.actor,
+    //   },
+    // });
 
     return comment;
   }
@@ -449,15 +452,15 @@ export class ReviewQueueService {
             isContributor: true,
           });
         } catch (error: any) {
-          await AuditLogger.logError({
-            userId: ctx.actor.id,
-            errorMessage:
-              error.message || "Failed to award points for accepted comment",
-            serviceCategory: "review_queue",
-            stackTrace: error.stack,
-            code: "AWARD_COMMENT_POINTS_FAILED",
-            metadata: { commentId, commentAuthorId, detailed_user: ctx.actor },
-          });
+          // await AuditLogger.logError({
+          //   userId: ctx.actor.id,
+          //   errorMessage:
+          //     error.message || "Failed to award points for accepted comment",
+          //   serviceCategory: "review_queue",
+          //   stackTrace: error.stack,
+          //   code: "AWARD_COMMENT_POINTS_FAILED",
+          //   metadata: { commentId, commentAuthorId, detailed_user: ctx.actor },
+          // });
         }
       }
     }
@@ -487,20 +490,20 @@ export class ReviewQueueService {
       message: historyMessage,
     });
 
-    await AuditLogger.logActivity({
-      actorId: ctx.actor.id,
-      action: `COMMENT_${status.toUpperCase()}`,
-      entityType: "contribution_comment",
-      entityId: commentId,
-      serviceCategory: "review_queue",
-      status: "SUCCESS",
-      metadata: {
-        contributionId,
-        commentStatus: status,
-        fieldValueToAccept: fieldValueToAccept ?? null,
-        detailed_user: ctx.actor,
-      },
-    });
+    // await AuditLogger.logActivity({
+    //   actorId: ctx.actor.id,
+    //   action: `COMMENT_${status.toUpperCase()}`,
+    //   entityType: "contribution_comment",
+    //   entityId: commentId,
+    //   serviceCategory: "review_queue",
+    //   status: "SUCCESS",
+    //   metadata: {
+    //     contributionId,
+    //     commentStatus: status,
+    //     fieldValueToAccept: fieldValueToAccept ?? null,
+    //     detailed_user: ctx.actor,
+    //   },
+    // });
 
     return this.repository.fetchCommentById(commentId);
   }

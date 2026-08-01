@@ -29,11 +29,15 @@ export class DataLookupService {
     return await this.repository.getCategories();
   }
 
-  async fetchPartsOfSpeech(_ctx: SecurityContext): Promise<DynamicLookupOption[]> {
+  async fetchPartsOfSpeech(
+    _ctx: SecurityContext,
+  ): Promise<DynamicLookupOption[]> {
     return await this.repository.getPartsOfSpeech();
   }
 
-  async fetchAvailableRegions(_ctx: SecurityContext): Promise<DynamicLookupOption[]> {
+  async fetchAvailableRegions(
+    _ctx: SecurityContext,
+  ): Promise<DynamicLookupOption[]> {
     return await this.repository.getAvailableRegions();
   }
 
@@ -97,12 +101,13 @@ export class DataLookupService {
     const parsed = this.parseCleanJSON(rawContent) as LinguisticMetadata;
 
     await AuditLogger.logActivity({
-      actorId: ctx.actor.id,
-      action: "GENERATE_LINGUISTIC_METADATA",
-      entityType: "linguistic_metadata",
-      serviceCategory: "datalookup",
-      status: "SUCCESS",
-      metadata: { input, model, detailed_user: ctx.actor },
+      actorUserId: ctx.actor.id,
+      action: "GET_ENTRIES",
+      entityType: "hv_system",
+      backendModuleCategory: "datalookup",
+      backendCode: "DATALOOKUP_SERVICE:SUCCESS_GET_ENTRIES",
+      logStatus: "SUCCESS",
+      metadata: { input, model, actor: ctx.actor },
     });
 
     return { model, data: parsed };
@@ -117,27 +122,27 @@ export class DataLookupService {
     } = input;
 
     return `You are an expert linguist specializing in Western Pahadi / Himachali dialects, Devanagari script, Takri script, and IPA phonetics.
-Based on the following lexical entry:
-- Word (Devanagari): ${word_devanagari}
-- Hindi Meaning: ${meaning_hindi || "N/A"}
-- English Meaning: ${meaning_english || "N/A"}
-- Example Sentence (Pahadi Devanagari): ${example_sentence || "N/A"}
-
-Generate the following metadata accurately:
-1. "word_latin": Accurate Romanization/Latin transliteration for the word.
-2. "word_takri": Transliteration of the word into Takri script (Unicode).
-3. "ipa": International Phonetic Alphabet representation of the word.
-4. "example_sentence_latin": Romanised transliteration of the example sentence.
-5. "example_sentence_takri": Takri script transcription of the example sentence.
-
-Respond ONLY with a valid JSON object matching this structure:
-{
-  "word_latin": "...",
-  "word_takri": "...",
-  "ipa": "...",
-  "example_sentence_latin": "...",
-  "example_sentence_takri": "..."
-}`;
+            Based on the following lexical entry:
+            - Word (Devanagari): ${word_devanagari}
+            - Hindi Meaning: ${meaning_hindi || "N/A"}
+            - English Meaning: ${meaning_english || "N/A"}
+            - Example Sentence (Pahadi Devanagari): ${example_sentence || "N/A"}
+              
+            Generate the following metadata accurately:
+            1. "word_latin": Accurate Romanization/Latin transliteration for the word.
+            2. "word_takri": Transliteration of the word into Takri script (Unicode).
+            3. "ipa": International Phonetic Alphabet representation of the word.
+            4. "example_sentence_latin": Romanised transliteration of the example sentence.
+            5. "example_sentence_takri": Takri script transcription of the example sentence.
+              
+            Respond ONLY with a valid JSON object matching this structure:
+            {
+              "word_latin": "...",
+              "word_takri": "...",
+              "ipa": "...",
+              "example_sentence_latin": "...",
+              "example_sentence_takri": "..."
+            }`;
   }
 
   private parseCleanJSON(raw: string): unknown {

@@ -5,7 +5,7 @@ import {
   ServiceResult,
   SoftDeleteResult,
 } from "@himvirasat/shared";
-import { AuditLogger } from "../../utils/audit-logger.js";
+// import { AuditLogger } from "../../utils/audit-logger.js";
 import { SecurityContext } from "../../utils/get-authenticated-user.js";
 
 export class UsersService {
@@ -17,7 +17,7 @@ export class UsersService {
   }
 
   async createLanguageExpert(
-    ctx: SecurityContext,
+    _ctx: SecurityContext,
     payload: CreateUserPayloadFrontend,
   ): Promise<ServiceResult> {
     const { fullName, email, username, password, dialects } = payload;
@@ -42,15 +42,15 @@ export class UsersService {
     });
 
     if (!user) {
-      await AuditLogger.logError({
-        userId: ctx.actor.id,
-        errorMessage: "Unable to create Language Expert",
-        serviceCategory: "auth",
-        backend_code: "USER_SERVICE:FAILED_CREATE_LANGUAGE_EXPERT",
-        code: "500",
-        status: "FAILED",
-        metadata: { detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage: "Unable to create Language Expert",
+      //   serviceCategory: "auth",
+      //   backend_code: "USER_SERVICE:FAILED_CREATE_LANGUAGE_EXPERT",
+      //   code: "500",
+      //   status: "FAILED",
+      //   metadata: { detailed_user: ctx.actor },
+      // });
       return {
         success: false,
         statusCode: 500,
@@ -58,16 +58,16 @@ export class UsersService {
       };
     }
 
-    await AuditLogger.logActivity({
-      actorId: ctx.actor.id,
-      action: "CREATE_LANGUAGE_EXPERT",
-      entityType: "user",
-      entityId: user.id,
-      backend_code: "USER_SERVICE:SUCCESS_CREATE_LANGUAGE_EXPERT",
-      serviceCategory: "users",
-      status: "SUCCESS",
-      metadata: { username: user.username, detailed_user: ctx.actor },
-    });
+    // await AuditLogger.logActivity({
+    //   actorId: ctx.actor.id,
+    //   action: "CREATE_LANGUAGE_EXPERT",
+    //   entityType: "user",
+    //   entityId: user.id,
+    //   backend_code: "USER_SERVICE:SUCCESS_CREATE_LANGUAGE_EXPERT",
+    //   serviceCategory: "users",
+    //   status: "SUCCESS",
+    //   metadata: { username: user.username, detailed_user: ctx.actor },
+    // });
 
     return {
       success: true,
@@ -76,32 +76,32 @@ export class UsersService {
   }
 
   async deleteLanguageExpert(
-    ctx: SecurityContext,
+    _ctx: SecurityContext,
     id: string,
   ): Promise<SoftDeleteResult> {
     const result = await this.repository.softDeleteUser(id);
 
     if (result.success) {
-      await AuditLogger.logActivity({
-        actorId: ctx.actor.id,
-        action: "DELETE_LANGUAGE_EXPERT",
-        backend_code: "USER_SERVICE:SUCCESS_DELETE_LANGUAGE_EXPERT",
-        entityType: "user",
-        entityId: id,
-        serviceCategory: "users",
-        status: "SUCCESS",
-        metadata: { detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logActivity({
+      //   actorId: ctx.actor.id,
+      //   action: "DELETE_LANGUAGE_EXPERT",
+      //   backend_code: "USER_SERVICE:SUCCESS_DELETE_LANGUAGE_EXPERT",
+      //   entityType: "user",
+      //   entityId: id,
+      //   serviceCategory: "users",
+      //   status: "SUCCESS",
+      //   metadata: { detailed_user: ctx.actor },
+      // });
     } else {
-      await AuditLogger.logError({
-        userId: ctx.actor.id,
-        errorMessage: result.message || "Unable to delete the Language Expert",
-        serviceCategory: "users",
-        backend_code: "USER_SERVICE:FAILED_TO_DELETE_LANGUAGE_EXPERT",
-        code: "500",
-        status: "FAILED",
-        metadata: { detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage: result.message || "Unable to delete the Language Expert",
+      //   serviceCategory: "users",
+      //   backend_code: "USER_SERVICE:FAILED_TO_DELETE_LANGUAGE_EXPERT",
+      //   code: "500",
+      //   status: "FAILED",
+      //   metadata: { detailed_user: ctx.actor },
+      // });
       return {
         success: false,
         statusCode: 500,
@@ -118,7 +118,7 @@ export class UsersService {
   }
 
   async createLanguageHead(
-    ctx: SecurityContext,
+    _ctx: SecurityContext,
     payload: CreateUserPayloadFrontend,
   ): Promise<ServiceResult> {
     const { fullName, email, username, password, dialects } = payload;
@@ -143,15 +143,15 @@ export class UsersService {
     });
 
     if (!user) {
-      await AuditLogger.logError({
-        userId: ctx.actor.id,
-        errorMessage: "Unable to create a Language Head",
-        serviceCategory: "users",
-        backend_code: "USER_SERVICE:FAILED_TO_CREATE_LANGUAGE_HEAD",
-        code: "500",
-        status: "FAILED",
-        metadata: { detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage: "Unable to create a Language Head",
+      //   serviceCategory: "users",
+      //   backend_code: "USER_SERVICE:FAILED_TO_CREATE_LANGUAGE_HEAD",
+      //   code: "500",
+      //   status: "FAILED",
+      //   metadata: { detailed_user: ctx.actor },
+      // });
       return {
         success: false,
         statusCode: 500,
@@ -159,16 +159,16 @@ export class UsersService {
       };
     }
 
-    await AuditLogger.logActivity({
-      actorId: ctx.actor.id,
-      action: "CREATE_LANGUAGE_HEAD",
-      entityType: "user",
-      entityId: user.id,
-      backend_code: "USER_SERVICE:SUCCESS_CREATE_LANGUAGE_HEAD",
-      serviceCategory: "users",
-      status: "SUCCESS",
-      metadata: { username: user.username, detailed_user: ctx.actor },
-    });
+    // await AuditLogger.logActivity({
+    //   actorId: ctx.actor.id,
+    //   action: "CREATE_LANGUAGE_HEAD",
+    //   entityType: "user",
+    //   entityId: user.id,
+    //   backend_code: "USER_SERVICE:SUCCESS_CREATE_LANGUAGE_HEAD",
+    //   serviceCategory: "users",
+    //   status: "SUCCESS",
+    //   metadata: { username: user.username, detailed_user: ctx.actor },
+    // });
 
     return {
       success: true,
@@ -177,29 +177,29 @@ export class UsersService {
   }
 
   async deleteLanguageHead(
-    ctx: SecurityContext,
+    _ctx: SecurityContext,
     id: string,
   ): Promise<SoftDeleteResult> {
     const result = await this.repository.softDeleteUser(id);
 
     if (result.success) {
-      await AuditLogger.logActivity({
-        actorId: ctx.actor.id,
-        action: "DELETE_LANGUAGE_HEAD",
-        backend_code: "USER_SERVICE:DELETE_LANGUAGE_HEAD",
-        entityType: "user",
-        entityId: id,
-        serviceCategory: "users",
-        status: "SUCCESS",
-        metadata: { detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logActivity({
+      //   actorId: ctx.actor.id,
+      //   action: "DELETE_LANGUAGE_HEAD",
+      //   backend_code: "USER_SERVICE:DELETE_LANGUAGE_HEAD",
+      //   entityType: "user",
+      //   entityId: id,
+      //   serviceCategory: "users",
+      //   status: "SUCCESS",
+      //   metadata: { detailed_user: ctx.actor },
+      // });
     }
 
     return result;
   }
 
   async updateExpertDialects(
-    ctx: SecurityContext,
+    _ctx: SecurityContext,
     id: string,
     dialects: string[],
   ): Promise<ServiceResult> {
@@ -208,22 +208,22 @@ export class UsersService {
       return { success: false, statusCode: 404, message: "User not found" };
     }
 
-    await AuditLogger.logActivity({
-      actorId: ctx.actor.id,
-      action: "UPDATE_EXPERT_DIALECTS",
-      backend_code: "USER_SERVICE:SUCCESS_UPDATE_EXPERT_DIALECT",
-      entityType: "user",
-      entityId: id,
-      serviceCategory: "users",
-      status: "SUCCESS",
-      metadata: { updatedDialects: dialects, detailed_user: ctx.actor },
-    });
+    // await AuditLogger.logActivity({
+    //   actorId: ctx.actor.id,
+    //   action: "UPDATE_EXPERT_DIALECTS",
+    //   backend_code: "USER_SERVICE:SUCCESS_UPDATE_EXPERT_DIALECT",
+    //   entityType: "user",
+    //   entityId: id,
+    //   serviceCategory: "users",
+    //   status: "SUCCESS",
+    //   metadata: { updatedDialects: dialects, detailed_user: ctx.actor },
+    // });
 
     return { success: true, data: updated };
   }
 
   async updateHeadDialects(
-    ctx: SecurityContext,
+    _ctx: SecurityContext,
     id: string,
     dialects: string[],
   ): Promise<ServiceResult> {
@@ -232,16 +232,16 @@ export class UsersService {
       return { success: false, statusCode: 404, message: "User not found" };
     }
 
-    await AuditLogger.logActivity({
-      actorId: ctx.actor.id,
-      action: "UPDATE_HEAD_DIALECTS",
-      entityType: "user",
-      entityId: id,
-      serviceCategory: "users",
-      backend_code: "USER_SERVICE:SUCCESS_UPDATE_HEAD_DIALECTS",
-      status: "SUCCESS",
-      metadata: { updatedDialects: dialects, detailed_user: ctx.actor },
-    });
+    // await AuditLogger.logActivity({
+    //   actorId: ctx.actor.id,
+    //   action: "UPDATE_HEAD_DIALECTS",
+    //   entityType: "user",
+    //   entityId: id,
+    //   serviceCategory: "users",
+    //   backend_code: "USER_SERVICE:SUCCESS_UPDATE_HEAD_DIALECTS",
+    //   status: "SUCCESS",
+    //   metadata: { updatedDialects: dialects, detailed_user: ctx.actor },
+    // });
 
     return { success: true, data: updated };
   }

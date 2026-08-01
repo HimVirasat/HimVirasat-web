@@ -10,7 +10,7 @@ import {
   getAuthenticatedUser,
 } from "../../utils/get-authenticated-user.js";
 import { CreateSubmissionSchema } from "@himvirasat/shared";
-import { AuditLogger } from "../../utils/audit-logger.js";
+// import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class SubmissionsController {
   constructor(
@@ -26,9 +26,10 @@ export class SubmissionsController {
   createSubmission: RequestHandler = async (req, res): Promise<void> => {
     const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
     if (!cachedUser) {
-      res
-        .status(401)
-        .json({ success: false, error: "Authentication or user profile missing." });
+      res.status(401).json({
+        success: false,
+        error: "Authentication or user profile missing.",
+      });
       return;
     }
 
@@ -70,16 +71,16 @@ export class SubmissionsController {
       const errorMessage =
         error instanceof Error ? error.message : "Internal server error";
 
-      await AuditLogger.logError({
-        userId: ctx.actor.id,
-        errorMessage,
-        serviceCategory: "submissions",
-        stackTrace: error.stack,
-        code: "CREATE_SUBMISSION_FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method,
-        metadata: { body: req.body, detailed_user: ctx.actor },
-      });
+      // await AuditLogger.logError({
+      //   userId: ctx.actor.id,
+      //   errorMessage,
+      //   serviceCategory: "submissions",
+      //   stackTrace: error.stack,
+      //   code: "CREATE_SUBMISSION_FAILED",
+      //   path: req.originalUrl || req.path,
+      //   method: req.method,
+      //   metadata: { body: req.body, detailed_user: ctx.actor },
+      // });
 
       res.status(500).json({ success: false, error: errorMessage });
     }

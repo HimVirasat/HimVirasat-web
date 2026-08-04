@@ -2,11 +2,11 @@ import bcrypt from "bcrypt";
 import { AuthRepository, authRepository } from "./auth.repository.js";
 import { generateToken } from "../../utils/jwt.js";
 import type { LoginResponse, SignupRequest, UserDto } from "@himvirasat/shared";
-// import { AuditLogger } from "../../utils/audit-logger.js";
+import { AuditLogger } from "../../utils/audit-logger.js";
 import { SecurityContext } from "../../utils/get-authenticated-user.js";
 
 export class AuthService {
-  constructor(private readonly repository: AuthRepository = authRepository) { }
+  constructor(private readonly repository: AuthRepository = authRepository) {}
 
   async login(
     username: string,
@@ -15,14 +15,15 @@ export class AuthService {
     const user = await this.repository.findByUsername(username);
 
     if (!user) {
-      // await AuditLogger.logActivity({
-      //   actorId: null,
-      //   action: "LOGIN_FAILED",
-      //   entityType: "user",
-      //   serviceCategory: "auth",
-      //   status: "FAILED",
-      //   metadata: { username, reason: "User not found" },
-      // });
+      await AuditLogger.logActivity({
+        action: "LOGIN",
+        entityType: "user",
+        actorUserId: null,
+        backendModuleCategory: "auth",
+        backendCode: "AUTH_SERVICE:FAILED_LOGIN",
+        logStatus: "FAILED",
+        metadata: { username, reason: "User not found" },
+      });
 
       return {
         success: false,
@@ -32,15 +33,15 @@ export class AuthService {
     }
 
     if (!user.is_active) {
-      // await AuditLogger.logActivity({
-      //   actorId: user.id,
-      //   action: "LOGIN_FAILED",
-      //   entityType: "user",
-      //   entityId: user.id,
-      //   serviceCategory: "auth",
-      //   status: "FAILED",
-      //   metadata: { username, reason: "Account disabled" },
-      // });
+      await AuditLogger.logActivity({
+        action: "LOGIN",
+        entityType: "user",
+        actorUserId: user.id,
+        backendModuleCategory: "auth",
+        backendCode: "AUTH_SERVICE:FAILED_LOGIN",
+        logStatus: "FAILED",
+        metadata: { target_id: user.id, username, reason: "Account disabled" },
+      });
 
       return {
         success: false,
@@ -51,15 +52,15 @@ export class AuthService {
 
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordValid) {
-      // await AuditLogger.logActivity({
-      //   actorId: user.id,
-      //   action: "LOGIN_FAILED",
-      //   entityType: "user",
-      //   entityId: user.id,
-      //   serviceCategory: "auth",
-      //   status: "FAILED",
-      //   metadata: { username, reason: "Invalid password" },
-      // });
+      await AuditLogger.logActivity({
+        action: "LOGIN",
+        entityType: "user",
+        actorUserId: user.id,
+        backendModuleCategory: "auth",
+        backendCode: "AUTH_SERVICE:FAILED_LOGIN",
+        logStatus: "FAILED",
+        metadata: { target_id: user.id, username, reason: "Invalid password" },
+      });
 
       return {
         success: false,
@@ -82,15 +83,19 @@ export class AuthService {
       dialects: user.dialects,
     };
 
-    // await AuditLogger.logActivity({
-    //   actorId: user.id,
-    //   action: "LOGIN_SUCCESS",
-    //   entityType: "user",
-    //   entityId: user.id,
-    //   serviceCategory: "auth",
-    //   status: "SUCCESS",
-    //   metadata: { username: user.username, role: user.role },
-    // });
+    await AuditLogger.logActivity({
+      action: "LOGIN",
+      entityType: "user",
+      actorUserId: user.id,
+      backendModuleCategory: "auth",
+      backendCode: "AUTH_SERVICE:SUCCESS_LOGIN",
+      logStatus: "SUCCESS",
+      metadata: {
+        target_id: user.id,
+        username: user.username,
+        role: user.role,
+      },
+    });
 
     return {
       success: true,
@@ -149,15 +154,19 @@ export class AuthService {
       dialects: user.dialects,
     };
 
-    // await AuditLogger.logActivity({
-    //   actorId: user.id,
-    //   action: "CONTRIBUTOR_SIGNUP_SUCCESS",
-    //   entityType: "user",
-    //   entityId: user.id,
-    //   serviceCategory: "auth",
-    //   status: "SUCCESS",
-    //   metadata: { username: user.username, role: user.role },
-    // });
+    await AuditLogger.logActivity({
+      action: "SIGNUP",
+      entityType: "user",
+      actorUserId: user.id,
+      backendModuleCategory: "auth",
+      backendCode: "AUTH_SERVICE:SUCCESS_SIGNUP",
+      logStatus: "SUCCESS",
+      metadata: {
+        target_id: user.id,
+        username: user.username,
+        role: user.role,
+      },
+    });
 
     return {
       success: true,
@@ -195,18 +204,19 @@ export class AuthService {
       user.password_hash,
     );
     if (!isPasswordValid) {
-      // await AuditLogger.logActivity({
-      //   actorId: ctx.actor.id,
-      //   action: "RESET_PASSWORD_FAILED",
-      //   entityType: "user",
-      //   entityId: ctx.actor.id,
-      //   serviceCategory: "auth",
-      //   status: "FAILED",
-      //   metadata: {
-      //     reason: "Incorrect current password",
-      //     detailed_user: ctx.actor,
-      //   },
-      // });
+      await AuditLogger.logActivity({
+        action: "RESET_PASSWORD",
+        entityType: "user",
+        actorUserId: ctx.actor.id,
+        backendModuleCategory: "auth",
+        backendCode: "AUTH_SERVICE:FAILED_RESET_PASSWORD",
+        logStatus: "FAILED",
+        metadata: {
+          target_id: ctx.actor.id,
+          reason: "Incorrect current password",
+          detailed_user: ctx.actor,
+        },
+      });
 
       return {
         success: false,
@@ -222,18 +232,19 @@ export class AuthService {
     );
 
     if (!isUpdated) {
-      // await AuditLogger.logActivity({
-      //   actorId: ctx.actor.id,
-      //   action: "RESET_PASSWORD_FAILED",
-      //   entityType: "user",
-      //   entityId: ctx.actor.id,
-      //   serviceCategory: "auth",
-      //   status: "FAILED",
-      //   metadata: {
-      //     reason: "Database update failed",
-      //     detailed_user: ctx.actor,
-      //   },
-      // });
+      await AuditLogger.logActivity({
+        action: "RESET_PASSWORD",
+        entityType: "user",
+        actorUserId: ctx.actor.id,
+        backendModuleCategory: "auth",
+        backendCode: "AUTH_SERVICE:FAILED_RESET_PASSWORD",
+        logStatus: "FAILED",
+        metadata: {
+          target_id: ctx.actor.id,
+          reason: "Database update failed",
+          detailed_user: ctx.actor,
+        },
+      });
 
       return {
         success: false,
@@ -242,15 +253,15 @@ export class AuthService {
       };
     }
 
-    // await AuditLogger.logActivity({
-    //   actorId: ctx.actor.id,
-    //   action: "RESET_PASSWORD_SUCCESS",
-    //   entityType: "user",
-    //   entityId: ctx.actor.id,
-    //   serviceCategory: "auth",
-    //   status: "SUCCESS",
-    //   metadata: { detailed_user: ctx.actor },
-    // });
+    await AuditLogger.logActivity({
+      action: "RESET_PASSWORD",
+      entityType: "user",
+      actorUserId: ctx.actor.id,
+      backendModuleCategory: "auth",
+      backendCode: "AUTH_SERVICE:SUCCESS_RESET_PASSWORD",
+      logStatus: "SUCCESS",
+      metadata: { target_id: ctx.actor.id, detailed_user: ctx.actor },
+    });
 
     return { success: true, message: "Password reset successfully" };
   }

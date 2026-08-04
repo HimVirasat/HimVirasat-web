@@ -16,6 +16,17 @@ import { SecurityContext } from "../../utils/get-authenticated-user.js";
 
 export type { DynamicLookupOption };
 
+export interface PaginatedLogsResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    totalPages: number;
+    totalSuccess?: number | undefined;
+    totalFailed?: number | undefined;
+    totalCritical?: number | undefined;
+    totalStandard?: number | undefined;
+  };
+}
 export class DataLookupService {
   constructor(
     private readonly repository: DataLookupRepository = dataLookupRepository,
@@ -44,15 +55,37 @@ export class DataLookupService {
   async fetchActivityLogs(
     _ctx: SecurityContext,
     params: GetLogsParams,
-  ): Promise<ActivityLog[]> {
-    return await this.repository.getActivityLogs(params);
+  ): Promise<PaginatedLogsResponse<ActivityLog>> {
+    const result = await this.repository.getActivityLogs(params);
+    const limit = params.limit || 20;
+
+    return {
+      data: result.data,
+      meta: {
+        total: result.total,
+        totalSuccess: result.totalSuccess,
+        totalFailed: result.totalFailed,
+        totalPages: Math.ceil(result.total / limit) || 1,
+      },
+    };
   }
 
   async fetchErrorLogs(
     _ctx: SecurityContext,
     params: GetLogsParams,
-  ): Promise<ErrorLog[]> {
-    return await this.repository.getErrorLogs(params);
+  ): Promise<PaginatedLogsResponse<ErrorLog>> {
+    const result = await this.repository.getErrorLogs(params);
+    const limit = params.limit || 20;
+
+    return {
+      data: result.data,
+      meta: {
+        total: result.total,
+        totalCritical: result.totalCritical,
+        totalStandard: result.totalStandard,
+        totalPages: Math.ceil(result.total / limit) || 1,
+      },
+    };
   }
 
   async generateLinguisticMetadata(

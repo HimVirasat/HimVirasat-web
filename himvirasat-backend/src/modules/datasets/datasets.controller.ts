@@ -6,7 +6,7 @@ import {
   SecurityContext,
   getAuthenticatedUser,
 } from "../../utils/get-authenticated-user.js";
-// import { AuditLogger } from "../../utils/audit-logger.js";
+import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class DatasetsController {
   constructor(private readonly service: DatasetsService = datasetsService) {}
@@ -44,16 +44,19 @@ export class DatasetsController {
           ? error.message
           : "Failed to retrieve dataset entries";
 
-      // await AuditLogger.logError({
-      //   userId: ctx.actor.id,
-      //   errorMessage,
-      //   serviceCategory: "dataset",
-      //   stackTrace: error.stack,
-      //   code: "FETCH_DATASET_ENTRIES_FAILED",
-      //   path: req.originalUrl || req.path,
-      //   method: req.method,
-      //   metadata: { query: req.query, detailed_user: ctx.actor },
-      // });
+      await AuditLogger.logError({
+        action: "FETCH_DATASET_ENTRIES",
+        actorUserId: ctx.actor.id,
+        errorMessage,
+        stackTrace: error.stack,
+        serviceCategory: "datasets",
+        backendCode: "DATASET_CONTROLLER:FAILED_FETCH_DATASET_ENTRIES",
+        code: "500",
+        logStatus: "FAILED",
+        path: req.originalUrl || req.path,
+        method: "GET",
+        metadata: { query: req.query, detailed_user: ctx.actor },
+      });
 
       return res.status(500).json({
         success: false,
@@ -94,16 +97,19 @@ export class DatasetsController {
 
       const statusCode = errorMessage === "Dataset entry not found" ? 404 : 500;
 
-      // await AuditLogger.logError({
-      //   userId: ctx.actor.id,
-      //   errorMessage,
-      //   serviceCategory: "dataset",
-      //   stackTrace: error.stack,
-      //   code: "FETCH_DATASET_ENTRY_BY_ID_FAILED",
-      //   path: req.originalUrl || req.path,
-      //   method: req.method,
-      //   metadata: { params: req.params, detailed_user: ctx.actor },
-      // });
+      await AuditLogger.logError({
+        action: "FETCH_DATASET_ENTRY_BY_ID",
+        actorUserId: ctx.actor.id,
+        errorMessage,
+        stackTrace: error.stack,
+        serviceCategory: "datasets",
+        backendCode: "DATASET_CONTROLLER:FAILED_FETCH_DATASET_ENTRY_BY_ID",
+        code: "500",
+        logStatus: "FAILED",
+        path: req.originalUrl || req.path,
+        method: "GET",
+        metadata: { params: req.params, detailed_user: ctx.actor },
+      });
 
       return res.status(statusCode).json({
         success: false,

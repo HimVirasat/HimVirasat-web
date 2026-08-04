@@ -16,6 +16,18 @@ export interface GeneratedMetadataResult {
   example_sentence_takri?: string;
 }
 
+export interface PaginatedLogsResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    totalPages: number;
+    totalSuccess?: number;
+    totalFailed?: number;
+    totalCritical?: number;
+    totalStandard?: number;
+  };
+}
+
 export class DataLookupService {
   static async getAvailableDialects(): Promise<string[]> {
     const response = await fetch(`${API_URL}/datalookup/available-dialects`, {
@@ -27,7 +39,6 @@ export class DataLookupService {
     }
 
     const result = await response.json();
-    console.log(result.data);
     return result.data;
   }
 
@@ -68,7 +79,9 @@ export class DataLookupService {
     return result.data;
   }
 
-  static async getActivityLogs(params: GetLogsParams): Promise<ActivityLog[]> {
+  static async getActivityLogs(
+    params: GetLogsParams
+  ): Promise<PaginatedLogsResponse<ActivityLog>> {
     const queryParams = new URLSearchParams();
     if (params.status && (params.status as string) !== "ALL") {
       queryParams.append("status", params.status);
@@ -93,10 +106,20 @@ export class DataLookupService {
     }
 
     const result = await response.json();
-    return result.data;
+    return {
+      data: result.data || [],
+      meta: result.meta || {
+        total: 0,
+        totalPages: 1,
+        totalSuccess: 0,
+        totalFailed: 0,
+      },
+    };
   }
 
-  static async getErrorLogs(params: GetLogsParams): Promise<ErrorLog[]> {
+  static async getErrorLogs(
+    params: GetLogsParams
+  ): Promise<PaginatedLogsResponse<ErrorLog>> {
     const queryParams = new URLSearchParams();
     if (params.status && (params.status as string) !== "ALL") {
       queryParams.append("status", params.status);
@@ -121,7 +144,15 @@ export class DataLookupService {
     }
 
     const result = await response.json();
-    return result.data;
+    return {
+      data: result.data || [],
+      meta: result.meta || {
+        total: 0,
+        totalPages: 1,
+        totalCritical: 0,
+        totalStandard: 0,
+      },
+    };
   }
 
   static async generateMetadata(

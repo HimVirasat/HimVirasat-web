@@ -185,13 +185,18 @@ export class DataLookupController {
 
     try {
       const { status, service, page, limit } = req.query;
-      const data = await this.service.fetchActivityLogs(ctx, {
+      const result = await this.service.fetchActivityLogs(ctx, {
         status: status ? (status as any) : undefined,
         service: service ? (service as any) : undefined,
         page: page ? Number(page) : 1,
         limit: limit ? Number(limit) : 20,
       });
-      return res.status(200).json({ success: true, data });
+
+      return res.status(200).json({
+        success: true,
+        data: result.data,
+        meta: result.meta,
+      });
     } catch (error: any) {
       console.error("DataLookup Controller [getActivityLogs] error:", error);
 
@@ -226,13 +231,18 @@ export class DataLookupController {
 
     try {
       const { status, service, page, limit } = req.query;
-      const data = await this.service.fetchErrorLogs(ctx, {
+      const result = await this.service.fetchErrorLogs(ctx, {
         status: status ? (status as any) : undefined,
         service: service ? (service as any) : undefined,
         page: page ? Number(page) : 1,
         limit: limit ? Number(limit) : 20,
       });
-      return res.status(200).json({ success: true, data });
+
+      return res.status(200).json({
+        success: true,
+        data: result.data,
+        meta: result.meta,
+      });
     } catch (error: any) {
       console.error("DataLookup Controller [getErrorLogs] error:", error);
 

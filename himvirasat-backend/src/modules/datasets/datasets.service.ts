@@ -6,6 +6,7 @@ import {
 } from "./datasets.repository.js";
 import type { DatasetEntry } from "@himvirasat/shared";
 import { SecurityContext } from "../../utils/get-authenticated-user.js";
+import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class DatasetsService {
   constructor(
@@ -13,7 +14,7 @@ export class DatasetsService {
   ) {}
 
   async getEntries(
-    _ctx: SecurityContext,
+    ctx: SecurityContext,
     query: Record<string, unknown>,
   ): Promise<PaginatedDatasetResult> {
     const filters: DatasetQueryFilters = {
@@ -35,14 +36,45 @@ export class DatasetsService {
       sort_order: query.sort_order === "asc" ? "asc" : "desc",
     };
 
-    return await this.repository.findEntries(filters);
+    const result = await this.repository.findEntries(filters);
+
+    await AuditLogger.logActivity({
+      action: "FETCH_DATASET_ENTRIES",
+      entityType: "dataset_entry",
+      actorUserId: ctx.actor.id,
+      backendModuleCategory: "datasets",
+      backendCode: "DATASET_SERVICE:SUCCESS_FETCH_DATASET_ENTRIES",
+      logStatus: "SUCCESS",
+      metadata: {
+        filters,
+        totalResults: result.total,
+        page: result.page,
+        detailed_user: ctx.actor,
+      },
+    });
+
+    return result;
   }
 
-  async getEntryById(_ctx: SecurityContext, id: string): Promise<DatasetEntry> {
+  async getEntryById(ctx: SecurityContext, id: string): Promise<DatasetEntry> {
     const entry = await this.repository.findEntryById(id);
     if (!entry) {
       throw new Error("Dataset entry not found");
     }
+
+    await AuditLogger.logActivity({
+      action: "FETCH_DATASET_ENTRY_BY_ID",
+      entityType: "dataset_entry",
+      actorUserId: ctx.actor.id,
+      backendModuleCategory: "datasets",
+      backendCode: "DATASET_SERVICE:SUCCESS_FETCH_DATASET_ENTRY_BY_ID",
+      logStatus: "SUCCESS",
+      metadata: {
+        target_id: id,
+        detailed_user: ctx.actor,
+      },
+    });
+
     return entry;
   }
 }

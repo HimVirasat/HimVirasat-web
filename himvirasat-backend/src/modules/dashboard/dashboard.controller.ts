@@ -6,7 +6,8 @@ import {
   SecurityContext,
   getAuthenticatedUser,
 } from "../../utils/get-authenticated-user.js";
-// import { AuditLogger } from "../../utils/audit-logger.js";
+import { AuditLogger } from "../../utils/audit-logger.js";
+import { METHODS } from "@himvirasat/shared"; // Import or define your METHODS type
 
 export class DashboardController {
   constructor(private readonly service: DashboardService = dashboardService) {}
@@ -39,16 +40,19 @@ export class DashboardController {
           ? error.message
           : "Failed to fetch dashboard statistics";
 
-      // await AuditLogger.logError({
-      //   userId: ctx.actor.id,
-      //   errorMessage,
-      //   serviceCategory: "datalookup",
-      //   stackTrace: error.stack,
-      //   code: "FETCH_DASHBOARD_STATS_FAILED",
-      //   path: req.originalUrl || req.path,
-      //   method: req.method,
-      //   metadata: { query: req.query, detailed_user: ctx.actor },
-      // });
+      await AuditLogger.logError({
+        action: "GET_DASHBOARD_STATS",
+        actorUserId: ctx.actor.id,
+        errorMessage,
+        stackTrace: error.stack,
+        serviceCategory: "dashboard",
+        backendCode: "DASHBOARD_CONTROLLER:FAILED_GET_DASHBOARD_STATS",
+        code: "500",
+        logStatus: "FAILED",
+        path: req.originalUrl || req.path,
+        method: req.method as METHODS,
+        metadata: { query: req.query, detailed_user: ctx.actor },
+      });
 
       res.status(500).json({
         success: false,

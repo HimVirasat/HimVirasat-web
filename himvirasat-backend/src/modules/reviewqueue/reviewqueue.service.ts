@@ -18,7 +18,7 @@ import { SecurityContext } from "../../utils/get-authenticated-user.js";
 export class ReviewQueueService {
   constructor(
     private readonly repository: ReviewQueueRepository = reviewQueueRepository,
-  ) {}
+  ) { }
 
   private formatContribution(item: RawContribution | null) {
     if (!item) return item;
@@ -26,7 +26,7 @@ export class ReviewQueueService {
       ...item,
       contributor_name:
         item.users?.full_name || item.users?.username || "Contributor",
-      dialect_name: item.dialects?.name || "Standard",
+      dialect_name: item.dialect_name || "Standard",
       category_name: item.categories?.name || "General Vocabulary",
       part_of_speech_name: item.parts_of_speech?.name || "General",
     };
@@ -38,11 +38,9 @@ export class ReviewQueueService {
     const {
       id,
       categories,
-      dialects,
       users,
       parts_of_speech,
       category_name,
-      dialect_name,
       contributor_name,
       part_of_speech_name,
       review_comments,
@@ -84,7 +82,7 @@ export class ReviewQueueService {
       metadata: {
         target_id: customUUID,
         wordDevanagari: payload.word_devanagari || null,
-        dialectId: payload.dialect_id || null,
+        dialectName: payload.dialect_name || null,
         detailed_user: ctx.actor,
       },
     });
@@ -96,18 +94,28 @@ export class ReviewQueueService {
 
     return this.formatContribution(enriched);
   }
-
+  // reviewQueue.service.ts
   async fetchContributions(
-    _ctx: SecurityContext,
+    ctx: SecurityContext,
     filters: ContributionFilters,
   ) {
+    const { actor } = ctx;
+    const isAdmin = actor.role === "super_admin" || actor.role === "l";
+
+    const effectiveFilters: any = { ...filters };
+
+    if (!isAdmin) {
+      // actor.dialects contains strings like ["Kulluvi"]
+      effectiveFilters.dialect_names = actor.dialects || [];
+    }
+
     const data = await this.repository.fetchContributions(
-      filters,
+      effectiveFilters,
       CONTRIBUTION_SELECT_QUERY,
     );
+
     return data.map((item) => this.formatContribution(item));
   }
-
   async fetchContributionById(_ctx: SecurityContext, id: string) {
     const item = await this.repository.fetchContributionById(
       id,
@@ -224,7 +232,7 @@ export class ReviewQueueService {
 
     const existingContribution = await this.repository.fetchContributionById(
       id,
-      "id, contributor_id, dialect_id, status, word_devanagari",
+      "id, contributor_id, dialect_name, status, word_devanagari",
     );
 
     if (!existingContribution) {
@@ -282,9 +290,9 @@ export class ReviewQueueService {
     if (status === "approved" && previousStatus !== "approved") {
       const contributorId = existingContribution.contributor_id as
         string | undefined;
-      const dialectId =
-        typeof existingContribution.dialect_id === "number"
-          ? existingContribution.dialect_id
+      const dialectName =
+        typeof existingContribution.dialect_name === "string"
+          ? existingContribution.dialect_name
           : undefined;
 
       try {
@@ -294,7 +302,7 @@ export class ReviewQueueService {
             points: POINT_REWARDS.CONTRIBUTOR_APPROVED,
             reason: "contribution_approved",
             referenceId: contributionUuid,
-            dialectId: dialectId,
+            dialectName,
             isContributor: true,
           });
 
@@ -321,7 +329,7 @@ export class ReviewQueueService {
             points: POINT_REWARDS.REVIEWER_APPROVED,
             reason: "review_completed",
             referenceId: contributionUuid,
-            dialectId: dialectId,
+            dialectName,
             isContributor: false,
           });
 

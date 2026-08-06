@@ -24,7 +24,7 @@ import { SubmissionService } from "@/lib/services/admin/submission-service";
 import { useRouter } from "next/navigation";
 
 const initialFormData: CreateSubmissionDto = {
-  dialect_id: 0,
+  dialect_name: "",
   word_devanagari: "",
   category_id: undefined,
   region: "",
@@ -68,8 +68,8 @@ export default function ContributionSubmissionPage() {
     isLoading: isLoadingDialects,
     isError: isErrorDialects,
   } = useQuery<string[]>({
-    queryKey: ["datalookup", "available-dialects"],
-    queryFn: DataLookupService.getAvailableDialects,
+    queryKey: ["users", "dialects", "me"],
+    queryFn: () => DataLookupService.getUserDialects("me"),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -90,6 +90,17 @@ export default function ContributionSubmissionPage() {
   } = useQuery<string[]>({
     queryKey: ["datalookup", "available-pos"],
     queryFn: DataLookupService.getAvailablePartsOfSpeech,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Fetch Available Regions Query
+  const {
+    data: dbRegions = [],
+    isLoading: isLoadingRegions,
+    isError: isErrorRegions,
+  } = useQuery<string[]>({
+    queryKey: ["datalookup", "available-regions"],
+    queryFn: DataLookupService.getAvailableRegions,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -120,11 +131,13 @@ export default function ContributionSubmissionPage() {
     if (isErrorDialects) toast.error("Failed to load dialects.");
     if (isErrorCategories) toast.error("Failed to load categories.");
     if (isErrorPOS) toast.error("Failed to load parts of speech.");
-  }, [isErrorDialects, isErrorCategories, isErrorPOS]);
+    if (isErrorRegions) toast.error("Failed to load regions.");
+  }, [isErrorDialects, isErrorCategories, isErrorPOS, isErrorRegions]);
 
   const isDataSyncing =
-    isLoadingDialects || isLoadingCategories || isLoadingPOS;
-  const hasSyncFailure = isErrorDialects || isErrorCategories || isErrorPOS;
+    isLoadingDialects || isLoadingCategories || isLoadingPOS || isLoadingRegions;
+  const hasSyncFailure =
+    isErrorDialects || isErrorCategories || isErrorPOS || isErrorRegions;
   const isSubmitting = submissionMutation.isPending;
 
   const handleFieldChange = (field: keyof CreateSubmissionDto, value: any) => {
@@ -319,6 +332,7 @@ export default function ContributionSubmissionPage() {
                     dialects={dbDialects}
                     categories={dbCategories}
                     partsOfSpeech={dbPartsOfSpeech}
+                    regions={dbRegions}
                     onChange={handleFieldChange as any}
                   />
                 </div>

@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import {
   Activity,
   AlertOctagon,
@@ -21,12 +22,23 @@ import {
   Copy,
   Terminal,
   Fingerprint,
+  Calendar as CalendarIcon,
+  Clock,
+  ArrowUpDown,
+  X,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -121,15 +133,20 @@ const SERVICE_CATEGORIES: {
   label: string;
   value: BACKEND_MODULE_CATEGORIES | "ALL";
 }[] = [
-  { label: "All Services", value: "ALL" },
-  { label: "Auth", value: "auth" },
-  { label: "Dashboard", value: "dashboard" },
-  { label: "Data Lookup", value: "datalookup" },
-  { label: "Review Queue", value: "review_queue" },
-  { label: "Submissions", value: "submissions" },
-  { label: "Users", value: "users" },
-  { label: "Datasets", value: "datasets" },
-];
+    { label: "All Services", value: "ALL" },
+    { label: "Auth", value: "auth" },
+    { label: "Dashboard", value: "dashboard" },
+    { label: "Data Lookup", value: "datalookup" },
+    { label: "Review Queue", value: "review_queue" },
+    { label: "Submissions", value: "submissions" },
+    { label: "Users", value: "users" },
+    { label: "Datasets", value: "datasets" },
+  ];
+
+const HOURS = Array.from({ length: 24 }, (_, i) => ({
+  value: String(i),
+  label: `${String(i).padStart(2, "0")}:00 - ${String(i).padStart(2, "0")}:59`,
+}));
 
 export default function LogsDashboardPage() {
   const [activeTab, setActiveTab] = useState<"activity" | "error">("activity");
@@ -137,6 +154,12 @@ export default function LogsDashboardPage() {
     BACKEND_MODULE_CATEGORIES | "ALL"
   >("ALL");
   const [statusFilter, setStatusFilter] = useState<LOG_STATUS | "ALL">("ALL");
+
+  // Date, Hour & Sort Filtering State
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedHour, setSelectedHour] = useState<string>("ALL");
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+
   const [isLiveTail, setIsLiveTail] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -147,6 +170,28 @@ export default function LogsDashboardPage() {
     null
   );
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
+
+  // Compute ISO timestamps for selected date & hour
+  const { startDate, endDate } = useMemo(() => {
+    if (!selectedDate) return { startDate: undefined, endDate: undefined };
+
+    const start = new Date(selectedDate);
+    const end = new Date(selectedDate);
+
+    if (selectedHour !== "ALL") {
+      const h = Number(selectedHour);
+      start.setHours(h, 0, 0, 0);
+      end.setHours(h, 59, 59, 999);
+    } else {
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+    }
+
+    return {
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
+    };
+  }, [selectedDate, selectedHour]);
 
   // Activity Query
   const {
@@ -159,6 +204,9 @@ export default function LogsDashboardPage() {
       "activity-logs",
       selectedService,
       statusFilter,
+      startDate,
+      endDate,
+      sortOrder,
       currentPage,
       pageSize,
     ],
@@ -166,6 +214,9 @@ export default function LogsDashboardPage() {
       DataLookupService.getActivityLogs({
         service: selectedService !== "ALL" ? selectedService : undefined,
         status: statusFilter !== "ALL" ? statusFilter : undefined,
+        startDate,
+        endDate,
+        sort: sortOrder,
         page: currentPage,
         limit: pageSize,
       }),
@@ -173,7 +224,7 @@ export default function LogsDashboardPage() {
     refetchInterval: isLiveTail ? 5000 : false,
   });
 
-  // Error/Exceptions Query
+  // Error Query
   const {
     data: errorResponse,
     isLoading: isLoadingError,
@@ -184,6 +235,9 @@ export default function LogsDashboardPage() {
       "error-logs",
       selectedService,
       statusFilter,
+      startDate,
+      endDate,
+      sortOrder,
       currentPage,
       pageSize,
     ],
@@ -191,6 +245,9 @@ export default function LogsDashboardPage() {
       DataLookupService.getErrorLogs({
         service: selectedService !== "ALL" ? selectedService : undefined,
         status: statusFilter !== "ALL" ? statusFilter : undefined,
+        startDate,
+        endDate,
+        sort: sortOrder,
         page: currentPage,
         limit: pageSize,
       }),
@@ -211,7 +268,6 @@ export default function LogsDashboardPage() {
 
   const activeDataset = activeTab === "activity" ? activityLogs : errorLogs;
 
-  // Global Metrics calculation across all pages
   const metrics = useMemo(() => {
     if (activeTab === "activity") {
       const meta = activityResponse?.meta;
@@ -234,7 +290,6 @@ export default function LogsDashboardPage() {
     }
   }, [activeTab, activityResponse, errorResponse, activityLogs, errorLogs]);
 
-  // Determine pagination next page availability
   const hasNextPage = useMemo(() => {
     const totalPages =
       activeTab === "activity"
@@ -268,6 +323,12 @@ export default function LogsDashboardPage() {
   const handleOpenLog = (log: ActivityLog | ErrorLog) => {
     setSelectedLog(log);
     setIsInspectorOpen(true);
+  };
+
+  const handleClearDateFilters = () => {
+    setSelectedDate(undefined);
+    setSelectedHour("ALL");
+    setCurrentPage(1);
   };
 
   return (
@@ -309,7 +370,7 @@ export default function LogsDashboardPage() {
       </header>
 
       <main className="flex flex-1 flex-col min-h-0 overflow-hidden p-3 md:p-6 gap-3 md:gap-4 bg-muted/20">
-        {/* Global Metrics Cards Grid */}
+        {/* Metrics Grid */}
         <div className="grid shrink-0 grid-cols-1 gap-3 sm:grid-cols-3">
           <Card className="bg-card/70 border-border/60 shadow-xs">
             <CardContent className="p-3.5 md:p-4 flex items-center justify-between">
@@ -400,84 +461,175 @@ export default function LogsDashboardPage() {
           )}
         </div>
 
-        {/* Filter Controls Card */}
-        <div className="flex shrink-0 flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 rounded-xl border bg-card p-2.5 sm:p-3 shadow-xs">
-          <Tabs
-            value={activeTab}
-            onValueChange={(v) => {
-              setActiveTab(v as "activity" | "error");
-              setCurrentPage(1);
-            }}
-            className="w-full sm:w-auto"
-          >
-            <TabsList className="grid w-full sm:w-64 grid-cols-2">
-              <TabsTrigger
-                value="activity"
-                className="gap-1.5 text-xs font-semibold"
-              >
-                <Activity className="size-3.5" /> Activity
-              </TabsTrigger>
-              <TabsTrigger
-                value="error"
-                className="gap-1.5 text-xs font-semibold"
-              >
-                <AlertOctagon className="size-3.5" /> Exceptions
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          <div className="grid grid-cols-2 sm:flex items-center gap-2">
-            <Select
-              value={selectedService}
-              onValueChange={(val) => {
-                setSelectedService(val as BACKEND_MODULE_CATEGORIES | "ALL");
+        {/* Filters and Search Bar */}
+        <div className="flex shrink-0 flex-col gap-2 rounded-xl border bg-card p-2.5 sm:p-3 shadow-xs">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5">
+            <Tabs
+              value={activeTab}
+              onValueChange={(v) => {
+                setActiveTab(v as "activity" | "error");
                 setCurrentPage(1);
               }}
+              className="w-full lg:w-auto"
             >
-              <SelectTrigger className="h-9 min-w-0 sm:min-w-40 text-xs bg-background">
-                <Layers className="mr-1.5 size-3.5 text-muted-foreground shrink-0" />
-                <SelectValue placeholder="Service Category" />
-              </SelectTrigger>
-              <SelectContent>
-                {SERVICE_CATEGORIES.map((cat) => (
-                  <SelectItem
-                    key={cat.value}
-                    value={cat.value}
-                    className="text-xs"
+              <TabsList className="grid w-full sm:w-64 grid-cols-2">
+                <TabsTrigger
+                  value="activity"
+                  className="gap-1.5 text-xs font-semibold"
+                >
+                  <Activity className="size-3.5" /> Activity
+                </TabsTrigger>
+                <TabsTrigger
+                  value="error"
+                  className="gap-1.5 text-xs font-semibold"
+                >
+                  <AlertOctagon className="size-3.5" /> Exceptions
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+              {/* Date Calendar Filter */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "h-9 justify-start text-xs font-normal bg-background",
+                      !selectedDate && "text-muted-foreground"
+                    )}
                   >
-                    {cat.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                    <CalendarIcon className="mr-1.5 size-3.5 shrink-0" />
+                    {selectedDate ? (
+                      format(selectedDate, "PPP")
+                    ) : (
+                      <span>Pick Date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      setSelectedDate(date);
+                      setCurrentPage(1);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
 
-            <Select
-              value={statusFilter}
-              onValueChange={(val) => {
-                setStatusFilter(val as LOG_STATUS | "ALL");
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="h-9 min-w-0 sm:min-w-32 text-xs bg-background">
-                <Filter className="mr-1.5 size-3.5 text-muted-foreground shrink-0" />
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL" className="text-xs">
-                  All Statuses
-                </SelectItem>
-                <SelectItem value="SUCCESS" className="text-xs">
-                  SUCCESS
-                </SelectItem>
-                <SelectItem value="FAILED" className="text-xs">
-                  FAILED
-                </SelectItem>
-              </SelectContent>
-            </Select>
+              {/* Hour Filter */}
+              <Select
+                value={selectedHour}
+                disabled={!selectedDate}
+                onValueChange={(val) => {
+                  setSelectedHour(val);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="h-9 min-w-0 sm:min-w-36 text-xs bg-background">
+                  <Clock className="mr-1.5 size-3.5 text-muted-foreground shrink-0" />
+                  <SelectValue placeholder="All Hours" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL" className="text-xs">
+                    All Hours (00:00 - 23:59)
+                  </SelectItem>
+                  {HOURS.map((h) => (
+                    <SelectItem
+                      key={h.value}
+                      value={h.value}
+                      className="text-xs font-mono"
+                    >
+                      {h.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Service Filter */}
+              <Select
+                value={selectedService}
+                onValueChange={(val) => {
+                  setSelectedService(val as BACKEND_MODULE_CATEGORIES | "ALL");
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="h-9 min-w-0 sm:min-w-36 text-xs bg-background">
+                  <Layers className="mr-1.5 size-3.5 text-muted-foreground shrink-0" />
+                  <SelectValue placeholder="Service Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SERVICE_CATEGORIES.map((cat) => (
+                    <SelectItem
+                      key={cat.value}
+                      value={cat.value}
+                      className="text-xs"
+                    >
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Status Filter */}
+              <Select
+                value={statusFilter}
+                onValueChange={(val) => {
+                  setStatusFilter(val as LOG_STATUS | "ALL");
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="h-9 min-w-0 sm:min-w-32 text-xs bg-background">
+                  <Filter className="mr-1.5 size-3.5 text-muted-foreground shrink-0" />
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL" className="text-xs">
+                    All Statuses
+                  </SelectItem>
+                  <SelectItem value="SUCCESS" className="text-xs">
+                    SUCCESS
+                  </SelectItem>
+                  <SelectItem value="FAILED" className="text-xs">
+                    FAILED
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Sort Order Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 gap-1.5 text-xs font-mono bg-background"
+                onClick={() => {
+                  setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
+                  setCurrentPage(1);
+                }}
+              >
+                <ArrowUpDown className="size-3.5 text-muted-foreground" />
+                <span>{sortOrder === "desc" ? "Newest First" : "Oldest First"}</span>
+              </Button>
+
+              {/* Clear Date Filters Action */}
+              {(selectedDate || selectedHour !== "ALL") && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                  onClick={handleClearDateFilters}
+                >
+                  <X className="size-3.5" />
+                  Clear Date
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Log Table / Card List */}
+        {/* Log Table Container */}
         <div className="flex flex-1 flex-col min-h-0 rounded-xl border bg-card shadow-xs overflow-hidden">
           <div className="relative flex-1 min-h-0 overflow-auto">
             {isLoading ? (
@@ -490,7 +642,7 @@ export default function LogsDashboardPage() {
                 <Info className="size-8 text-muted-foreground/50" />
                 <p className="font-semibold">No telemetry log entries found</p>
                 <p className="text-[11px]">
-                  Try adjusting your filters or checking a different page.
+                  Try adjusting your filters or date selection.
                 </p>
               </div>
             ) : (
@@ -499,14 +651,73 @@ export default function LogsDashboardPage() {
                 <div className="block md:hidden divide-y divide-border/60">
                   {activeTab === "activity"
                     ? (activeDataset as ActivityLog[]).map((log) => {
-                        const colors = SERVICE_COLOR_MAP[log.service_category];
-                        return (
-                          <div
-                            key={log.id}
-                            onClick={() => handleOpenLog(log)}
-                            className="p-3.5 space-y-2 cursor-pointer active:bg-muted/60 hover:bg-muted/40 transition-colors"
-                          >
-                            <div className="flex items-center justify-between gap-2">
+                      const colors = SERVICE_COLOR_MAP[log.service_category];
+                      return (
+                        <div
+                          key={log.id}
+                          onClick={() => handleOpenLog(log)}
+                          className="p-3.5 space-y-2 cursor-pointer active:bg-muted/60 hover:bg-muted/40 transition-colors"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                "font-mono text-[10px] uppercase border",
+                                colors?.badge
+                              )}
+                            >
+                              {log.service_category}
+                            </Badge>
+                            <span className="text-[10px] text-muted-foreground font-mono">
+                              {new Date(log.created_at).toLocaleString()}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-mono text-xs font-bold text-foreground">
+                              {log.action}
+                            </span>
+                            <Badge
+                              variant="secondary"
+                              className={cn(
+                                "text-[9px] font-bold border-0 shrink-0",
+                                log.status === "SUCCESS"
+                                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                  : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                              )}
+                            >
+                              {log.status}
+                            </Badge>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[11px] font-mono text-muted-foreground pt-1">
+                            <span>
+                              Actor:{" "}
+                              {log.actor_id
+                                ? log.actor_id.slice(0, 8) + "..."
+                                : "System"}
+                            </span>
+                            <span>Target: {log.entity_type}</span>
+                          </div>
+                        </div>
+                      );
+                    })
+                    : (activeDataset as ErrorLog[]).map((log) => {
+                      const colors = SERVICE_COLOR_MAP[log.service_category];
+                      return (
+                        <div
+                          key={log.id}
+                          onClick={() => handleOpenLog(log)}
+                          className="p-3.5 space-y-2 cursor-pointer active:bg-muted/60 hover:bg-muted/40 transition-colors"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-1.5">
+                              <Badge
+                                variant="destructive"
+                                className="text-[10px] font-mono font-bold"
+                              >
+                                {log.code || "500"}
+                              </Badge>
                               <Badge
                                 variant="outline"
                                 className={cn(
@@ -516,81 +727,22 @@ export default function LogsDashboardPage() {
                               >
                                 {log.service_category}
                               </Badge>
-                              <span className="text-[10px] text-muted-foreground font-mono">
-                                {new Date(log.created_at).toLocaleTimeString()}
-                              </span>
                             </div>
-
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-mono text-xs font-bold text-foreground">
-                                {log.action}
-                              </span>
-                              <Badge
-                                variant="secondary"
-                                className={cn(
-                                  "text-[9px] font-bold border-0 shrink-0",
-                                  log.status === "SUCCESS"
-                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                                    : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
-                                )}
-                              >
-                                {log.status}
-                              </Badge>
-                            </div>
-
-                            <div className="flex items-center justify-between text-[11px] font-mono text-muted-foreground pt-1">
-                              <span>
-                                Actor:{" "}
-                                {log.actor_id
-                                  ? log.actor_id.slice(0, 8) + "..."
-                                  : "System"}
-                              </span>
-                              <span>Target: {log.entity_type}</span>
-                            </div>
+                            <span className="text-[10px] text-muted-foreground font-mono">
+                              {new Date(log.created_at).toLocaleString()}
+                            </span>
                           </div>
-                        );
-                      })
-                    : (activeDataset as ErrorLog[]).map((log) => {
-                        const colors = SERVICE_COLOR_MAP[log.service_category];
-                        return (
-                          <div
-                            key={log.id}
-                            onClick={() => handleOpenLog(log)}
-                            className="p-3.5 space-y-2 cursor-pointer active:bg-muted/60 hover:bg-muted/40 transition-colors"
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-1.5">
-                                <Badge
-                                  variant="destructive"
-                                  className="text-[10px] font-mono font-bold"
-                                >
-                                  {log.code || "500"}
-                                </Badge>
-                                <Badge
-                                  variant="outline"
-                                  className={cn(
-                                    "font-mono text-[10px] uppercase border",
-                                    colors?.badge
-                                  )}
-                                >
-                                  {log.service_category}
-                                </Badge>
-                              </div>
-                              <span className="text-[10px] text-muted-foreground font-mono">
-                                {new Date(log.created_at).toLocaleTimeString()}
-                              </span>
-                            </div>
 
-                            <p className="text-xs font-mono font-semibold text-foreground truncate">
-                              {log.method || "N/A"} {log.path || "/"}
-                            </p>
+                          <p className="text-xs font-mono font-semibold text-foreground truncate">
+                            {log.method || "N/A"} {log.path || "/"}
+                          </p>
 
-                            <p className="text-xs text-muted-foreground line-clamp-2">
-                              {log.error_message}
-                            </p>
-                          </div>
-                        );
-                      })}
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {log.error_message}
+                          </p>
+                        </div>
+                      );
+                    })}
                 </div>
 
                 {/* Desktop View */}
@@ -599,7 +751,7 @@ export default function LogsDashboardPage() {
                     <Table>
                       <TableHeader className="bg-muted/80 sticky top-0 z-10 backdrop-blur-xs">
                         <TableRow className="hover:bg-transparent">
-                          <TableHead className="w-28 text-[11px] font-mono">
+                          <TableHead className="w-40 text-[11px] font-mono">
                             TIMESTAMP
                           </TableHead>
                           <TableHead className="text-[11px] font-mono">
@@ -624,8 +776,7 @@ export default function LogsDashboardPage() {
                       </TableHeader>
                       <TableBody className="font-mono text-xs">
                         {(activeDataset as ActivityLog[]).map((log) => {
-                          const colors =
-                            SERVICE_COLOR_MAP[log.service_category];
+                          const colors = SERVICE_COLOR_MAP[log.service_category];
                           return (
                             <TableRow
                               key={log.id}
@@ -633,7 +784,7 @@ export default function LogsDashboardPage() {
                               className="cursor-pointer transition-colors hover:bg-muted/60"
                             >
                               <TableCell className="text-[11px] text-muted-foreground whitespace-nowrap">
-                                {new Date(log.created_at).toLocaleTimeString()}
+                                {new Date(log.created_at).toLocaleString()}
                               </TableCell>
                               <TableCell className="font-bold text-foreground">
                                 <Badge
@@ -693,7 +844,7 @@ export default function LogsDashboardPage() {
                     <Table>
                       <TableHeader className="bg-muted/80 sticky top-0 z-10 backdrop-blur-xs">
                         <TableRow className="hover:bg-transparent">
-                          <TableHead className="w-28 text-[11px] font-mono">
+                          <TableHead className="w-40 text-[11px] font-mono">
                             TIMESTAMP
                           </TableHead>
                           <TableHead className="text-[11px] font-mono">
@@ -718,8 +869,7 @@ export default function LogsDashboardPage() {
                       </TableHeader>
                       <TableBody className="font-mono text-xs">
                         {(activeDataset as ErrorLog[]).map((log) => {
-                          const colors =
-                            SERVICE_COLOR_MAP[log.service_category];
+                          const colors = SERVICE_COLOR_MAP[log.service_category];
                           return (
                             <TableRow
                               key={log.id}
@@ -727,7 +877,7 @@ export default function LogsDashboardPage() {
                               className="cursor-pointer transition-colors hover:bg-muted/60"
                             >
                               <TableCell className="text-[11px] text-muted-foreground whitespace-nowrap">
-                                {new Date(log.created_at).toLocaleTimeString()}
+                                {new Date(log.created_at).toLocaleString()}
                               </TableCell>
                               <TableCell>
                                 <Badge
@@ -777,7 +927,7 @@ export default function LogsDashboardPage() {
             )}
           </div>
 
-          {/* Footer Controls */}
+          {/* Footer Pagination Controls */}
           <div className="flex shrink-0 items-center justify-between border-t px-3 md:px-4 py-2.5 bg-card text-xs">
             <div className="flex items-center gap-1.5 md:gap-2 text-muted-foreground font-mono">
               <span className="hidden sm:inline">Rows per page:</span>
@@ -832,7 +982,7 @@ export default function LogsDashboardPage() {
         </div>
       </main>
 
-      {/* Inspector Drawer */}
+      {/* Inspector Sheet */}
       <Sheet open={isInspectorOpen} onOpenChange={setIsInspectorOpen}>
         <SheetContent className="sm:max-w-2xl w-full flex flex-col p-0 gap-0 bg-background overflow-hidden border-l border-border">
           {selectedLog && (

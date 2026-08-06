@@ -15,7 +15,7 @@ export const datasetEntrySchema = z.object({
   // Foreign Keys (Nullable / Optional)
   contributor_id: z.string().uuid().nullable().optional(),
   language_id: z.number().int().positive(),
-  dialect_id: z.number().int().positive(),
+  dialect_name: z.string().min(1),
   region_id: z.number().int().positive().nullable().optional(),
   category_id: z.number().int().positive().nullable().optional(),
   part_of_speech_id: z.number().int().positive().nullable().optional(),

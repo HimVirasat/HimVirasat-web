@@ -52,7 +52,7 @@ export type ContributionHistory = z.infer<typeof ContributionHistorySchema>;
 export const ContributionSchema = z.object({
   id: z.string(),
   contributor_id: z.string(),
-  dialect_id: z.number(),
+  dialect_name: z.string(),
   category_id: z.number().nullable().optional(),
   part_of_speech_id: z.number().nullable().optional(),
   word_devanagari: z.string(),
@@ -81,14 +81,12 @@ export const ContributionSchema = z.object({
 
   // UI / Joined Convenience fields
   contributor_name: z.string().optional(),
-  dialect_name: z.string().optional(),
   category_name: z.string().optional(),
   part_of_speech_name: z.string().optional(),
 
   users: z
     .object({ username: z.string(), full_name: z.string().optional() })
     .optional(),
-  dialects: z.object({ name: z.string() }).optional(),
   categories: z.object({ name: z.string() }).optional(),
   parts_of_speech: z.object({ name: z.string() }).optional(),
   review_comments: z.array(ReviewCommentSchema).optional(),

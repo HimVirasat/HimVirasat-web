@@ -44,7 +44,7 @@ export class SubmissionsService {
       logStatus: "SUCCESS",
       metadata: {
         target_id: contribution.id,
-        dialect_id: payload.dialect_id,
+        dialect_name: payload.dialect_name,
         word: payload.word,
         detailed_user: ctx.actor,
       },

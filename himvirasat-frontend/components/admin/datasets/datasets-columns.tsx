@@ -15,7 +15,6 @@ import {
 
 export interface DatasetEntry extends BaseDatasetEntry {
   contributor_name?: string | null;
-  dialect_name?: string | null;
   category_name?: string | null;
   pos_name?: string | null;
   region_name?: string | null;
@@ -47,7 +46,7 @@ export function getDatasetColumns(): ColumnDef<DatasetEntry>[] {
         return (
           <div className="flex items-center gap-1.5 text-xs text-foreground font-medium">
             <Languages className="size-3.5 text-muted-foreground shrink-0" />
-            <span>{name || `Dialect #${row.original.dialect_id}`}</span>
+            <span>{name || "Unknown dialect"}</span>
           </div>
         );
       },

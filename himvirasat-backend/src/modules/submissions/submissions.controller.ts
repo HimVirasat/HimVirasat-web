@@ -38,7 +38,10 @@ export class SubmissionsController {
 
     const validationResult = CreateSubmissionSchema.safeParse({
       ...req.body,
-      dialect_id: req.body.dialect_id ? Number(req.body.dialect_id) : undefined,
+      dialect_name:
+        typeof req.body.dialect_name === "string"
+          ? req.body.dialect_name
+          : undefined,
       category_id: req.body.category_id ? Number(req.body.category_id) : null,
       part_of_speech_id: req.body.part_of_speech_id
         ? Number(req.body.part_of_speech_id)

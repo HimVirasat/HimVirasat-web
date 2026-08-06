@@ -9,7 +9,7 @@ import { AuditLogger } from "../../utils/audit-logger.js";
 import { SecurityContext } from "../../utils/get-authenticated-user.js";
 
 export class UsersService {
-  constructor(private readonly repository: UsersRepository = usersRepository) {}
+  constructor(private readonly repository: UsersRepository = usersRepository) { }
 
   async fetchLanguageExperts(_ctx: SecurityContext) {
     const data = await this.repository.findUsersByRole("language_expert");
@@ -330,6 +330,14 @@ export class UsersService {
 
     return { success: true, data: updated };
   }
+  async getUserDialectsById(userId: string): Promise<string[] | null> {
+    return await this.repository.findDialectsByUserId(userId);
+  }
+
+  async getUserDialectsByUsername(username: string): Promise<string[] | null> {
+    return await this.repository.findDialectsByUsername(username);
+  }
+
 }
 
 export const usersService = new UsersService();

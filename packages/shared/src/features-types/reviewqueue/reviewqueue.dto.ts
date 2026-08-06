@@ -18,10 +18,7 @@ export const RawContributionSchema = z
       })
       .nullable()
       .optional(),
-    dialects: z
-      .object({ name: z.string().optional() })
-      .nullable()
-      .optional(),
+    dialect_name: z.string().optional(),
     categories: z
       .object({ name: z.string().optional() })
       .nullable()
@@ -39,7 +36,7 @@ export type RawContribution = z.infer<typeof RawContributionSchema>;
 // Note: Leveraging ContributionStatusSchema directly instead of generic z.string()
 export const ContributionFiltersSchema = z.object({
   status: ContributionStatusSchema.optional(),
-  dialect_id: z.number().optional(),
+  dialect_name: z.string().trim().optional(),
 });
 
 export type ContributionFilters = z.infer<typeof ContributionFiltersSchema>;
@@ -77,7 +74,7 @@ export const InsertContributionPayloadSchema = z
     word_devanagari: z.string().optional(),
     meaning_hindi: z.string().optional(),
     meaning_english: z.string().optional(),
-    dialect_id: z.number().nullable().optional(),
+    dialect_name: z.string().nullable().optional(),
     category_id: z.number().nullable().optional(),
     part_of_speech_id: z.number().nullable().optional(),
   })

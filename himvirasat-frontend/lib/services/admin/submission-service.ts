@@ -21,7 +21,7 @@ export class SubmissionService {
     ).trim();
 
     const payload: CreateSubmissionPayload = {
-      dialect_id: Number(formData.dialect_id),
+      dialect_name: formData.dialect_name.trim(),
       category_id: formData.category_id ? Number(formData.category_id) : null,
       part_of_speech_id: formData.part_of_speech_id
         ? Number(formData.part_of_speech_id)

@@ -37,7 +37,7 @@ export function useDatasetParams() {
     limit: parseSafeIntParam(searchParams.get("limit")) || 20,
     search: searchParams.get("search") || undefined,
     language_id: parseSafeIntParam(searchParams.get("language_id")),
-    dialect_id: parseSafeIntParam(searchParams.get("dialect_id")),
+    dialect_name: searchParams.get("dialect_name") || undefined,
     region_id: parseSafeIntParam(searchParams.get("region_id")),
     category_id: parseSafeIntParam(searchParams.get("category_id")),
     part_of_speech_id: parseSafeIntParam(searchParams.get("part_of_speech_id")),

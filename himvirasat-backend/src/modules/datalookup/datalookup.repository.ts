@@ -2,7 +2,7 @@ import { supabase } from "../../services/supabase.js";
 import { ActivityLog, ErrorLog, GetLogsParams } from "@himvirasat/shared";
 
 export interface DynamicLookupOption {
-  id: number;
+  id: number | string;
   name: string;
 }
 export interface PaginatedQueryResult<T> {
@@ -15,14 +15,14 @@ export interface PaginatedQueryResult<T> {
 }
 
 export class DataLookupRepository {
-  async getDialects(): Promise<DynamicLookupOption[]> {
+  async getDialects(): Promise<string[]> {
     const { data, error } = await supabase
       .from("dialects")
-      .select("id, name")
+      .select("name")
       .order("name", { ascending: true });
 
     if (error) throw new Error(error.message);
-    return data || [];
+    return (data || []).map((dialect) => dialect.name);
   }
 
   async getCategories(): Promise<DynamicLookupOption[]> {
@@ -64,7 +64,8 @@ export class DataLookupRepository {
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    // 1. Fetch Paginated Records and Total Count
+    const ascending = params.sort === "asc";
+
     let query = supabase
       .from("activity_logs")
       .select(
@@ -81,7 +82,7 @@ export class DataLookupRepository {
       `,
         { count: "exact" },
       )
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending });
 
     if (params.service) {
       query = query.eq("service_category", params.service);
@@ -89,11 +90,17 @@ export class DataLookupRepository {
     if (params.status) {
       query = query.eq("status", params.status);
     }
+    if (params.startDate) {
+      query = query.gte("created_at", params.startDate);
+    }
+    if (params.endDate) {
+      query = query.lte("created_at", params.endDate);
+    }
 
     const { data, error, count } = await query.range(from, to);
     if (error) throw error;
 
-    // 2. Compute Success / Failed counts across the entire dataset (respecting service filter if present)
+    // Compute counts respecting date filters
     let countSuccessQuery = supabase
       .from("activity_logs")
       .select("id", { count: "exact", head: true })
@@ -105,14 +112,16 @@ export class DataLookupRepository {
       .eq("status", "FAILED");
 
     if (params.service) {
-      countSuccessQuery = countSuccessQuery.eq(
-        "service_category",
-        params.service,
-      );
-      countFailedQuery = countFailedQuery.eq(
-        "service_category",
-        params.service,
-      );
+      countSuccessQuery = countSuccessQuery.eq("service_category", params.service);
+      countFailedQuery = countFailedQuery.eq("service_category", params.service);
+    }
+    if (params.startDate) {
+      countSuccessQuery = countSuccessQuery.gte("created_at", params.startDate);
+      countFailedQuery = countFailedQuery.gte("created_at", params.startDate);
+    }
+    if (params.endDate) {
+      countSuccessQuery = countSuccessQuery.lte("created_at", params.endDate);
+      countFailedQuery = countFailedQuery.lte("created_at", params.endDate);
     }
 
     const [{ count: successCount }, { count: failedCount }] = await Promise.all(
@@ -135,7 +144,8 @@ export class DataLookupRepository {
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    // 1. Fetch Paginated Records and Total Count
+    const ascending = params.sort === "asc";
+
     let query = supabase
       .from("error_logs")
       .select(
@@ -157,7 +167,7 @@ export class DataLookupRepository {
       `,
         { count: "exact" },
       )
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending });
 
     if (params.service) {
       query = query.eq("service_category", params.service);
@@ -165,11 +175,16 @@ export class DataLookupRepository {
     if (params.status) {
       query = query.eq("status", params.status);
     }
+    if (params.startDate) {
+      query = query.gte("created_at", params.startDate);
+    }
+    if (params.endDate) {
+      query = query.lte("created_at", params.endDate);
+    }
 
     const { data, error, count } = await query.range(from, to);
     if (error) throw error;
 
-    // 2. Compute Critical (5xx) vs Standard errors count across dataset
     let criticalQuery = supabase
       .from("error_logs")
       .select("id", { count: "exact", head: true })
@@ -183,6 +198,14 @@ export class DataLookupRepository {
     if (params.service) {
       criticalQuery = criticalQuery.eq("service_category", params.service);
       standardQuery = standardQuery.eq("service_category", params.service);
+    }
+    if (params.startDate) {
+      criticalQuery = criticalQuery.gte("created_at", params.startDate);
+      standardQuery = standardQuery.gte("created_at", params.startDate);
+    }
+    if (params.endDate) {
+      criticalQuery = criticalQuery.lte("created_at", params.endDate);
+      standardQuery = standardQuery.lte("created_at", params.endDate);
     }
 
     const [{ count: criticalCount }, { count: standardCount }] =

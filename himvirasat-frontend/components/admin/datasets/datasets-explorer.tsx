@@ -23,7 +23,7 @@ interface DatasetApiResponse {
   };
 }
 
-function normalizeToNumericOptions(rawInput: any): OptionItem[] {
+function normalizeToOptions(rawInput: any): OptionItem[] {
   if (!rawInput) return [];
 
   const rawList = Array.isArray(rawInput)
@@ -43,12 +43,11 @@ function normalizeToNumericOptions(rawInput: any): OptionItem[] {
         if (!Number.isNaN(parsedNum) && parsedNum > 0) {
           return { id: parsedNum, label: String(item) };
         }
-        return { id: index + 1, label: String(item) };
+        return { id: String(item), label: String(item) };
       }
 
       const rawId =
         item.id ??
-        item.dialect_id ??
         item.category_id ??
         item.part_of_speech_id ??
         item.pos_id ??
@@ -112,19 +111,19 @@ export function DatasetExplorer() {
   });
 
   const dialects = useMemo(
-    () => normalizeToNumericOptions(rawDialects),
+    () => normalizeToOptions(rawDialects),
     [rawDialects]
   );
   const categories = useMemo(
-    () => normalizeToNumericOptions(rawCategories),
+    () => normalizeToOptions(rawCategories),
     [rawCategories]
   );
   const posList = useMemo(
-    () => normalizeToNumericOptions(rawPosList),
+    () => normalizeToOptions(rawPosList),
     [rawPosList]
   );
   const regions = useMemo(
-    () => normalizeToNumericOptions(rawRegions),
+    () => normalizeToOptions(rawRegions),
     [rawRegions]
   );
 
@@ -205,14 +204,14 @@ export function DatasetExplorer() {
       });
     }
 
-    if (queryParams.dialect_id) {
+    if (queryParams.dialect_name) {
       const match = dialects.find(
-        (d) => d.id === Number(queryParams.dialect_id)
+        (d) => String(d.id) === String(queryParams.dialect_name)
       );
       filters.push({
-        key: "dialect_id",
-        label: `Dialect: ${match?.label || queryParams.dialect_id}`,
-        onRemove: () => updateParams({ dialect_id: undefined, page: 1 }),
+        key: "dialect_name",
+        label: `Dialect: ${match?.label || queryParams.dialect_name}`,
+        onRemove: () => updateParams({ dialect_name: undefined, page: 1 }),
       });
     }
 
@@ -263,7 +262,7 @@ export function DatasetExplorer() {
     setSearchTerm("");
     updateParams({
       search: undefined,
-      dialect_id: undefined,
+      dialect_name: undefined,
       category_id: undefined,
       part_of_speech_id: undefined,
       region_id: undefined,

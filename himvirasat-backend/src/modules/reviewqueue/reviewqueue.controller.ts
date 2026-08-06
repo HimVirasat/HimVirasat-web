@@ -28,9 +28,9 @@ export class ReviewQueueController {
     };
   }
 
-  private getStringParam(param: string | string[] | undefined): string | null {
+  private getStringParam(param: unknown): string | undefined {
     if (typeof param === "string") return param;
-    return null;
+    return undefined;
   }
 
   createReviewQueue: RequestHandler = async (req, res): Promise<void> => {
@@ -98,9 +98,7 @@ export class ReviewQueueController {
     try {
       const filterValidation = ContributionFiltersSchema.safeParse({
         status: req.query.status,
-        dialect_id: req.query.dialect_id
-          ? Number(req.query.dialect_id)
-          : undefined,
+        dialect_name: this.getStringParam(req.query.dialect_name),
       });
 
       if (!filterValidation.success) {
@@ -134,15 +132,15 @@ export class ReviewQueueController {
         filterValidation.data,
       );
 
-      await AuditLogger.logActivity({
-        action: "GET_REVIEW_QUEUE",
-        entityType: "review_item",
-        actorUserId: ctx.actor.id,
-        backendModuleCategory: "review_queue",
-        backendCode: "REVIEW_QUEUE_CONTROLLER:SUCCESS_GET_REVIEW_QUEUE",
-        logStatus: "SUCCESS",
-        metadata: { detailed_user: ctx.actor, filters: filterValidation.data },
-      });
+      // await AuditLogger.logActivity({
+      //   action: "GET_REVIEW_QUEUE",
+      //   entityType: "review_item",
+      //   actorUserId: ctx.actor.id,
+      //   backendModuleCategory: "review_queue",
+      //   backendCode: "REVIEW_QUEUE_CONTROLLER:SUCCESS_GET_REVIEW_QUEUE",
+      //   logStatus: "SUCCESS",
+      //   metadata: { detailed_user: ctx.actor, filters: filterValidation.data },
+      // });
 
       res.status(200).json({ success: true, data });
     } catch (error: any) {

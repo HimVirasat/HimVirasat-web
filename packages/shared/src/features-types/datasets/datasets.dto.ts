@@ -6,7 +6,7 @@ export const fetchDatasetsQueryParamsSchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(20),
   search: z.string().trim().optional(),
   language_id: z.coerce.number().int().positive().optional(),
-  dialect_id: z.coerce.number().int().positive().optional(),
+  dialect_name: z.string().trim().optional(),
   region_id: z.coerce.number().int().positive().optional(),
   category_id: z.coerce.number().int().positive().optional(),
   part_of_speech_id: z.coerce.number().int().positive().optional(),

@@ -17,7 +17,7 @@ import {
 } from "@himvirasat/shared";
 
 export interface OptionItem {
-  id: number;
+  id: number | string;
   label: string;
 }
 
@@ -128,11 +128,11 @@ export function DatasetToolbar({
         {/* Dialect */}
         <Select
           value={
-            queryParams.dialect_id ? String(queryParams.dialect_id) : "all"
+            queryParams.dialect_name ? String(queryParams.dialect_name) : "all"
           }
           onValueChange={(val) =>
             updateParams({
-              dialect_id: val === "all" ? undefined : Number(val),
+              dialect_name: val === "all" ? undefined : val,
               page: 1,
             })
           }

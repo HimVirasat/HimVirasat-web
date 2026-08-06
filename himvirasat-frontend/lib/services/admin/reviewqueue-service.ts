@@ -29,8 +29,8 @@ export class ReviewQueueService {
   static async getAll(filters?: ContributionFilters): Promise<Contribution[]> {
     const params = new URLSearchParams();
     if (filters?.status) params.append("status", filters.status);
-    if (filters?.dialect_id)
-      params.append("dialect_id", String(filters.dialect_id));
+    if (filters?.dialect_name)
+      params.append("dialect_name", filters.dialect_name);
 
     const queryString = params.toString();
     const url = `${API_URL}/reviewqueue${queryString ? `?${queryString}` : ""}`;
@@ -44,7 +44,7 @@ export class ReviewQueueService {
       success: boolean;
       data: Contribution[];
     }>(response, "Failed to fetch contributions queue");
-
+    console.log(resData.data);
     return resData.data;
   }
 

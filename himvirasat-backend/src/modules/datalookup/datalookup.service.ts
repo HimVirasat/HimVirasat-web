@@ -27,12 +27,15 @@ export interface PaginatedLogsResponse<T> {
     totalStandard?: number | undefined;
   };
 }
+
+type FetchLogsOptions = Partial<GetLogsParams>;
+
 export class DataLookupService {
   constructor(
     private readonly repository: DataLookupRepository = dataLookupRepository,
   ) {}
 
-  async fetchDialects(_ctx: SecurityContext): Promise<DynamicLookupOption[]> {
+  async fetchDialects(_ctx: SecurityContext): Promise<string[]> {
     return await this.repository.getDialects();
   }
 
@@ -52,38 +55,38 @@ export class DataLookupService {
     return await this.repository.getAvailableRegions();
   }
 
-  async fetchActivityLogs(
+  async getActivityLogs(
     _ctx: SecurityContext,
-    params: GetLogsParams,
+    options: FetchLogsOptions = {},
   ): Promise<PaginatedLogsResponse<ActivityLog>> {
+    const params = this.normalizeLogOptions(options);
     const result = await this.repository.getActivityLogs(params);
-    const limit = params.limit || 20;
 
     return {
       data: result.data,
       meta: {
         total: result.total,
-        totalSuccess: result.totalSuccess,
-        totalFailed: result.totalFailed,
-        totalPages: Math.ceil(result.total / limit) || 1,
+        totalPages: this.getTotalPages(result.total, params.limit),
+        totalSuccess: result.totalSuccess ?? 0,
+        totalFailed: result.totalFailed ?? 0,
       },
     };
   }
 
-  async fetchErrorLogs(
+  async getErrorLogs(
     _ctx: SecurityContext,
-    params: GetLogsParams,
+    options: FetchLogsOptions = {},
   ): Promise<PaginatedLogsResponse<ErrorLog>> {
+    const params = this.normalizeLogOptions(options);
     const result = await this.repository.getErrorLogs(params);
-    const limit = params.limit || 20;
 
     return {
       data: result.data,
       meta: {
         total: result.total,
-        totalCritical: result.totalCritical,
-        totalStandard: result.totalStandard,
-        totalPages: Math.ceil(result.total / limit) || 1,
+        totalPages: this.getTotalPages(result.total, params.limit),
+        totalCritical: result.totalCritical ?? 0,
+        totalStandard: result.totalStandard ?? 0,
       },
     };
   }
@@ -185,6 +188,35 @@ export class DataLookupService {
       .trim();
 
     return JSON.parse(cleaned);
+  }
+
+  private normalizeLogOptions(options: FetchLogsOptions): GetLogsParams {
+    return {
+      service: options.service,
+      status: options.status,
+      page: this.normalizePositiveInteger(options.page, 1),
+      limit: this.normalizePositiveInteger(options.limit, 20, 100),
+      startDate: options.startDate,
+      endDate: options.endDate,
+      hour: options.hour,
+      sort: options.sort ?? "desc",
+    };
+  }
+
+  private normalizePositiveInteger(
+    value: number | undefined,
+    fallback: number,
+    max?: number,
+  ): number {
+    if (value === undefined || !Number.isInteger(value) || value < 1) {
+      return fallback;
+    }
+
+    return max === undefined ? value : Math.min(value, max);
+  }
+
+  private getTotalPages(total: number, limit: number): number {
+    return Math.max(1, Math.ceil(total / limit));
   }
 }
 

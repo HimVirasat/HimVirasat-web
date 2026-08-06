@@ -5,7 +5,7 @@ export const AwardPointsPayloadSchema = z.object({
   points: z.number().int(),
   reason: z.enum(["contribution_approved", "review_completed", "comment_accepted"]),
   referenceId: z.string(),
-  dialectId: z.number().optional(),
+  dialectName: z.string().optional(),
   isContributor: z.boolean(),
 });
 

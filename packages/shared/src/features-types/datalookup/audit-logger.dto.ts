@@ -102,6 +102,8 @@ export const ActionSchema = z.enum([
     "ME",
     "LOGOUT",
     "RESET_PASSWORD",
+    "GET_MY_PROFILE",
+    "GET_DASHBOARD_USERS_BY_ROLE",
 ]);
 export type ACTION = z.infer<typeof ActionSchema>;
 
@@ -194,7 +196,12 @@ export type ErrorLog = z.infer<typeof ErrorLogSchema>;
 export const GetLogsParamsSchema = z.object({
     service: BackendModuleCategoriesSchema.optional(),
     status: LogStatusSchema.optional(),
-    page: z.number().optional().default(1),
-    limit: z.number().optional().default(20),
+    page: z.number().int().min(1).optional().default(1),
+    limit: z.number().int().min(1).max(100).optional().default(20),
+    startDate: z.string().datetime().optional(),
+    endDate: z.string().datetime().optional(),
+    hour: z.number().int().min(0).max(23).optional(),
+    sort: z.enum(["asc", "desc"]).optional().default("desc"),
 });
+
 export type GetLogsParams = z.infer<typeof GetLogsParamsSchema>;

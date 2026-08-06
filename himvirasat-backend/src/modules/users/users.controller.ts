@@ -9,7 +9,7 @@ import {
 import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class UsersController {
-  constructor(private readonly service: UsersService = usersService) {}
+  constructor(private readonly service: UsersService = usersService) { }
 
   private getSecurityContext(req: StrictAuthenticatedRequest): SecurityContext {
     return {
@@ -614,6 +614,74 @@ export class UsersController {
       });
 
       res.status(500).json({ success: false, message: errorMessage });
+    }
+  };
+  getUserDialects: RequestHandler = async (req, res): Promise<void> => {
+    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
+    if (!cachedUser) {
+      res.status(401).json({ success: false, message: "Unauthorized" });
+      return;
+    }
+
+    const authReq = req as StrictAuthenticatedRequest;
+    const ctx = this.getSecurityContext(authReq);
+
+    const rawIdentifier = req.params.identifier || req.params.id;
+    let identifier = Array.isArray(rawIdentifier) ? rawIdentifier[0] : rawIdentifier;
+
+    if (!identifier) {
+      res.status(400).json({
+        success: false,
+        error: "Missing user identifier parameter.",
+      });
+      return;
+    }
+
+    // Resolve "me" using the authenticated security context
+    if (identifier === "me") {
+      identifier = ctx.actor.id || ctx.actor.username;
+      if (!identifier) {
+        res.status(401).json({
+          success: false,
+          error: "Unauthorized session context.",
+        });
+        return;
+      }
+    }
+
+    try {
+      const isUuid =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          identifier,
+        );
+
+      const dialects = isUuid
+        ? await this.service.getUserDialectsById(identifier)
+        : await this.service.getUserDialectsByUsername(identifier);
+
+      if (!dialects) {
+        res.status(404).json({
+          success: false,
+          error: "User not found or has no assigned dialects.",
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        data: {
+          identifier,
+          dialects,
+        },
+      });
+    } catch (error: any) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Error fetching user dialects";
+
+      res.status(500).json({
+        success: false,
+        error: errorMessage,
+      });
     }
   };
 }

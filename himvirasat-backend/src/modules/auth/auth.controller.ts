@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
-import { LoginRequestSchema, SignupRequestSchema } from "@himvirasat/shared";
+import {
+  LoginRequestSchema,
+  SignupRequestSchema,
+  METHODS,
+} from "@himvirasat/shared";
 import { AuthService, authService } from "./auth.service.js";
 import {
   AuthenticatedRequest,
@@ -7,7 +11,7 @@ import {
   SecurityContext,
   getAuthenticatedUser,
 } from "../../utils/get-authenticated-user.js";
-// import { AuditLogger } from "../../utils/audit-logger.js";
+import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class AuthController {
   constructor(private readonly service: AuthService = authService) {}
@@ -51,18 +55,22 @@ export class AuthController {
         user: result.user,
       });
     } catch (error: any) {
-      // const errorMessage =
-      //   error instanceof Error ? error.message : "Internal server error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Internal server error";
 
-      // await AuditLogger.logError({
-      //   errorMessage,
-      //   serviceCategory: "auth",
-      //   stackTrace: error.stack,
-      //   code: "LOGIN_CRITICAL_ERROR",
-      //   path: req.originalUrl || req.path,
-      //   method: req.method,
-      //   metadata: { username: req.body?.username },
-      // });
+      await AuditLogger.logError({
+        action: "LOGIN",
+        actorUserId: null,
+        errorMessage,
+        stackTrace: error.stack,
+        serviceCategory: "auth",
+        backendCode: "AUTH_CONTROLLER:FAILED_LOGIN",
+        code: "500",
+        logStatus: "FAILED",
+        path: req.originalUrl || req.path,
+        method: req.method as METHODS,
+        metadata: { username: req.body?.username },
+      });
 
       return res
         .status(500)
@@ -102,19 +110,22 @@ export class AuthController {
         user: result.user,
       });
     } catch (error: any) {
-      // const errorMessage =
-      //   error instanceof Error ? error.message : "Internal server error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Internal server error";
 
-      // await AuditLogger.logError({
-      //   userId: null,
-      //   errorMessage,
-      //   serviceCategory: "auth",
-      //   stackTrace: error.stack,
-      //   code: "SIGNUP_CRITICAL_ERROR",
-      //   path: req.originalUrl || req.path,
-      //   method: req.method,
-      //   metadata: { username: req.body?.username, email: req.body?.email },
-      // });
+      await AuditLogger.logError({
+        action: "SIGNUP",
+        actorUserId: null,
+        errorMessage,
+        stackTrace: error.stack,
+        serviceCategory: "auth",
+        backendCode: "AUTH_CONTROLLER:FAILED_SIGNUP",
+        code: "500",
+        logStatus: "FAILED",
+        path: req.originalUrl || req.path,
+        method: req.method as METHODS,
+        metadata: { username: req.body?.username, email: req.body?.email },
+      });
 
       return res
         .status(500)
@@ -134,6 +145,19 @@ export class AuthController {
     try {
       const user = await this.service.getUserProfile(ctx);
       if (!user) {
+        await AuditLogger.logError({
+          action: "ME",
+          actorUserId: ctx.actor.id,
+          errorMessage: "User profile not found",
+          serviceCategory: "auth",
+          backendCode: "AUTH_CONTROLLER:FAILED_ME",
+          code: "404",
+          logStatus: "FAILED",
+          path: req.originalUrl || req.path,
+          method: req.method as METHODS,
+          metadata: { detailed_user: ctx.actor },
+        });
+
         return res
           .status(404)
           .json({ success: false, message: "User not found" });
@@ -141,19 +165,22 @@ export class AuthController {
 
       return res.status(200).json({ success: true, user });
     } catch (error: any) {
-      // const errorMessage =
-      //   error instanceof Error ? error.message : "Internal server error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Internal server error";
 
-      // await AuditLogger.logError({
-      //   userId: ctx.actor.id,
-      //   errorMessage,
-      //   serviceCategory: "auth",
-      //   stackTrace: error.stack,
-      //   code: "GET_ME_FAILED",
-      //   path: req.originalUrl || req.path,
-      //   method: req.method,
-      //   metadata: { detailed_user: ctx.actor },
-      // });
+      await AuditLogger.logError({
+        action: "ME",
+        actorUserId: ctx.actor.id,
+        errorMessage,
+        stackTrace: error.stack,
+        serviceCategory: "auth",
+        backendCode: "AUTH_CONTROLLER:FAILED_ME",
+        code: "500",
+        logStatus: "FAILED",
+        path: req.originalUrl || req.path,
+        method: req.method as METHODS,
+        metadata: { detailed_user: ctx.actor },
+      });
 
       return res
         .status(500)
@@ -171,17 +198,18 @@ export class AuthController {
     });
 
     if (cachedUser) {
-      // const authReq = req as StrictAuthenticatedRequest;
-      // const ctx = this.getSecurityContext(authReq);
-      // await AuditLogger.logActivity({
-      //   actorId: ctx.actor.id,
-      //   action: "LOGOUT",
-      //   entityType: "user",
-      //   entityId: ctx.actor.id,
-      //   serviceCategory: "auth",
-      //   status: "SUCCESS",
-      //   metadata: { detailed_user: ctx.actor },
-      // });
+      const authReq = req as StrictAuthenticatedRequest;
+      const ctx = this.getSecurityContext(authReq);
+
+      await AuditLogger.logActivity({
+        action: "LOGOUT",
+        entityType: "user",
+        actorUserId: ctx.actor.id,
+        backendModuleCategory: "auth",
+        backendCode: "AUTH_CONTROLLER:SUCCESS_LOGOUT",
+        logStatus: "SUCCESS",
+        metadata: { target_id: ctx.actor.id, detailed_user: ctx.actor },
+      });
     }
 
     return res
@@ -221,6 +249,19 @@ export class AuthController {
       );
 
       if (!result.success) {
+        await AuditLogger.logError({
+          action: "RESET_PASSWORD",
+          actorUserId: ctx.actor.id,
+          errorMessage: result.message || "Password reset failed",
+          serviceCategory: "auth",
+          backendCode: "AUTH_CONTROLLER:FAILED_RESET_PASSWORD",
+          code: String(result.statusCode ?? 500) as any,
+          logStatus: "FAILED",
+          path: req.originalUrl || req.path,
+          method: req.method as METHODS,
+          metadata: { detailed_user: ctx.actor },
+        });
+
         return res
           .status(result.statusCode ?? 500)
           .json({ success: false, message: result.message });
@@ -228,19 +269,22 @@ export class AuthController {
 
       return res.status(200).json({ success: true, message: result.message });
     } catch (error: any) {
-      // const errorMessage =
-      //   error instanceof Error ? error.message : "Internal server error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Internal server error";
 
-      // await AuditLogger.logError({
-      //   userId: ctx.actor.id,
-      //   errorMessage,
-      //   serviceCategory: "auth",
-      //   stackTrace: error.stack,
-      //   code: "RESET_PASSWORD_CRITICAL_ERROR",
-      //   path: req.originalUrl || req.path,
-      //   method: req.method,
-      //   metadata: { detailed_user: ctx.actor },
-      // });
+      await AuditLogger.logError({
+        action: "RESET_PASSWORD",
+        actorUserId: ctx.actor.id,
+        errorMessage,
+        stackTrace: error.stack,
+        serviceCategory: "auth",
+        backendCode: "AUTH_CONTROLLER:FAILED_RESET_PASSWORD",
+        code: "500",
+        logStatus: "FAILED",
+        path: req.originalUrl || req.path,
+        method: req.method as METHODS,
+        metadata: { detailed_user: ctx.actor },
+      });
 
       return res
         .status(500)

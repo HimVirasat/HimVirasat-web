@@ -19,7 +19,7 @@ export type CommentStatus = z.infer<typeof CommentStatusSchema>;
 const optionalText = z.string().trim().nullable().optional();
 
 export const CreateSubmissionSchema = z.object({
-  dialect_id: z.number().int().positive("dialect_id is required."),
+  dialect_name: z.string().trim().min(1, "dialect_name is required."),
   category_id: z.number().int().positive().nullable().optional(),
   part_of_speech_id: z.number().int().positive().nullable().optional(),
   word_devanagari: z.string().trim().min(1, "Devanagari word cannot be empty."),
@@ -72,5 +72,4 @@ export const HistoryEventTypeSchema = z.enum([
   "rejected",
 ]);
 export type HistoryEventType = z.infer<typeof HistoryEventTypeSchema>;
-
 

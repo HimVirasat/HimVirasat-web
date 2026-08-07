@@ -1,9 +1,10 @@
 import {
   DashboardRepository,
   dashboardRepository,
+  
 } from "./dashboard.repository.js";
-import { DashboardStats } from "@himvirasat/shared";
-// import { AuditLogger } from "../../utils/audit-logger.js";
+import {UserProfileWithStats} from "@himvirasat/shared"
+import { DashboardFetchUsersResponse, SystemRole } from "@himvirasat/shared";
 import { SecurityContext } from "../../utils/get-authenticated-user.js";
 
 export class DashboardService {
@@ -11,19 +12,15 @@ export class DashboardService {
     private readonly repository: DashboardRepository = dashboardRepository,
   ) {}
 
-  async fetchDashboardStats(_ctx: SecurityContext): Promise<DashboardStats> {
-    const stats = await this.repository.getDashboardStats();
+  async fetchUsersByRole(
+    _ctx: SecurityContext,
+    role: SystemRole,
+  ): Promise<DashboardFetchUsersResponse> {
+    return await this.repository.getUsersByRole(role);
+  }
 
-    // await AuditLogger.logActivity({
-    //   actorId: ctx.actor.id,
-    //   action: "FETCH_DASHBOARD_STATS",
-    //   entityType: "dashboard_stats",
-    //   serviceCategory: "datalookup",
-    //   status: "SUCCESS",
-    //   metadata: { stats, detailed_user: ctx.actor },
-    // });
-
-    return stats;
+  async fetchMyProfile(ctx: SecurityContext): Promise<UserProfileWithStats> {
+    return await this.repository.getUserProfileWithStats(ctx.actor.id);
   }
 }
 

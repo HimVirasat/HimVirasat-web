@@ -16,6 +16,51 @@ export interface GeneratedMetadataResult {
   example_sentence_takri?: string;
 }
 
+export interface PaginatedLogsResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    totalPages: number;
+    totalSuccess?: number;
+    totalFailed?: number;
+    totalCritical?: number;
+    totalStandard?: number;
+  };
+}
+
+type LogResponseMeta = PaginatedLogsResponse<ActivityLog | ErrorLog>["meta"];
+
+const buildLogsQuery = (params: GetLogsParams): string => {
+  const queryParams = new URLSearchParams();
+  const appendIfPresent = (key: string, value: string | number | undefined) => {
+    if (value === undefined || value === "") return;
+    if (value === "ALL") return;
+    queryParams.append(key, String(value));
+  };
+
+  appendIfPresent("status", params.status);
+  appendIfPresent("service", params.service);
+  appendIfPresent("page", params.page);
+  appendIfPresent("limit", params.limit);
+  appendIfPresent("startDate", params.startDate);
+  appendIfPresent("endDate", params.endDate);
+  appendIfPresent("hour", params.hour);
+  appendIfPresent("sort", params.sort);
+
+  return queryParams.toString();
+};
+
+const withLogDefaults = <T>(
+  result: { data?: T[]; meta?: LogResponseMeta },
+  fallbackMeta: LogResponseMeta
+): PaginatedLogsResponse<T> => ({
+  data: result.data || [],
+  meta: {
+    ...fallbackMeta,
+    ...result.meta,
+  },
+});
+
 export class DataLookupService {
   static async getAvailableDialects(): Promise<string[]> {
     const response = await fetch(`${API_URL}/datalookup/available-dialects`, {
@@ -27,8 +72,19 @@ export class DataLookupService {
     }
 
     const result = await response.json();
-    console.log(result.data);
     return result.data;
+  }
+  static async getUserDialects(identifier: string): Promise<string[]> {
+    const response = await fetch(`${API_URL}/users/${identifier}/dialects`, {
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch user dialects");
+    }
+
+    const result = await response.json();
+    return result.data?.dialects || [];
   }
 
   static async getAvailablePartsOfSpeech(): Promise<string[]> {
@@ -68,23 +124,13 @@ export class DataLookupService {
     return result.data;
   }
 
-  static async getActivityLogs(params: GetLogsParams): Promise<ActivityLog[]> {
-    const queryParams = new URLSearchParams();
-    if (params.status && (params.status as string) !== "ALL") {
-      queryParams.append("status", params.status);
-    }
-    if (params.service && (params.service as string) !== "ALL") {
-      queryParams.append("service", params.service);
-    }
-    if (params.page !== undefined) {
-      queryParams.append("page", String(params.page));
-    }
-    if (params.limit !== undefined) {
-      queryParams.append("limit", String(params.limit));
-    }
+  static async getActivityLogs(
+    params: GetLogsParams
+  ): Promise<PaginatedLogsResponse<ActivityLog>> {
+    const query = buildLogsQuery(params);
 
     const response = await fetch(
-      `${API_URL}/datalookup/logs/activity?${queryParams.toString()}`,
+      `${API_URL}/datalookup/logs/activity${query ? `?${query}` : ""}`,
       { credentials: "include" }
     );
 
@@ -93,26 +139,21 @@ export class DataLookupService {
     }
 
     const result = await response.json();
-    return result.data;
+    return withLogDefaults<ActivityLog>(result, {
+      total: 0,
+      totalPages: 1,
+      totalSuccess: 0,
+      totalFailed: 0,
+    });
   }
 
-  static async getErrorLogs(params: GetLogsParams): Promise<ErrorLog[]> {
-    const queryParams = new URLSearchParams();
-    if (params.status && (params.status as string) !== "ALL") {
-      queryParams.append("status", params.status);
-    }
-    if (params.service && (params.service as string) !== "ALL") {
-      queryParams.append("service", params.service);
-    }
-    if (params.page !== undefined) {
-      queryParams.append("page", String(params.page));
-    }
-    if (params.limit !== undefined) {
-      queryParams.append("limit", String(params.limit));
-    }
+  static async getErrorLogs(
+    params: GetLogsParams
+  ): Promise<PaginatedLogsResponse<ErrorLog>> {
+    const query = buildLogsQuery(params);
 
     const response = await fetch(
-      `${API_URL}/datalookup/logs/error?${queryParams.toString()}`,
+      `${API_URL}/datalookup/logs/error${query ? `?${query}` : ""}`,
       { credentials: "include" }
     );
 
@@ -121,7 +162,12 @@ export class DataLookupService {
     }
 
     const result = await response.json();
-    return result.data;
+    return withLogDefaults<ErrorLog>(result, {
+      total: 0,
+      totalPages: 1,
+      totalCritical: 0,
+      totalStandard: 0,
+    });
   }
 
   static async generateMetadata(

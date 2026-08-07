@@ -6,7 +6,7 @@ export interface DatasetQueryFilters {
   limit?: number | undefined;
   search?: string | undefined;
   language_id?: number | undefined;
-  dialect_id?: number | undefined;
+  dialect_name?: string | undefined;
   region_id?: number | undefined;
   category_id?: number | undefined;
   part_of_speech_id?: number | undefined;
@@ -34,7 +34,6 @@ export class DatasetsRepository {
     let query = supabase.from("dataset_entries").select(
       `
         *,
-        dialects:dialect_id ( id, name ),
         categories:category_id ( id, name ),
         parts_of_speech:part_of_speech_id ( id, name ),
         regions:region_id ( id, name )
@@ -51,7 +50,8 @@ export class DatasetsRepository {
 
     if (filters.language_id)
       query = query.eq("language_id", filters.language_id);
-    if (filters.dialect_id) query = query.eq("dialect_id", filters.dialect_id);
+    if (filters.dialect_name)
+      query = query.eq("dialect_name", filters.dialect_name);
     if (filters.region_id) query = query.eq("region_id", filters.region_id);
     if (filters.category_id)
       query = query.eq("category_id", filters.category_id);
@@ -78,7 +78,7 @@ export class DatasetsRepository {
 
     const formattedData = (data || []).map((entry: any) => ({
       ...entry,
-      dialect_name: entry.dialects?.name || null,
+      dialect_name: entry.dialect_name || null,
       category_name: entry.categories?.name || null,
       pos_name: entry.parts_of_speech?.name || null,
       region_name: entry.regions?.name || null,
@@ -101,7 +101,6 @@ export class DatasetsRepository {
       .select(
         `
         *,
-        dialects:dialect_id ( id, name ),
         categories:category_id ( id, name ),
         parts_of_speech:part_of_speech_id ( id, name ),
         regions:region_id ( id, name )
@@ -118,7 +117,7 @@ export class DatasetsRepository {
 
     return {
       ...data,
-      dialect_name: (data as any).dialects?.name || null,
+      dialect_name: (data as any).dialect_name || null,
       category_name: (data as any).categories?.name || null,
       pos_name: (data as any).parts_of_speech?.name || null,
       region_name: (data as any).regions?.name || null,

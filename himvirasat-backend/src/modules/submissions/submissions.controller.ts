@@ -10,7 +10,7 @@ import {
   getAuthenticatedUser,
 } from "../../utils/get-authenticated-user.js";
 import { CreateSubmissionSchema } from "@himvirasat/shared";
-// import { AuditLogger } from "../../utils/audit-logger.js";
+import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class SubmissionsController {
   constructor(
@@ -38,7 +38,10 @@ export class SubmissionsController {
 
     const validationResult = CreateSubmissionSchema.safeParse({
       ...req.body,
-      dialect_id: req.body.dialect_id ? Number(req.body.dialect_id) : undefined,
+      dialect_name:
+        typeof req.body.dialect_name === "string"
+          ? req.body.dialect_name
+          : undefined,
       category_id: req.body.category_id ? Number(req.body.category_id) : null,
       part_of_speech_id: req.body.part_of_speech_id
         ? Number(req.body.part_of_speech_id)
@@ -49,6 +52,19 @@ export class SubmissionsController {
       const errorDetails = validationResult.error.issues
         .map((i) => i.message)
         .join(", ");
+
+      await AuditLogger.logError({
+        action: "CREATE_SUBMISSION",
+        actorUserId: ctx.actor.id,
+        errorMessage: `Validation error: ${errorDetails}`,
+        serviceCategory: "submissions",
+        backendCode: "SUBMISSION_CONTROLLER:FAILED_CREATE_SUBMISSION",
+        code: "400",
+        logStatus: "FAILED",
+        path: req.originalUrl || req.path,
+        method: "POST",
+        metadata: { detailed_user: ctx.actor, body: req.body },
+      });
 
       res
         .status(400)
@@ -62,6 +78,19 @@ export class SubmissionsController {
         validationResult.data,
       );
 
+      await AuditLogger.logActivity({
+        action: "CREATE_SUBMISSION",
+        entityType: "contribution",
+        actorUserId: ctx.actor.id,
+        backendModuleCategory: "submissions",
+        backendCode: "SUBMISSION_CONTROLLER:SUCCESS_CREATE_SUBMISSION",
+        logStatus: "SUCCESS",
+        metadata: {
+          detailed_user: ctx.actor,
+          contribution_id: contribution?.id,
+        },
+      });
+
       res.status(201).json({
         success: true,
         message: "Vocabulary entry submitted successfully.",
@@ -71,16 +100,19 @@ export class SubmissionsController {
       const errorMessage =
         error instanceof Error ? error.message : "Internal server error";
 
-      // await AuditLogger.logError({
-      //   userId: ctx.actor.id,
-      //   errorMessage,
-      //   serviceCategory: "submissions",
-      //   stackTrace: error.stack,
-      //   code: "CREATE_SUBMISSION_FAILED",
-      //   path: req.originalUrl || req.path,
-      //   method: req.method,
-      //   metadata: { body: req.body, detailed_user: ctx.actor },
-      // });
+      await AuditLogger.logError({
+        action: "CREATE_SUBMISSION",
+        actorUserId: ctx.actor.id,
+        errorMessage,
+        stackTrace: error.stack,
+        serviceCategory: "submissions",
+        backendCode: "SUBMISSION_CONTROLLER:FAILED_CREATE_SUBMISSION",
+        code: "500",
+        logStatus: "FAILED",
+        path: req.originalUrl || req.path,
+        method: "POST",
+        metadata: { detailed_user: ctx.actor, body: req.body },
+      });
 
       res.status(500).json({ success: false, error: errorMessage });
     }

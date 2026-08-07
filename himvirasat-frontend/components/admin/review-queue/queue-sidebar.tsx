@@ -239,7 +239,7 @@ export default function QueueSidebar({
                   <div className="flex items-center justify-between pt-1">
                     <div className="flex items-center gap-2 min-w-0 flex-wrap">
                       <span className="text-[10px] font-medium bg-muted/60 px-2 py-0.5 rounded-full truncate">
-                        {item.dialects?.name || "Standard"}
+                        {item.dialect_name}
                       </span>
                       {queueFilter === "my_submissions" && (
                         <span className="text-[10px] text-muted-foreground/70 truncate">

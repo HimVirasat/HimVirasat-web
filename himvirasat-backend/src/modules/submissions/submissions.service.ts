@@ -4,7 +4,7 @@ import {
   submissionsRepository,
 } from "./submissions.repository.js";
 import { ContributionRecord } from "@himvirasat/shared";
-// import { AuditLogger } from "../../utils/audit-logger.js";
+import { AuditLogger } from "../../utils/audit-logger.js";
 import { SecurityContext } from "../../utils/get-authenticated-user.js";
 
 export class SubmissionsService {
@@ -35,19 +35,20 @@ export class SubmissionsService {
       message: "New vocabulary entry submitted for review.",
     });
 
-    // await AuditLogger.logActivity({
-    //   actorId: ctx.actor.id,
-    //   action: "CREATE_SUBMISSION",
-    //   entityType: "contribution",
-    //   entityId: contribution.id,
-    //   serviceCategory: "submissions",
-    //   status: "SUCCESS",
-    //   metadata: {
-    //     dialect_id: payload.dialect_id,
-    //     word: payload.word,
-    //     detailed_user: ctx.actor,
-    //   },
-    // });
+    await AuditLogger.logActivity({
+      action: "CREATE_SUBMISSION",
+      entityType: "contribution",
+      actorUserId: ctx.actor.id,
+      backendModuleCategory: "submissions",
+      backendCode: "SUBMISSION_SERVICE:SUCCESS_CREATE_SUBMISSION",
+      logStatus: "SUCCESS",
+      metadata: {
+        target_id: contribution.id,
+        dialect_name: payload.dialect_name,
+        word: payload.word,
+        detailed_user: ctx.actor,
+      },
+    });
 
     return contribution;
   }

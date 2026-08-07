@@ -56,5 +56,10 @@ router.patch(
   requireRole("super_admin"),
   usersController.updateHeadDialects,
 );
+router.get(
+  "/:identifier/dialects",
+  requireAuth,
+  usersController.getUserDialects,
+);
 
 export default router;

@@ -102,11 +102,7 @@ export default function WorkspaceEditContent({
             Dialect Variant
           </label>
           <Select
-            value={
-              editForm.dialect_name ||
-              editForm.dialect_id?.toString() ||
-              undefined
-            }
+            value={editForm.dialect_name || undefined}
             onValueChange={(val) =>
               setEditForm((prev) => ({
                 ...prev,

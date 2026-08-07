@@ -9,10 +9,13 @@ import {
 export const CONTRIBUTION_SELECT_QUERY = `
   *,
   users:users!contributions_contributor_id_fkey(username, full_name),
-  dialects:dialects!contributions_dialect_id_fkey(name),
   categories:categories!contributions_category_id_fkey(name),
   parts_of_speech:parts_of_speech!contributions_part_of_speech_id_fkey(name)
 `;
+
+export type ExtendedContributionFilters = ContributionFilters & {
+  dialect_names?: string[];
+};
 
 export class ReviewQueueRepository {
   async insertContribution(
@@ -28,13 +31,27 @@ export class ReviewQueueRepository {
     return contribution as RawContribution;
   }
 
+  // reviewQueue.repository.ts
   async fetchContributions(
-    filters: ContributionFilters,
+    filters: ExtendedContributionFilters & { dialect_names?: string[] },
     selectQuery: string = CONTRIBUTION_SELECT_QUERY,
   ): Promise<RawContribution[]> {
+    // Early exit if user has an empty dialect list
+    if (filters.dialect_names && filters.dialect_names.length === 0) {
+      return [];
+    }
+
     let query = supabase.from("contributions").select(selectQuery);
-    if (filters.status) query = query.eq("status", filters.status);
-    if (filters.dialect_id) query = query.eq("dialect_id", filters.dialect_id);
+
+    if (filters.status) {
+      query = query.eq("status", filters.status);
+    }
+
+    if (filters.dialect_names && filters.dialect_names.length > 0) {
+      query = query.in("dialect_name", filters.dialect_names);
+    } else if (filters.dialect_name) {
+      query = query.eq("dialect_name", filters.dialect_name);
+    }
 
     const { data, error } = await query;
     if (error) throw error;

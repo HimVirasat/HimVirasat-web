@@ -6,6 +6,7 @@ import {
 } from "./datasets.repository.js";
 import type { DatasetEntry } from "@himvirasat/shared";
 import { SecurityContext } from "../../utils/get-authenticated-user.js";
+// import { AuditLogger } from "../../utils/audit-logger.js";
 
 export class DatasetsService {
   constructor(
@@ -21,7 +22,8 @@ export class DatasetsService {
       limit: query.limit ? Number(query.limit) : 20,
       search: typeof query.search === "string" ? query.search : undefined,
       language_id: query.language_id ? Number(query.language_id) : undefined,
-      dialect_id: query.dialect_id ? Number(query.dialect_id) : undefined,
+      dialect_name:
+        typeof query.dialect_name === "string" ? query.dialect_name : undefined,
       region_id: query.region_id ? Number(query.region_id) : undefined,
       category_id: query.category_id ? Number(query.category_id) : undefined,
       part_of_speech_id: query.part_of_speech_id
@@ -35,7 +37,24 @@ export class DatasetsService {
       sort_order: query.sort_order === "asc" ? "asc" : "desc",
     };
 
-    return await this.repository.findEntries(filters);
+    const result = await this.repository.findEntries(filters);
+
+    // await AuditLogger.logActivity({
+    //   action: "FETCH_DATASET_ENTRIES",
+    //   entityType: "dataset_entry",
+    //   actorUserId: ctx.actor.id,
+    //   backendModuleCategory: "datasets",
+    //   backendCode: "DATASET_SERVICE:SUCCESS_FETCH_DATASET_ENTRIES",
+    //   logStatus: "SUCCESS",
+    //   metadata: {
+    //     filters,
+    //     totalResults: result.total,
+    //     page: result.page,
+    //     detailed_user: ctx.actor,
+    //   },
+    // });
+
+    return result;
   }
 
   async getEntryById(_ctx: SecurityContext, id: string): Promise<DatasetEntry> {
@@ -43,6 +62,20 @@ export class DatasetsService {
     if (!entry) {
       throw new Error("Dataset entry not found");
     }
+
+    // await AuditLogger.logActivity({
+    //   action: "FETCH_DATASET_ENTRY_BY_ID",
+    //   entityType: "dataset_entry",
+    //   actorUserId: ctx.actor.id,
+    //   backendModuleCategory: "datasets",
+    //   backendCode: "DATASET_SERVICE:SUCCESS_FETCH_DATASET_ENTRY_BY_ID",
+    //   logStatus: "SUCCESS",
+    //   metadata: {
+    //     target_id: id,
+    //     detailed_user: ctx.actor,
+    //   },
+    // });
+
     return entry;
   }
 }

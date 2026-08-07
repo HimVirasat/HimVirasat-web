@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SystemRoleSchema } from "../../common/index.js";
 
 export const GenerateMetadataInputSchema = z.object({
   word_devanagari: z.string().min(1, "Devanagari word is required"),

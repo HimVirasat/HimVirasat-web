@@ -12,7 +12,7 @@ import { METHODS } from "@himvirasat/shared";
 export class DataLookupController {
   constructor(
     private readonly service: DataLookupService = dataLookupService,
-  ) {}
+  ) { }
 
   private getSecurityContext(req: StrictAuthenticatedRequest): SecurityContext {
     return {
@@ -184,14 +184,23 @@ export class DataLookupController {
     const ctx = this.getSecurityContext(authReq);
 
     try {
-      const { status, service, page, limit } = req.query;
-      const data = await this.service.fetchActivityLogs(ctx, {
+      const { status, service, page, limit, startDate, endDate, hour, sort } = req.query;
+      const result = await this.service.getActivityLogs(ctx, {
         status: status ? (status as any) : undefined,
         service: service ? (service as any) : undefined,
         page: page ? Number(page) : 1,
         limit: limit ? Number(limit) : 20,
+        startDate: startDate ? String(startDate) : undefined,
+        endDate: endDate ? String(endDate) : undefined,
+        hour: hour !== undefined && hour !== "" ? Number(hour) : undefined,
+        sort: sort === "asc" ? "asc" : "desc",
       });
-      return res.status(200).json({ success: true, data });
+
+      return res.status(200).json({
+        success: true,
+        data: result.data,
+        meta: result.meta,
+      });
     } catch (error: any) {
       console.error("DataLookup Controller [getActivityLogs] error:", error);
 
@@ -225,14 +234,23 @@ export class DataLookupController {
     const ctx = this.getSecurityContext(authReq);
 
     try {
-      const { status, service, page, limit } = req.query;
-      const data = await this.service.fetchErrorLogs(ctx, {
+      const { status, service, page, limit, startDate, endDate, hour, sort } = req.query;
+      const result = await this.service.getErrorLogs(ctx, {
         status: status ? (status as any) : undefined,
         service: service ? (service as any) : undefined,
         page: page ? Number(page) : 1,
         limit: limit ? Number(limit) : 20,
+        startDate: startDate ? String(startDate) : undefined,
+        endDate: endDate ? String(endDate) : undefined,
+        hour: hour !== undefined && hour !== "" ? Number(hour) : undefined,
+        sort: sort === "asc" ? "asc" : "desc",
       });
-      return res.status(200).json({ success: true, data });
+
+      return res.status(200).json({
+        success: true,
+        data: result.data,
+        meta: result.meta,
+      });
     } catch (error: any) {
       console.error("DataLookup Controller [getErrorLogs] error:", error);
 

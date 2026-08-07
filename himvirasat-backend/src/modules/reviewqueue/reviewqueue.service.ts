@@ -12,13 +12,13 @@ import {
 import { logger } from "../../utils/logger.js";
 import type { HistoryEventType, CommentStatus } from "@himvirasat/shared";
 import { usersRepository } from "../users/users.repository.js";
-// import { AuditLogger } from "../../utils/audit-logger.js";
+import { AuditLogger } from "../../utils/audit-logger.js";
 import { SecurityContext } from "../../utils/get-authenticated-user.js";
 
 export class ReviewQueueService {
   constructor(
     private readonly repository: ReviewQueueRepository = reviewQueueRepository,
-  ) {}
+  ) { }
 
   private formatContribution(item: RawContribution | null) {
     if (!item) return item;
@@ -26,7 +26,7 @@ export class ReviewQueueService {
       ...item,
       contributor_name:
         item.users?.full_name || item.users?.username || "Contributor",
-      dialect_name: item.dialects?.name || "Standard",
+      dialect_name: item.dialect_name || "Standard",
       category_name: item.categories?.name || "General Vocabulary",
       part_of_speech_name: item.parts_of_speech?.name || "General",
     };
@@ -38,11 +38,9 @@ export class ReviewQueueService {
     const {
       id,
       categories,
-      dialects,
       users,
       parts_of_speech,
       category_name,
-      dialect_name,
       contributor_name,
       part_of_speech_name,
       review_comments,
@@ -74,19 +72,20 @@ export class ReviewQueueService {
       message: "Contribution submitted for review.",
     });
 
-    // await AuditLogger.logActivity({
-    //   actorId: ctx.actor.id,
-    //   action: "CONTRIBUTION_SUBMITTED",
-    //   entityType: "contribution",
-    //   entityId: customUUID,
-    //   serviceCategory: "review_queue",
-    //   status: "SUCCESS",
-    //   metadata: {
-    //     wordDevanagari: payload.word_devanagari || null,
-    //     dialectId: payload.dialect_id || null,
-    //     detailed_user: ctx.actor,
-    //   },
-    // });
+    await AuditLogger.logActivity({
+      action: "CREATE_REVIEW_QUEUE",
+      entityType: "review_item",
+      actorUserId: ctx.actor.id,
+      backendModuleCategory: "review_queue",
+      backendCode: "REVIEWQUEUE_SERVICE:SUCCESS_CREATE_CONTRIBUTION_SUBMISSION",
+      logStatus: "SUCCESS",
+      metadata: {
+        target_id: customUUID,
+        wordDevanagari: payload.word_devanagari || null,
+        dialectName: payload.dialect_name || null,
+        detailed_user: ctx.actor,
+      },
+    });
 
     const enriched = await this.repository.fetchContributionById(
       customUUID,
@@ -95,18 +94,28 @@ export class ReviewQueueService {
 
     return this.formatContribution(enriched);
   }
-
+  // reviewQueue.service.ts
   async fetchContributions(
-    _ctx: SecurityContext,
+    ctx: SecurityContext,
     filters: ContributionFilters,
   ) {
+    const { actor } = ctx;
+    const isAdmin = actor.role === "super_admin" || actor.role === "l";
+
+    const effectiveFilters: any = { ...filters };
+
+    if (!isAdmin) {
+      // actor.dialects contains strings like ["Kulluvi"]
+      effectiveFilters.dialect_names = actor.dialects || [];
+    }
+
     const data = await this.repository.fetchContributions(
-      filters,
+      effectiveFilters,
       CONTRIBUTION_SELECT_QUERY,
     );
+
     return data.map((item) => this.formatContribution(item));
   }
-
   async fetchContributionById(_ctx: SecurityContext, id: string) {
     const item = await this.repository.fetchContributionById(
       id,
@@ -190,18 +199,19 @@ export class ReviewQueueService {
         ),
       );
 
-    // await AuditLogger.logActivity({
-    //   actorId: ctx.actor.id,
-    //   action: "CONTRIBUTION_UPDATED",
-    //   entityType: "contribution",
-    //   entityId: id,
-    //   serviceCategory: "review_queue",
-    //   status: "SUCCESS",
-    //   metadata: {
-    //     updatedFields: diffEntries.map((d) => d.field_name),
-    //     detailed_user: ctx.actor,
-    //   },
-    // });
+    await AuditLogger.logActivity({
+      action: "UPDATE_REVIEW_QUEUE",
+      entityType: "review_item",
+      actorUserId: ctx.actor.id,
+      backendModuleCategory: "review_queue",
+      backendCode: "REVIEWQUEUE_SERVICE:SUCCESS_UPDATE_CONTRIBUTION",
+      logStatus: "SUCCESS",
+      metadata: {
+        target_id: id,
+        updatedFields: diffEntries.map((d) => d.field_name),
+        detailed_user: ctx.actor,
+      },
+    });
 
     const enriched = await this.repository.fetchContributionById(
       id,
@@ -222,7 +232,7 @@ export class ReviewQueueService {
 
     const existingContribution = await this.repository.fetchContributionById(
       id,
-      "id, contributor_id, dialect_id, status, word_devanagari",
+      "id, contributor_id, dialect_name, status, word_devanagari",
     );
 
     if (!existingContribution) {
@@ -259,29 +269,30 @@ export class ReviewQueueService {
       message: reason || `Status updated to ${status}.`,
     });
 
-    // await AuditLogger.logActivity({
-    //   actorId: ctx.actor.id,
-    //   action: `CONTRIBUTION_${payload.status.toUpperCase()}`,
-    //   entityType: "contribution",
-    //   entityId: id,
-    //   serviceCategory: "review_queue",
-    //   status: "SUCCESS",
-    //   metadata: {
-    //     previousStatus: existingContribution.status,
-    //     newStatus: payload.status,
-    //     reason: payload.reason || null,
-    //     wordDevanagari: existingContribution.word_devanagari,
-    //     contributorId: existingContribution.contributor_id,
-    //     detailed_user: ctx.actor,
-    //   },
-    // });
+    await AuditLogger.logActivity({
+      action: "UPDATE_REVIEW_QUEUE_STATUS",
+      entityType: "review_item",
+      actorUserId: ctx.actor.id,
+      backendModuleCategory: "review_queue",
+      backendCode: "REVIEWQUEUE_SERVICE:SUCCESS_CONTRIBUTION_STATUS_UPDATED",
+      logStatus: "SUCCESS",
+      metadata: {
+        target_id: id,
+        previousStatus: existingContribution.status,
+        newStatus: payload.status,
+        reason: payload.reason,
+        wordDevanagari: existingContribution.word_devanagari,
+        contributorId: existingContribution.contributor_id,
+        detailed_user: ctx.actor,
+      },
+    });
 
     if (status === "approved" && previousStatus !== "approved") {
       const contributorId = existingContribution.contributor_id as
         string | undefined;
-      const dialectId =
-        typeof existingContribution.dialect_id === "number"
-          ? existingContribution.dialect_id
+      const dialectName =
+        typeof existingContribution.dialect_name === "string"
+          ? existingContribution.dialect_name
           : undefined;
 
       try {
@@ -291,8 +302,24 @@ export class ReviewQueueService {
             points: POINT_REWARDS.CONTRIBUTOR_APPROVED,
             reason: "contribution_approved",
             referenceId: contributionUuid,
-            dialectId: dialectId,
+            dialectName,
             isContributor: true,
+          });
+
+          await AuditLogger.logActivity({
+            action: "UPDATE_REVIEW_QUEUE_STATUS",
+            entityType: "user",
+            actorUserId: ctx.actor.id,
+            backendModuleCategory: "review_queue",
+            backendCode: "REVIEWQUEUE_SERVICE:SUCCESS_AWARD_CONTRIBUTOR_POINTS",
+            logStatus: "SUCCESS",
+            metadata: {
+              target_id: contributorId,
+              contributionId: contributionUuid,
+              points: POINT_REWARDS.CONTRIBUTOR_APPROVED,
+              reason: "contribution_approved",
+              detailed_user: ctx.actor,
+            },
           });
         }
 
@@ -302,26 +329,45 @@ export class ReviewQueueService {
             points: POINT_REWARDS.REVIEWER_APPROVED,
             reason: "review_completed",
             referenceId: contributionUuid,
-            dialectId: dialectId,
+            dialectName,
             isContributor: false,
+          });
+
+          await AuditLogger.logActivity({
+            action: "UPDATE_REVIEW_QUEUE_STATUS",
+            entityType: "user",
+            actorUserId: ctx.actor.id,
+            backendModuleCategory: "review_queue",
+            backendCode: "REVIEWQUEUE_SERVICE:SUCCESS_AWARD_REVIEWER_POINTS",
+            logStatus: "SUCCESS",
+            metadata: {
+              target_id: ctx.actor.id,
+              contributionId: contributionUuid,
+              points: POINT_REWARDS.REVIEWER_APPROVED,
+              reason: "review_completed",
+              detailed_user: ctx.actor,
+            },
           });
         }
       } catch (error: any) {
-        // await AuditLogger.logError({
-        //   userId: ctx.actor.id,
-        //   errorMessage:
-        //     error.message || "Failed to award points during status approval",
-        //   serviceCategory: "review_queue",
-        //   stackTrace: error.stack,
-        //   code: "AWARD_POINTS_FAILED",
-        //   path: `/api/contributions/${id}/status`,
-        //   method: "PATCH",
-        //   metadata: {
-        //     contributionId: id,
-        //     attemptedStatus: payload.status,
-        //     detailed_user: ctx.actor,
-        //   },
-        // });
+        await AuditLogger.logError({
+          action: "UPDATE_REVIEW_QUEUE_STATUS",
+          actorUserId: ctx.actor.id,
+          errorMessage:
+            error.message || "Failed to award points during status approval",
+          stackTrace: error.stack,
+          serviceCategory: "review_queue",
+          backendCode: "REVIEWQUEUE_SERVICE:FAILED_AWARD_POINTS",
+          code: "500",
+          logStatus: "FAILED",
+          path: `/api/contributions/${id}/status`,
+          method: "PATCH",
+          metadata: {
+            contributionId: id,
+            attemptedStatus: payload.status,
+            detailed_user: ctx.actor,
+          },
+        });
         console.error("Failed to award points during status approval:", error);
       }
     }
@@ -334,18 +380,18 @@ export class ReviewQueueService {
     return this.formatContribution(enriched);
   }
 
-  async deleteContribution(_ctx: SecurityContext, id: string) {
+  async deleteContribution(ctx: SecurityContext, id: string) {
     await this.repository.deleteContribution(id);
 
-    // await AuditLogger.logActivity({
-    //   actorId: ctx.actor.id,
-    //   action: "CONTRIBUTION_DELETED",
-    //   entityType: "contribution",
-    //   entityId: id,
-    //   serviceCategory: "review_queue",
-    //   status: "SUCCESS",
-    //   metadata: { contributionId: id, detailed_user: ctx.actor },
-    // });
+    await AuditLogger.logActivity({
+      action: "DELETE_REVIEW_QUEUE",
+      entityType: "review_item",
+      actorUserId: ctx.actor.id,
+      backendModuleCategory: "review_queue",
+      backendCode: "REVIEWQUEUE_SERVICE:SUCCESS_CONTRIBUTION_DELETED",
+      logStatus: "SUCCESS",
+      metadata: { target_id: id, detailed_user: ctx.actor },
+    });
   }
 
   async addContributionComment(
@@ -372,20 +418,21 @@ export class ReviewQueueService {
       message: `Added review comment under [${cleanFieldName}]: "${message}"`,
     });
 
-    // await AuditLogger.logActivity({
-    //   actorId: ctx.actor.id,
-    //   action: "COMMENT_ADDED",
-    //   entityType: "contribution_comment",
-    //   entityId: String(comment.id || contributionId),
-    //   serviceCategory: "review_queue",
-    //   status: "SUCCESS",
-    //   metadata: {
-    //     contributionId,
-    //     fieldName: cleanFieldName,
-    //     message,
-    //     detailed_user: ctx.actor,
-    //   },
-    // });
+    await AuditLogger.logActivity({
+      action: "ADD_REVIEW_QUEUE_COMMENT",
+      entityType: "review_item",
+      actorUserId: ctx.actor.id,
+      backendModuleCategory: "review_queue",
+      backendCode: "REVIEWQUEUE_SERVICE:SUCCESS_COMMENT_ADDED",
+      logStatus: "SUCCESS",
+      metadata: {
+        target_id: String(comment.id || contributionId),
+        contributionId,
+        fieldName: cleanFieldName,
+        message,
+        detailed_user: ctx.actor,
+      },
+    });
 
     return comment;
   }
@@ -452,15 +499,19 @@ export class ReviewQueueService {
             isContributor: true,
           });
         } catch (error: any) {
-          // await AuditLogger.logError({
-          //   userId: ctx.actor.id,
-          //   errorMessage:
-          //     error.message || "Failed to award points for accepted comment",
-          //   serviceCategory: "review_queue",
-          //   stackTrace: error.stack,
-          //   code: "AWARD_COMMENT_POINTS_FAILED",
-          //   metadata: { commentId, commentAuthorId, detailed_user: ctx.actor },
-          // });
+          await AuditLogger.logError({
+            action: "UPDATE_REVIEW_QUEUE_COMMENT_STATUS",
+            actorUserId: ctx.actor.id,
+            errorMessage:
+              error.message || "Failed to award points for accepted comment",
+            stackTrace: error.stack,
+            serviceCategory: "review_queue",
+            backendCode: "REVIEWQUEUE_SERVICE:FAILED_AWARD_COMMENT_POINTS",
+            code: "500",
+            logStatus: "FAILED",
+            method: "PATCH",
+            metadata: { commentId, commentAuthorId, detailed_user: ctx.actor },
+          });
         }
       }
     }
@@ -490,20 +541,21 @@ export class ReviewQueueService {
       message: historyMessage,
     });
 
-    // await AuditLogger.logActivity({
-    //   actorId: ctx.actor.id,
-    //   action: `COMMENT_${status.toUpperCase()}`,
-    //   entityType: "contribution_comment",
-    //   entityId: commentId,
-    //   serviceCategory: "review_queue",
-    //   status: "SUCCESS",
-    //   metadata: {
-    //     contributionId,
-    //     commentStatus: status,
-    //     fieldValueToAccept: fieldValueToAccept ?? null,
-    //     detailed_user: ctx.actor,
-    //   },
-    // });
+    await AuditLogger.logActivity({
+      action: "UPDATE_REVIEW_QUEUE_COMMENT_STATUS",
+      entityType: "review_item",
+      actorUserId: ctx.actor.id,
+      backendModuleCategory: "review_queue",
+      backendCode: "REVIEWQUEUE_SERVICE:SUCCESS_COMMENT_STATUS_UPDATED",
+      logStatus: "SUCCESS",
+      metadata: {
+        target_id: commentId,
+        contributionId,
+        commentStatus: status,
+        fieldValueToAccept: fieldValueToAccept ?? null,
+        detailed_user: ctx.actor,
+      },
+    });
 
     return this.repository.fetchCommentById(commentId);
   }

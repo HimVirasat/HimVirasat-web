@@ -3,6 +3,8 @@ import { SystemRoleSchema } from "../../common/roles.js";
 
 export const JwtUserSchema = z.object({
   userId: z.string(),
+  clerkUserId: z.string().optional(),
+  sessionId: z.string().optional(),
   username: z.string(),
   role: SystemRoleSchema,
 });
@@ -10,8 +12,10 @@ export type JwtUser = z.infer<typeof JwtUserSchema>;
 
 export const UserDtoSchema = z.object({
   id: z.string(),
+  clerk_user_id: z.string().optional().nullable(),
   username: z.string(),
   full_name: z.string(),
+  email: z.string().email().optional().nullable(),
   role: SystemRoleSchema,
   dialects: z.array(z.string()),
 });
@@ -42,4 +46,7 @@ export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 export interface UserRecord extends UserDto {
   password_hash: string;
   is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+  last_signed_in_at?: string | null;
 }

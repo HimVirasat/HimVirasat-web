@@ -13,6 +13,7 @@ export class UsersRepository {
       .from("users")
       .select(`
         id,
+        clerk_user_id,
         username,
         full_name,
         email,
@@ -35,6 +36,7 @@ export class UsersRepository {
 
       return {
         id: u.id,
+        clerk_user_id: u.clerk_user_id,
         username: u.username,
         full_name: u.full_name,
         email: u.email,
@@ -57,6 +59,28 @@ export class UsersRepository {
 
     if (error) throw error;
     return data;
+  }
+
+  async findUserByEmail(email: string): Promise<{ id: string } | null> {
+    const { data, error } = await supabase
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async findUserClerkId(id: string): Promise<string | null> {
+    const { data, error } = await supabase
+      .from("users")
+      .select("clerk_user_id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data?.clerk_user_id ?? null;
   }
 
   async createUser(userData: CreateUserPayloadBackend): Promise<UserRow> {

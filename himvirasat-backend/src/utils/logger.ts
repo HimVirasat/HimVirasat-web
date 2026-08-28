@@ -1,5 +1,3 @@
-import { PostgrestError } from "@supabase/supabase-js";
-
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 type LogMeta = Record<string, unknown>;
@@ -48,8 +46,7 @@ function log(level: LogLevel, message: string, meta: LogMeta = {}) {
 export const logger = {
   debug: (message: string, meta?: LogMeta) => log("debug", message, meta),
   info: (message: string, meta?: LogMeta) => log("info", message, meta),
-  warn: (message: string, _historyError: PostgrestError, meta?: LogMeta) =>
-    log("warn", message, meta),
+  warn: (message: string, meta?: LogMeta) => log("warn", message, meta),
   error: (message: string, error?: unknown, meta: LogMeta = {}) =>
     log("error", message, { ...meta, error: formatError(error) }),
 };

@@ -3,6 +3,7 @@ import type {
   LanguageExpert,
   LanguageHead,
 } from "@himvirasat/shared";
+import { apiFetch } from "@/lib/services/api-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -25,7 +26,7 @@ export interface CreateLanguageHeadRequest {
 export class UserService {
   // --- LANGUAGE EXPERTS ---
   static async getLanguageExperts(): Promise<LanguageExpert[]> {
-    const response = await fetch(`${API_URL}/users/language-experts`, {
+    const response = await apiFetch(`${API_URL}/users/language-experts`, {
       credentials: "include",
     });
 
@@ -37,7 +38,7 @@ export class UserService {
   }
 
   static async createLanguageExpert(data: CreateLanguageExpertRequest) {
-    const response = await fetch(`${API_URL}/users/language-experts`, {
+    const response = await apiFetch(`${API_URL}/users/language-experts`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -54,7 +55,7 @@ export class UserService {
   static async deleteLanguageExpert(
     expertId: string
   ): Promise<DeleteLanguageExpertResponse> {
-    const response = await fetch(`${API_URL}/users/delete-expert`, {
+    const response = await apiFetch(`${API_URL}/users/delete-expert`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -76,7 +77,7 @@ export class UserService {
     return result;
   }
   static async getLanguageHeads(): Promise<LanguageHead[]> {
-    const response = await fetch(`${API_URL}/users/language-heads`, {
+    const response = await apiFetch(`${API_URL}/users/language-heads`, {
       credentials: "include",
     });
 
@@ -88,7 +89,7 @@ export class UserService {
   }
 
   static async createLanguageHead(data: CreateLanguageHeadRequest) {
-    const response = await fetch(`${API_URL}/users/language-heads`, {
+    const response = await apiFetch(`${API_URL}/users/language-heads`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -105,7 +106,7 @@ export class UserService {
   static async deleteLanguageHead(
     headId: string
   ): Promise<DeleteLanguageExpertResponse> {
-    const response = await fetch(`${API_URL}/users/delete-head`, {
+    const response = await apiFetch(`${API_URL}/users/delete-head`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -119,7 +120,7 @@ export class UserService {
     return result;
   }
   static async updateExpertDialects(id: string, dialects: string[]) {
-    const response = await fetch(`${API_URL}/users/language-experts/dialects`, {
+    const response = await apiFetch(`${API_URL}/users/language-experts/dialects`, {
       method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -134,7 +135,7 @@ export class UserService {
   }
 
   static async updateHeadDialects(id: string, dialects: string[]) {
-    const response = await fetch(`${API_URL}/users/language-heads/dialects`, {
+    const response = await apiFetch(`${API_URL}/users/language-heads/dialects`, {
       method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },

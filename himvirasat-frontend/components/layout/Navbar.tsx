@@ -1,11 +1,19 @@
 "use client";
 
+import {
+  Show,
+  SignInButton,
+  UserButton,
+} from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { SiGithub } from "@icons-pack/react-simple-icons";
+import { Button } from "@/components/ui/button";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { getDashboardPathForRole } from "@himvirasat/shared";
 
 // TOGGLE THIS TO SWITCH MODES:
 // false = Shrinking Floating Pill
@@ -16,6 +24,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
+  const { data: currentUser } = useCurrentUser();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -26,7 +35,7 @@ export default function Navbar() {
   const navLinks = [
     { name: "Home", href: "/" },
     { name: "Vocabulary", href: "/vocabulary" },
-    { name: "Tools", href: "/tools" }, // ← ADD THIS
+    { name: "Tools", href: "/tools" },
     { name: "Contribute", href: "/contribute" },
     { name: "About", href: "/about" },
   ];
@@ -46,6 +55,8 @@ export default function Navbar() {
     : `glass bg-white/85 dark:bg-zinc-950/90 rounded-full backdrop-blur-md transition-all duration-300 flex items-center justify-between ${
         isScrolled ? "px-6 py-2 shadow-xl" : "px-8 py-4 shadow-lg"
       }`;
+
+  const workspaceHref = getDashboardPathForRole(currentUser?.role);
 
   return (
     <header className={headerClasses}>
@@ -100,6 +111,33 @@ export default function Navbar() {
               );
             })}
           </ul>
+
+          <Show when="signed-in">
+            {currentUser && (
+              <Link
+                href={workspaceHref}
+                className="relative px-4 py-2 rounded-full text-sm font-medium text-foreground/70 transition-all duration-300 hover:bg-foreground/5 hover:text-foreground"
+              >
+                Dashboard
+              </Link>
+            )}
+            <UserButton
+              userProfileUrl="/user-profile"
+              appearance={{
+                elements: {
+                  avatarBox: "h-9 w-9",
+                },
+              }}
+            />
+          </Show>
+
+          <Show when="signed-out">
+            <SignInButton mode="modal" fallbackRedirectUrl="/post-login">
+              <Button variant="ghost" size="sm" className="rounded-full">
+                Sign in
+              </Button>
+            </SignInButton>
+          </Show>
         </div>
 
         <button
@@ -131,6 +169,29 @@ export default function Navbar() {
               {link.name}
             </Link>
           ))}
+          <Show when="signed-in">
+            {currentUser && (
+              <Link
+                href={workspaceHref}
+                onClick={() => setIsOpen(false)}
+                className="text-lg font-medium py-2 hover:text-emerald-600 transition-colors"
+              >
+                Dashboard
+              </Link>
+            )}
+            <div className="flex justify-center pt-2">
+              <UserButton userProfileUrl="/user-profile" />
+            </div>
+          </Show>
+          <Show when="signed-out">
+            <div className="flex justify-center pt-2">
+              <SignInButton mode="modal" fallbackRedirectUrl="/post-login">
+                <Button variant="outline" size="sm" className="rounded-full">
+                  Sign in
+                </Button>
+              </SignInButton>
+            </div>
+          </Show>
           <Link
             href="https://github.com/HimVirasat"
             target="_blank"

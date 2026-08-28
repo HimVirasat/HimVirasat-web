@@ -6,20 +6,32 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import crypto from "node:crypto";
 
-// import authRoutes from "./routes/auth.routes.js";
-// import userRoutes from "./routes/user.routes.js";
-// import dashboardRoutes from "./routes/dashboard.routes.js";
-// import dataLookupRoutes from "./routes/datalookup.routes.js";
-// import reviewQueueRoutes from "./routes/reviewqueue.routes.js";
-// import submissionRoutes from "./routes/submission.routes.js";
 import { env } from "./config/env.js";
 import { logger } from "./utils/logger.js";
+import { authController } from "./modules/auth/auth.controller.js";
+import { modules } from "./modules/registry.js";
+import {
+  errorHandler,
+  notFoundHandler,
+} from "./middlewares/error.middleware.js";
+import { rateLimiter } from "./middlewares/rate-limiter.middleware.js";
+
 export const app = express();
 
 app.use(cookieParser());
 app.use(helmet());
 app.use(compression());
+
+// Clerk webhook must consume the raw body before express.json()
+app.post(
+  "/auth/webhooks/clerk",
+  express.raw({ type: "application/json" }),
+  authController.clerkWebhook,
+);
+
 app.use(express.json());
+
+// Request logging + request-id propagation
 app.use((req, res, next) => {
   const requestId = req.get("x-request-id") || crypto.randomUUID();
   res.locals.requestId = requestId;
@@ -39,6 +51,7 @@ app.use((req, res, next) => {
 
   next();
 });
+
 app.use(morgan("dev"));
 
 const allowedOrigins = [
@@ -46,38 +59,42 @@ const allowedOrigins = [
   "https://him-virasat.vercel.app",
   env.FRONTEND_URL,
 ].filter((origin): origin is string => Boolean(origin));
+
 app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
   }),
 );
+
+// Global rate limiting (generous defaults to avoid breaking existing traffic)
+app.use(
+  rateLimiter({ windowMs: 60 * 1000, max: 600 }),
+);
+
 app.get("/health", (_, res) => {
   res.json({
     status: "ok",
     message: "Hello from HimVirasat Backend!",
   });
 });
+
 app.get("/", (_, res) => {
   res.send("Backend is running");
 });
 
-import { authRouter } from "./modules/auth/index.js";
-import { usersRouter } from "./modules/users/index.js";
-import { submissionsRouter } from "./modules/submissions/index.js";
-import reviewqueueRouter from "./modules/reviewqueue/reviewqueue.routes.js";
-import datalookupRouter from "./modules/datalookup/datalookup.routes.js";
-import { dashboardRouter } from "./modules/dashboard/index.js";
-import { datasetsRouter } from "./modules/datasets/index.js";
-// const app = express();
-app.use(express.json());
-app.use(cookieParser());
+// Mount feature routers under /api/v1 (versioned, preferred for new code) AND
+// keep them mounted at the root for backward compatibility with existing
+// frontend calls.
+for (const { path, router } of modules) {
+  app.use(`/api/v1${path}`, router);
+}
+for (const { path, router } of modules) {
+  app.use(path, router);
+}
 
-app.use("/auth", authRouter);
-app.use("/users", usersRouter);
-app.use("/submissions", submissionsRouter);
-app.use("/reviewqueue", reviewqueueRouter);
-app.use("/datalookup", datalookupRouter);
-app.use("/dashboard", dashboardRouter);
-app.use("/datasets", datasetsRouter);
+// 404 + global error handling (must be last)
+app.use(notFoundHandler);
+app.use(errorHandler);
+
 export default app;

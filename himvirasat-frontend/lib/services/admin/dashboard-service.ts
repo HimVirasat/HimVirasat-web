@@ -1,4 +1,5 @@
 import { API_URL } from "@/lib/constants";
+import { apiFetch } from "@/lib/services/api-client";
 import {
   DashboardFetchUsersResponse,
   DashboardFetchUsersResponseSchema,
@@ -13,7 +14,7 @@ export class DashboardService {
   static async getUsersByRole(
     role: SystemRole,
   ): Promise<DashboardFetchUsersResponse> {
-    const response = await fetch(
+    const response = await apiFetch(
       `${API_URL}/dashboard/users?role=${encodeURIComponent(role)}`,
       {
         method: "GET",
@@ -38,7 +39,7 @@ export class DashboardService {
    * Fetches the active logged-in user's profile along with user_stats.
    */
   static async getMyProfile(): Promise<UserProfileWithStats> {
-    const response = await fetch(`${API_URL}/dashboard/me`, {
+    const response = await apiFetch(`${API_URL}/dashboard/me`, {
       method: "GET",
       credentials: "include",
       headers: {

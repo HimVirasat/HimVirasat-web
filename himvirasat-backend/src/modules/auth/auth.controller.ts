@@ -1,10 +1,7 @@
 import { Request, Response } from "express";
-import {
-  LoginRequestSchema,
-  SignupRequestSchema,
-  METHODS,
-} from "@himvirasat/shared";
-import { AuthService, authService } from "./auth.service.js";
+import { Webhook } from "svix";
+
+import { env } from "../../config/env.js";
 import {
   AuthenticatedRequest,
   StrictAuthenticatedRequest,
@@ -12,6 +9,14 @@ import {
   getAuthenticatedUser,
 } from "../../utils/get-authenticated-user.js";
 import { AuditLogger } from "../../utils/audit-logger.js";
+import { AuthService, authService } from "./auth.service.js";
+
+type ClerkWebhookPayload = {
+  type: string;
+  data?: {
+    id?: string;
+  };
+};
 
 export class AuthController {
   constructor(private readonly service: AuthService = authService) {}
@@ -21,117 +26,6 @@ export class AuthController {
       actor: req._cachedUser,
     };
   }
-
-  login = async (req: Request, res: Response) => {
-    try {
-      const parseResult = LoginRequestSchema.safeParse(req.body);
-      if (!parseResult.success) {
-        return res.status(400).json({
-          success: false,
-          message:
-            parseResult.error.issues[0]?.message ?? "Invalid login parameters",
-        });
-      }
-
-      const { username, password } = parseResult.data;
-      const result = await this.service.login(username, password);
-
-      if (!result.success || !result.token) {
-        return res
-          .status(result.statusCode ?? 500)
-          .json({ success: false, message: result.message });
-      }
-
-      res.cookie("access_token", result.token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
-
-      return res.status(200).json({
-        success: true,
-        message: result.message,
-        user: result.user,
-      });
-    } catch (error: any) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Internal server error";
-
-      await AuditLogger.logError({
-        action: "LOGIN",
-        actorUserId: null,
-        errorMessage,
-        stackTrace: error.stack,
-        serviceCategory: "auth",
-        backendCode: "AUTH_CONTROLLER:FAILED_LOGIN",
-        code: "500",
-        logStatus: "FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method as METHODS,
-        metadata: { username: req.body?.username },
-      });
-
-      return res
-        .status(500)
-        .json({ success: false, message: "Internal server error" });
-    }
-  };
-
-  signup = async (req: Request, res: Response) => {
-    try {
-      const parseResult = SignupRequestSchema.safeParse(req.body);
-      if (!parseResult.success) {
-        return res.status(400).json({
-          success: false,
-          message:
-            parseResult.error.issues[0]?.message ?? "Invalid signup parameters",
-        });
-      }
-
-      const result = await this.service.signup(parseResult.data);
-
-      if (!result.success || !result.token) {
-        return res
-          .status(result.statusCode ?? 500)
-          .json({ success: false, message: result.message });
-      }
-
-      res.cookie("access_token", result.token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
-
-      return res.status(201).json({
-        success: true,
-        message: result.message,
-        user: result.user,
-      });
-    } catch (error: any) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Internal server error";
-
-      await AuditLogger.logError({
-        action: "SIGNUP",
-        actorUserId: null,
-        errorMessage,
-        stackTrace: error.stack,
-        serviceCategory: "auth",
-        backendCode: "AUTH_CONTROLLER:FAILED_SIGNUP",
-        code: "500",
-        logStatus: "FAILED",
-        path: req.originalUrl || req.path,
-        method: req.method as METHODS,
-        metadata: { username: req.body?.username, email: req.body?.email },
-      });
-
-      return res
-        .status(500)
-        .json({ success: false, message: "Internal server error" });
-    }
-  };
 
   me = async (req: Request, res: Response) => {
     const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
@@ -145,26 +39,13 @@ export class AuthController {
     try {
       const user = await this.service.getUserProfile(ctx);
       if (!user) {
-        await AuditLogger.logError({
-          action: "ME",
-          actorUserId: ctx.actor.id,
-          errorMessage: "User profile not found",
-          serviceCategory: "auth",
-          backendCode: "AUTH_CONTROLLER:FAILED_ME",
-          code: "404",
-          logStatus: "FAILED",
-          path: req.originalUrl || req.path,
-          method: req.method as METHODS,
-          metadata: { detailed_user: ctx.actor },
-        });
-
         return res
           .status(404)
           .json({ success: false, message: "User not found" });
       }
 
       return res.status(200).json({ success: true, user });
-    } catch (error: any) {
+    } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Internal server error";
 
@@ -172,13 +53,13 @@ export class AuthController {
         action: "ME",
         actorUserId: ctx.actor.id,
         errorMessage,
-        stackTrace: error.stack,
+        stackTrace: error instanceof Error ? error.stack : undefined,
         serviceCategory: "auth",
         backendCode: "AUTH_CONTROLLER:FAILED_ME",
         code: "500",
         logStatus: "FAILED",
         path: req.originalUrl || req.path,
-        method: req.method as METHODS,
+        method: "GET",
         metadata: { detailed_user: ctx.actor },
       });
 
@@ -188,108 +69,75 @@ export class AuthController {
     }
   };
 
-  logout = async (req: Request, res: Response) => {
-    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
-
-    res.clearCookie("access_token", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-    });
-
-    if (cachedUser) {
-      const authReq = req as StrictAuthenticatedRequest;
-      const ctx = this.getSecurityContext(authReq);
-
-      await AuditLogger.logActivity({
-        action: "LOGOUT",
-        entityType: "user",
-        actorUserId: ctx.actor.id,
-        backendModuleCategory: "auth",
-        backendCode: "AUTH_CONTROLLER:SUCCESS_LOGOUT",
-        logStatus: "SUCCESS",
-        metadata: { target_id: ctx.actor.id, detailed_user: ctx.actor },
+  clerkWebhook = async (req: Request, res: Response) => {
+    if (!env.CLERK_WEBHOOK_SECRET) {
+      return res.status(503).json({
+        success: false,
+        message: "Clerk webhook secret is not configured",
       });
     }
 
-    return res
-      .status(200)
-      .json({ success: true, message: "Logged out successfully" });
-  };
+    const svixId = req.get("svix-id");
+    const svixTimestamp = req.get("svix-timestamp");
+    const svixSignature = req.get("svix-signature");
 
-  resetPassword = async (req: Request, res: Response) => {
-    const cachedUser = await getAuthenticatedUser(req as AuthenticatedRequest);
-    if (!cachedUser) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+    if (!svixId || !svixTimestamp || !svixSignature) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing Svix webhook headers",
+      });
     }
-
-    const authReq = req as StrictAuthenticatedRequest;
-    const ctx = this.getSecurityContext(authReq);
 
     try {
-      const { oldPassword, newPassword } = req.body;
-      if (!oldPassword || !newPassword) {
-        return res.status(400).json({
-          success: false,
-          message: "Old password and new password are required",
-        });
+      const webhook = new Webhook(env.CLERK_WEBHOOK_SECRET);
+      const body = Buffer.isBuffer(req.body)
+        ? req.body.toString("utf8")
+        : JSON.stringify(req.body);
+
+      const event = webhook.verify(body, {
+        "svix-id": svixId,
+        "svix-timestamp": svixTimestamp,
+        "svix-signature": svixSignature,
+      }) as ClerkWebhookPayload;
+
+      const clerkUserId = event.data?.id;
+      if (!clerkUserId) {
+        return res.status(202).json({ success: true });
       }
 
-      if (typeof newPassword !== "string" || newPassword.length < 6) {
-        return res.status(400).json({
-          success: false,
-          message: "New password must be at least 6 characters",
-        });
+      if (event.type === "user.deleted") {
+        await this.service.deactivateClerkUser(clerkUserId);
+      } else if (event.type === "user.created" || event.type === "user.updated") {
+        await this.service.syncClerkUserById(clerkUserId);
       }
 
-      const result = await this.service.resetPassword(
-        ctx,
-        oldPassword,
-        newPassword,
-      );
-
-      if (!result.success) {
-        await AuditLogger.logError({
-          action: "RESET_PASSWORD",
-          actorUserId: ctx.actor.id,
-          errorMessage: result.message || "Password reset failed",
-          serviceCategory: "auth",
-          backendCode: "AUTH_CONTROLLER:FAILED_RESET_PASSWORD",
-          code: String(result.statusCode ?? 500) as any,
-          logStatus: "FAILED",
-          path: req.originalUrl || req.path,
-          method: req.method as METHODS,
-          metadata: { detailed_user: ctx.actor },
-        });
-
-        return res
-          .status(result.statusCode ?? 500)
-          .json({ success: false, message: result.message });
-      }
-
-      return res.status(200).json({ success: true, message: result.message });
-    } catch (error: any) {
+      return res.status(200).json({ success: true });
+    } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Internal server error";
+        error instanceof Error ? error.message : "Invalid Clerk webhook";
 
       await AuditLogger.logError({
-        action: "RESET_PASSWORD",
-        actorUserId: ctx.actor.id,
+        action: "CLERK_WEBHOOK",
+        actorUserId: null,
         errorMessage,
-        stackTrace: error.stack,
+        stackTrace: error instanceof Error ? error.stack : undefined,
         serviceCategory: "auth",
-        backendCode: "AUTH_CONTROLLER:FAILED_RESET_PASSWORD",
-        code: "500",
+        backendCode: "AUTH_CONTROLLER:FAILED_CLERK_WEBHOOK",
+        code: "400",
         logStatus: "FAILED",
         path: req.originalUrl || req.path,
-        method: req.method as METHODS,
-        metadata: { detailed_user: ctx.actor },
+        method: "POST",
       });
 
-      return res
-        .status(500)
-        .json({ success: false, message: "Internal server error" });
+      return res.status(400).json({ success: false, message: errorMessage });
     }
+  };
+
+  deprecatedLocalAuth = async (_req: Request, res: Response) => {
+    return res.status(410).json({
+      success: false,
+      message: "Password auth is managed by Clerk. Use Clerk sign-in instead.",
+    });
   };
 }
 

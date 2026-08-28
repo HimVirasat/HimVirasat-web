@@ -9,22 +9,21 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import type { SystemRole } from "@himvirasat/shared";
+import {
+  ADMIN_ROLES,
+  isAdminRole,
+  getDashboardPathForRole,
+  type SystemRole,
+} from "@himvirasat/shared";
 
 export interface SidebarItem {
   [x: string]: any;
   title: string;
   url: string;
   icon: LucideIcon;
-  allowedRoles: SystemRole[];
+  allowedRoles: readonly SystemRole[];
   exact: true;
 }
-
-export const ADMIN_ROLES: SystemRole[] = [
-  "super_admin",
-  "language_head",
-  "language_expert",
-];
 
 export const SIDEBAR_ITEMS: SidebarItem[] = [
   {
@@ -77,13 +76,6 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
     exact: true,
   },
   {
-    title: "My Submissions",
-    url: "/user/submissions",
-    icon: Send,
-    allowedRoles: ["contributor"],
-    exact: true,
-  },
-  {
     title: "Logs",
     url: "/admin/logs",
     icon: Logs,
@@ -97,12 +89,17 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
     allowedRoles: ADMIN_ROLES,
     exact: true,
   },
+  {
+    title: "Settings",
+    url: "/user/settings",
+    icon: Settings,
+    allowedRoles: ["contributor"],
+    exact: true,
+  },
 ];
 
 export function getSidebarItems(role: SystemRole) {
   return SIDEBAR_ITEMS.filter((item) => item.allowedRoles.includes(role));
 }
 
-export function isAdminRole(role: SystemRole) {
-  return ADMIN_ROLES.includes(role);
-}
+export { isAdminRole, ADMIN_ROLES, getDashboardPathForRole };

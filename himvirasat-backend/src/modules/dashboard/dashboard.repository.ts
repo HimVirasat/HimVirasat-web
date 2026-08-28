@@ -50,7 +50,7 @@ export class DashboardRepository {
     // 2. Fetch stats safely with maybeSingle()
     const { data: stats, error: statsError } = await supabase
       .from("user_stats")
-      .select("total_points, approved_entries_count, reviews_completed_count")
+      .select("total_points, approved_contributions, total_reviews")
       .eq("user_id", userId)
       .maybeSingle();
 
@@ -67,8 +67,8 @@ export class DashboardRepository {
       dialects: Array.isArray(user.dialects) ? user.dialects : [],
       stats: {
         totalPoints: stats?.total_points ?? 0,
-        approvedEntriesCount: stats?.approved_entries_count ?? 0,
-        reviewsCompletedCount: stats?.reviews_completed_count ?? 0,
+        approvedEntriesCount: stats?.approved_contributions ?? 0,
+        reviewsCompletedCount: stats?.total_reviews ?? 0,
       },
     };
   }

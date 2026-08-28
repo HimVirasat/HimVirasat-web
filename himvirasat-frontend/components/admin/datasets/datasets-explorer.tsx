@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Database, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { API_URL } from "@/lib/constants";
+import { apiFetch } from "@/lib/services/api-client";
 
 interface DatasetApiResponse {
   success: boolean;
@@ -164,7 +165,7 @@ export function DatasetExplorer() {
         }
       });
 
-      const res = await fetch(`${API_URL}/datasets?${params.toString()}`, {
+      const res = await apiFetch(`${API_URL}/datasets?${params.toString()}`, {
         credentials: "include",
       });
 

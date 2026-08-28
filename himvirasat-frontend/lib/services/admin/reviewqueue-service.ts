@@ -1,4 +1,5 @@
 import { API_URL } from "@/lib/constants";
+import { apiFetch } from "@/lib/services/api-client";
 import {
   Contribution,
   ContributionFilters,
@@ -35,7 +36,7 @@ export class ReviewQueueService {
     const queryString = params.toString();
     const url = `${API_URL}/reviewqueue${queryString ? `?${queryString}` : ""}`;
 
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "GET",
       credentials: "include",
     });
@@ -49,7 +50,7 @@ export class ReviewQueueService {
   }
 
   static async getById(id: string): Promise<Contribution> {
-    const response = await fetch(`${API_URL}/reviewqueue/${id}`, {
+    const response = await apiFetch(`${API_URL}/reviewqueue/${id}`, {
       method: "GET",
       credentials: "include",
     });
@@ -63,7 +64,7 @@ export class ReviewQueueService {
   }
 
   static async create(data: Partial<Contribution>): Promise<Contribution> {
-    const response = await fetch(`${API_URL}/reviewqueue`, {
+    const response = await apiFetch(`${API_URL}/reviewqueue`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -82,7 +83,7 @@ export class ReviewQueueService {
     id: string,
     updates: Partial<Contribution>
   ): Promise<Contribution> {
-    const response = await fetch(`${API_URL}/reviewqueue/${id}`, {
+    const response = await apiFetch(`${API_URL}/reviewqueue/${id}`, {
       method: "PUT",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -105,7 +106,7 @@ export class ReviewQueueService {
     console.log("🚀 SENDING UPDATE STATUS FETCH:", { id, status, reason }); // Add this
     const payload: UpdateStatusPayload = { status, reason };
 
-    const response = await fetch(`${API_URL}/reviewqueue/${id}/status`, {
+    const response = await apiFetch(`${API_URL}/reviewqueue/${id}/status`, {
       method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -127,7 +128,7 @@ export class ReviewQueueService {
   ): Promise<ReviewComment> {
     const payload: AddCommentPayload = { field_name: fieldName, message };
 
-    const response = await fetch(`${API_URL}/reviewqueue/${id}/comments`, {
+    const response = await apiFetch(`${API_URL}/reviewqueue/${id}/comments`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -143,7 +144,7 @@ export class ReviewQueueService {
   }
 
   static async delete(id: string): Promise<void> {
-    const response = await fetch(`${API_URL}/reviewqueue/${id}`, {
+    const response = await apiFetch(`${API_URL}/reviewqueue/${id}`, {
       method: "DELETE",
       credentials: "include",
     });
@@ -162,7 +163,7 @@ export class ReviewQueueService {
   ): Promise<ReviewComment> {
     const payload: UpdateCommentStatusPayload = { status, fieldValueToAccept };
 
-    const response = await fetch(
+    const response = await apiFetch(
       `${API_URL}/reviewqueue/${contributionId}/comments/${commentId}/status`,
       {
         method: "PATCH",

@@ -102,6 +102,8 @@ export const ActionSchema = z.enum([
     "ME",
     "LOGOUT",
     "RESET_PASSWORD",
+    "CLERK_USER_SYNC",
+    "CLERK_WEBHOOK",
     "GET_MY_PROFILE",
     "GET_DASHBOARD_USERS_BY_ROLE",
 ]);

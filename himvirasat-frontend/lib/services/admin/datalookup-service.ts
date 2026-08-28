@@ -1,5 +1,6 @@
 import { ActivityLog, ErrorLog, GetLogsParams } from "@himvirasat/shared";
 import { API_URL } from "@/lib/constants";
+import { apiFetch } from "@/lib/services/api-client";
 
 export interface GenerateMetadataPayload {
   word_devanagari: string;
@@ -63,7 +64,7 @@ const withLogDefaults = <T>(
 
 export class DataLookupService {
   static async getAvailableDialects(): Promise<string[]> {
-    const response = await fetch(`${API_URL}/datalookup/available-dialects`, {
+    const response = await apiFetch(`${API_URL}/datalookup/available-dialects`, {
       credentials: "include",
     });
 
@@ -75,7 +76,7 @@ export class DataLookupService {
     return result.data;
   }
   static async getUserDialects(identifier: string): Promise<string[]> {
-    const response = await fetch(`${API_URL}/users/${identifier}/dialects`, {
+    const response = await apiFetch(`${API_URL}/users/${identifier}/dialects`, {
       credentials: "include",
     });
 
@@ -88,7 +89,7 @@ export class DataLookupService {
   }
 
   static async getAvailablePartsOfSpeech(): Promise<string[]> {
-    const response = await fetch(`${API_URL}/datalookup/available-pos`, {
+    const response = await apiFetch(`${API_URL}/datalookup/available-pos`, {
       credentials: "include",
     });
 
@@ -101,7 +102,7 @@ export class DataLookupService {
   }
 
   static async getAvailableCategories(): Promise<string[]> {
-    const response = await fetch(`${API_URL}/datalookup/available-categories`, {
+    const response = await apiFetch(`${API_URL}/datalookup/available-categories`, {
       credentials: "include",
     });
 
@@ -114,7 +115,7 @@ export class DataLookupService {
   }
 
   static async getAvailableRegions(): Promise<string[]> {
-    const response = await fetch(`${API_URL}/datalookup/available-regions`, {
+    const response = await apiFetch(`${API_URL}/datalookup/available-regions`, {
       credentials: "include",
     });
     if (!response.ok) {
@@ -129,7 +130,7 @@ export class DataLookupService {
   ): Promise<PaginatedLogsResponse<ActivityLog>> {
     const query = buildLogsQuery(params);
 
-    const response = await fetch(
+    const response = await apiFetch(
       `${API_URL}/datalookup/logs/activity${query ? `?${query}` : ""}`,
       { credentials: "include" }
     );
@@ -152,7 +153,7 @@ export class DataLookupService {
   ): Promise<PaginatedLogsResponse<ErrorLog>> {
     const query = buildLogsQuery(params);
 
-    const response = await fetch(
+    const response = await apiFetch(
       `${API_URL}/datalookup/logs/error${query ? `?${query}` : ""}`,
       { credentials: "include" }
     );
@@ -173,7 +174,7 @@ export class DataLookupService {
   static async generateMetadata(
     payload: GenerateMetadataPayload
   ): Promise<GeneratedMetadataResult> {
-    const response = await fetch(`${API_URL}/datalookup/generate-metadata`, {
+    const response = await apiFetch(`${API_URL}/datalookup/generate-metadata`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -4,9 +4,10 @@ import { z } from "zod";
 
 export const UserRowSchema = z.object({
   id: z.string(),
+  clerk_user_id: z.string().nullable().optional(),
   username: z.string(),
   full_name: z.string().nullable(),
-  email: z.string().email(),
+  email: z.string().email().nullable(),
   role: z.string(),
   dialects: z.array(z.string()).nullable(),
   is_active: z.boolean(),
@@ -21,10 +22,11 @@ export type UserRow = z.infer<typeof UserRowSchema>;
 // Both variations are created below:
 
 export const CreateUserPayloadBackendSchema = z.object({
+  clerk_user_id: z.string().optional().nullable(),
   username: z.string(),
   password_hash: z.string(),
   full_name: z.string().optional(),
-  email: z.string().email(),
+  email: z.string().email().optional().nullable(),
   role: z.string(),
   dialects: z.array(z.string()).optional(),
 });

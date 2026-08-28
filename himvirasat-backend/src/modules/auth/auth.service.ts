@@ -1,269 +1,253 @@
-import bcrypt from "bcrypt";
-import { AuthRepository, authRepository } from "./auth.repository.js";
-import { generateToken } from "../../utils/jwt.js";
-import type { LoginResponse, SignupRequest, UserDto } from "@himvirasat/shared";
+import type { User as ClerkUser } from "@clerk/backend";
+import {
+  SystemRoleSchema,
+  type SystemRole,
+  type UserDto,
+  type UserRecord,
+} from "@himvirasat/shared";
+
+import { clerkClient } from "../../services/clerk.js";
 import { AuditLogger } from "../../utils/audit-logger.js";
 import { SecurityContext } from "../../utils/get-authenticated-user.js";
+import { AuthRepository, authRepository } from "./auth.repository.js";
+
+const CLERK_MANAGED_PASSWORD_HASH_PREFIX = "clerk_managed";
+
+type ClerkUserLike = Pick<
+  ClerkUser,
+  | "id"
+  | "username"
+  | "firstName"
+  | "lastName"
+  | "emailAddresses"
+  | "primaryEmailAddressId"
+  | "lastSignInAt"
+  | "publicMetadata"
+>;
+
+interface ClerkSyncOptions {
+  role?: SystemRole;
+}
 
 export class AuthService {
   constructor(private readonly repository: AuthRepository = authRepository) {}
 
-  async login(
-    username: string,
-    password: string,
-  ): Promise<LoginResponse & { token?: string; statusCode?: number }> {
-    const user = await this.repository.findByUsername(username);
-
-    if (!user) {
-      await AuditLogger.logActivity({
-        action: "LOGIN",
-        entityType: "user",
-        actorUserId: null,
-        backendModuleCategory: "auth",
-        backendCode: "AUTH_SERVICE:FAILED_LOGIN",
-        logStatus: "FAILED",
-        metadata: { username, reason: "User not found" },
-      });
-
-      return {
-        success: false,
-        statusCode: 401,
-        message: "Invalid credentials",
-      };
-    }
-
-    if (!user.is_active) {
-      await AuditLogger.logActivity({
-        action: "LOGIN",
-        entityType: "user",
-        actorUserId: user.id,
-        backendModuleCategory: "auth",
-        backendCode: "AUTH_SERVICE:FAILED_LOGIN",
-        logStatus: "FAILED",
-        metadata: { target_id: user.id, username, reason: "Account disabled" },
-      });
-
-      return {
-        success: false,
-        statusCode: 403,
-        message: "Account is disabled",
-      };
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-    if (!isPasswordValid) {
-      await AuditLogger.logActivity({
-        action: "LOGIN",
-        entityType: "user",
-        actorUserId: user.id,
-        backendModuleCategory: "auth",
-        backendCode: "AUTH_SERVICE:FAILED_LOGIN",
-        logStatus: "FAILED",
-        metadata: { target_id: user.id, username, reason: "Invalid password" },
-      });
-
-      return {
-        success: false,
-        statusCode: 401,
-        message: "Invalid credentials",
-      };
-    }
-
-    const token = generateToken({
-      userId: user.id,
-      username: user.username,
-      role: user.role,
-    });
-
-    const userDto: UserDto = {
-      id: user.id,
-      username: user.username,
-      full_name: user.full_name,
-      role: user.role,
-      dialects: user.dialects,
-    };
-
-    await AuditLogger.logActivity({
-      action: "LOGIN",
-      entityType: "user",
-      actorUserId: user.id,
-      backendModuleCategory: "auth",
-      backendCode: "AUTH_SERVICE:SUCCESS_LOGIN",
-      logStatus: "SUCCESS",
-      metadata: {
-        target_id: user.id,
-        username: user.username,
-        role: user.role,
-      },
-    });
-
-    return {
-      success: true,
-      message: "Login successful",
-      token,
-      user: userDto,
-    };
+  async syncClerkUserById(
+    clerkUserId: string,
+    options: ClerkSyncOptions = {},
+  ): Promise<UserRecord> {
+    const clerkUser = await clerkClient.users.getUser(clerkUserId);
+    return this.syncClerkUser(clerkUser, options);
   }
 
-  async signup(
-    payload: SignupRequest,
-  ): Promise<LoginResponse & { token?: string; statusCode?: number }> {
-    const existingUsername = await this.repository.findByUsername(
-      payload.username,
+  async syncClerkUser(
+    clerkUser: ClerkUserLike,
+    options: ClerkSyncOptions = {},
+  ): Promise<UserRecord> {
+    const email = this.getPrimaryEmail(clerkUser);
+    const username = this.getUsername(clerkUser);
+    const fullName = this.getFullName(clerkUser, email, username);
+    const lastSignedInAt = clerkUser.lastSignInAt
+      ? new Date(clerkUser.lastSignInAt).toISOString()
+      : null;
+    const role = options.role ?? this.getInitialRole(clerkUser);
+
+    // Ensure the Clerk user's public metadata always carries a role. Runs on
+    // every sync (create or update) so a missing `himvirasatRole` — e.g. a
+    // self-signed-up account — is backfilled to `contributor` and stays the
+    // source of truth for RBAC claims before an admin promotes the user.
+    await this.ensureRoleInClerkMetadata(clerkUser, role);
+
+    const existingByClerkId = await this.repository.findByClerkUserId(
+      clerkUser.id,
     );
 
-    if (existingUsername) {
-      return {
-        success: false,
-        statusCode: 409,
-        message: "Username already exists",
-      };
+    if (existingByClerkId) {
+      return this.repository.updateUser(existingByClerkId.id, {
+        username,
+        full_name: fullName,
+        email,
+        ...(options.role ? { role: options.role } : {}),
+        last_signed_in_at: lastSignedInAt,
+      });
     }
 
-    const existingEmail = await this.repository.findByEmail(payload.email);
+    const existingByEmail = email
+      ? await this.repository.findByEmail(email)
+      : null;
 
-    if (existingEmail) {
-      return {
-        success: false,
-        statusCode: 409,
-        message: "Email already exists",
-      };
+    if (existingByEmail) {
+      return this.repository.updateUser(existingByEmail.id, {
+        clerk_user_id: clerkUser.id,
+        username,
+        full_name: fullName,
+        email,
+        ...(options.role ? { role: options.role } : {}),
+        last_signed_in_at: lastSignedInAt,
+      });
     }
 
-    const passwordHash = await bcrypt.hash(payload.password, 12);
+    const uniqueUsername = await this.getUniqueUsername(username);
+    const dialects = this.getInitialDialects(clerkUser);
+
     const user = await this.repository.createUser({
-      username: payload.username,
-      password_hash: passwordHash,
-      full_name: payload.fullName,
-      email: payload.email,
-      role: "contributor",
-      dialects: payload.dialects ?? [],
+      clerk_user_id: clerkUser.id,
+      username: uniqueUsername,
+      password_hash: `${CLERK_MANAGED_PASSWORD_HASH_PREFIX}:${clerkUser.id}`,
+      full_name: fullName,
+      email,
+      role,
+      dialects,
     });
-
-    const token = generateToken({
-      userId: user.id,
-      username: user.username,
-      role: user.role,
-    });
-
-    const userDto: UserDto = {
-      id: user.id,
-      username: user.username,
-      full_name: user.full_name,
-      role: user.role,
-      dialects: user.dialects,
-    };
 
     await AuditLogger.logActivity({
-      action: "SIGNUP",
+      action: "CLERK_USER_SYNC",
       entityType: "user",
       actorUserId: user.id,
       backendModuleCategory: "auth",
-      backendCode: "AUTH_SERVICE:SUCCESS_SIGNUP",
+      backendCode: "AUTH_SERVICE:SUCCESS_CLERK_USER_SYNC",
       logStatus: "SUCCESS",
       metadata: {
         target_id: user.id,
+        clerk_user_id: clerkUser.id,
         username: user.username,
         role: user.role,
       },
     });
 
-    return {
-      success: true,
-      message: "Signup successful",
-      token,
-      user: userDto,
-    };
+    return user;
+  }
+
+  async deactivateClerkUser(clerkUserId: string): Promise<void> {
+    const user = await this.repository.findByClerkUserId(clerkUserId);
+    if (!user) return;
+
+    await this.repository.updateUser(user.id, {
+      is_active: false,
+      email: user.email ? `deleted_${Date.now()}_${user.email}` : null,
+      username: `deleted_hv_${Date.now()}`,
+    });
   }
 
   async getUserProfile(ctx: SecurityContext): Promise<UserDto | null> {
     const user = await this.repository.findById(ctx.actor.id);
     if (!user) return null;
 
+    return this.toUserDto(user);
+  }
+
+  toUserDto(user: UserRecord): UserDto {
     return {
       id: user.id,
+      clerk_user_id: user.clerk_user_id,
       username: user.username,
       full_name: user.full_name,
+      email: user.email,
       role: user.role,
       dialects: user.dialects,
     };
   }
 
-  async resetPassword(
-    ctx: SecurityContext,
-    oldPassword: string,
-    newPassword: string,
-  ): Promise<{ success: boolean; message?: string; statusCode?: number }> {
-    const user = await this.repository.findById(ctx.actor.id);
-    if (!user) {
-      return { success: false, statusCode: 404, message: "User not found" };
-    }
-
-    const isPasswordValid = await bcrypt.compare(
-      oldPassword,
-      user.password_hash,
-    );
-    if (!isPasswordValid) {
-      await AuditLogger.logActivity({
-        action: "RESET_PASSWORD",
-        entityType: "user",
-        actorUserId: ctx.actor.id,
-        backendModuleCategory: "auth",
-        backendCode: "AUTH_SERVICE:FAILED_RESET_PASSWORD",
-        logStatus: "FAILED",
-        metadata: {
-          target_id: ctx.actor.id,
-          reason: "Incorrect current password",
-          detailed_user: ctx.actor,
-        },
-      });
-
-      return {
-        success: false,
-        statusCode: 400,
-        message: "Incorrect current password",
-      };
-    }
-
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    const isUpdated = await this.repository.updatePassword(
-      ctx.actor.id,
-      hashedNewPassword,
+  private getPrimaryEmail(user: ClerkUserLike): string | null {
+    const primaryEmail = user.emailAddresses.find(
+      (emailAddress) => emailAddress.id === user.primaryEmailAddressId,
     );
 
-    if (!isUpdated) {
-      await AuditLogger.logActivity({
-        action: "RESET_PASSWORD",
-        entityType: "user",
-        actorUserId: ctx.actor.id,
-        backendModuleCategory: "auth",
-        backendCode: "AUTH_SERVICE:FAILED_RESET_PASSWORD",
-        logStatus: "FAILED",
-        metadata: {
-          target_id: ctx.actor.id,
-          reason: "Database update failed",
-          detailed_user: ctx.actor,
-        },
-      });
+    return primaryEmail?.emailAddress ?? user.emailAddresses[0]?.emailAddress ?? null;
+  }
 
-      return {
-        success: false,
-        statusCode: 500,
-        message: "Failed to update password",
-      };
+  private getUsername(user: ClerkUserLike): string {
+    const email = this.getPrimaryEmail(user);
+    const base =
+      user.username ??
+      email?.split("@")[0] ??
+      this.randomUsername(user.id);
+
+    return base
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 48) || this.randomUsername(user.id);
+  }
+
+  private randomUsername(correlate?: string): string {
+    const alphabet = "abcdefghjkmnpqrstuvwxyz23456789";
+    const rand = Array.from(
+      { length: 8 },
+      () => alphabet[Math.floor(Math.random() * alphabet.length)],
+    ).join("");
+    const suffix = correlate
+      ? correlate.replace(/^user_/, "").slice(0, 6)
+      : "";
+    return `user_${rand}${suffix}`.toLowerCase();
+  }
+
+  private getFullName(
+    user: ClerkUserLike,
+    email: string | null,
+    username: string,
+  ): string {
+    const name = [user.firstName, user.lastName].filter(Boolean).join(" ");
+    return name || user.username || email || username;
+  }
+
+  private getInitialRole(user: ClerkUserLike) {
+    const parsed = SystemRoleSchema.safeParse(
+      user.publicMetadata?.himvirasatRole ?? user.publicMetadata?.role,
+    );
+
+    return parsed.success ? parsed.data : "contributor";
+  }
+
+  /**
+   * Writes the resolved role into the Clerk user's public metadata if it is not
+   * already present. Keeps Clerk metadata in sync with our RBAC defaults so the
+   * frontend `/post-login` fallback and any claim-based checks see a role.
+   */
+  private async ensureRoleInClerkMetadata(
+    user: ClerkUserLike,
+    role: SystemRole,
+  ): Promise<void> {
+    const existing =
+      user.publicMetadata?.himvirasatRole ?? user.publicMetadata?.role;
+
+    if (existing && SystemRoleSchema.safeParse(existing).success) {
+      return;
     }
 
-    await AuditLogger.logActivity({
-      action: "RESET_PASSWORD",
-      entityType: "user",
-      actorUserId: ctx.actor.id,
-      backendModuleCategory: "auth",
-      backendCode: "AUTH_SERVICE:SUCCESS_RESET_PASSWORD",
-      logStatus: "SUCCESS",
-      metadata: { target_id: ctx.actor.id, detailed_user: ctx.actor },
-    });
+    try {
+      await clerkClient.users.updateUser(user.id, {
+        publicMetadata: {
+          ...user.publicMetadata,
+          himvirasatRole: role,
+        },
+      });
+    } catch (error) {
+      console.error(
+        "[AuthService] Failed to default publicMetadata role:",
+        error,
+      );
+    }
+  }
 
-    return { success: true, message: "Password reset successfully" };
+  private getInitialDialects(user: ClerkUserLike): string[] {
+    const dialects = user.publicMetadata?.dialects;
+    return Array.isArray(dialects)
+      ? dialects.filter((dialect): dialect is string => typeof dialect === "string")
+      : [];
+  }
+
+  private async getUniqueUsername(username: string) {
+    let candidate = username;
+    let suffix = 1;
+
+    while (await this.repository.findByUsername(candidate)) {
+      candidate = `${username}_${suffix}`;
+      suffix += 1;
+    }
+
+    return candidate;
   }
 }
 

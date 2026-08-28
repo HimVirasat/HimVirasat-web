@@ -4,10 +4,10 @@ import { authController } from "./auth.controller.js";
 
 const router = Router();
 
-router.post("/login", authController.login);
-router.post("/signup", authController.signup);
-router.post("/logout", authController.logout);
+// router.post("/login", authController.deprecatedLocalAuth);
+// router.post("/signup", authController.deprecatedLocalAuth);
+// router.post("/logout", authController.deprecatedLocalAuth);
 router.get("/me", requireAuth, authController.me);
-router.post("/reset-password", requireAuth, authController.resetPassword);
+// router.post("/reset-password", requireAuth, authController.deprecatedLocalAuth);
 
 export default router;

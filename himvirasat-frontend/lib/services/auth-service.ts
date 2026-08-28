@@ -1,4 +1,5 @@
 import { API_URL } from "@/lib/constants";
+import { apiFetch } from "@/lib/services/api-client";
 
 export class AuthService {
   static async login(username: string, password: string) {
@@ -37,9 +38,7 @@ export class AuthService {
   }
 
   static async me() {
-    const response = await fetch(`${API_URL}/auth/me`, {
-      credentials: "include",
-    });
+    const response = await apiFetch(`${API_URL}/auth/me`);
 
     if (!response.ok) {
       throw new Error("Unauthorized");
@@ -49,18 +48,16 @@ export class AuthService {
   }
 
   static async logout() {
-    const response = await fetch(`${API_URL}/auth/logout`, {
+    const response = await apiFetch(`${API_URL}/auth/logout`, {
       method: "POST",
-      credentials: "include",
     });
 
     return response.json();
   }
 
   static async resetPassword(oldPassword: string, newPassword: string) {
-    const response = await fetch(`${API_URL}/auth/reset-password`, {
+    const response = await apiFetch(`${API_URL}/auth/reset-password`, {
       method: "POST",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },

@@ -15,6 +15,8 @@ export const UserSchema = z.object({
   role: SystemRoleSchema,
   dialects: z.array(z.string()),
   is_active: z.boolean(),
+  clerk_user_id: z.string().nullable().optional(),
+  last_signed_in_at: z.string().nullable().optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });

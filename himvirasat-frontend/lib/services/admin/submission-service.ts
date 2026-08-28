@@ -1,4 +1,5 @@
 import { API_URL } from "@/lib/constants";
+import { apiFetch } from "@/lib/services/api-client";
 import type { ApiResponse, CreateSubmissionDto } from "@himvirasat/shared";
 
 // Local payload type expected by your Express backend API
@@ -44,7 +45,7 @@ export class SubmissionService {
 
     console.log("Sending submission payload:", payload);
 
-    const response = await fetch(`${API_URL}/submissions`, {
+    const response = await apiFetch(`${API_URL}/submissions`, {
       method: "POST",
       credentials: "include",
       headers: {

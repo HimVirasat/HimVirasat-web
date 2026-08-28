@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@clerk/nextjs";
 import { AuthService } from "@/lib/services/auth-service";
 
 export function useCurrentUser() {
+  const { isLoaded, isSignedIn } = useAuth();
+
   return useQuery({
     queryKey: ["currentUser"],
     queryFn: async () => {
@@ -15,5 +18,6 @@ export function useCurrentUser() {
     },
     staleTime: 5 * 60 * 1000, // Keep cache active for 5 mins
     retry: false, // Don't spam backend if 401
+    enabled: isLoaded && Boolean(isSignedIn),
   });
 }

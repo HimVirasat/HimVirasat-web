@@ -15,4 +15,6 @@ const schema = z.object({
   FRONTEND_URL: z.string().optional(),
 });
 
+
+
 export const env = schema.parse(process.env);

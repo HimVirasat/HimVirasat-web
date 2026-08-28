@@ -73,8 +73,8 @@ export async function getAuthenticatedUser(
         updated_at,
         user_stats (
           total_points,
-          approved_entries_count,
-          reviews_completed_count,
+          approved_contributions,
+          total_reviews,
           dialect_stats
         )
       `)
@@ -101,8 +101,8 @@ export async function getAuthenticatedUser(
       is_active: user.is_active,
       created_at: user.created_at,
       updated_at: user.updated_at,
-      approved_entries_count: rawStats?.approved_entries_count ?? 0,
-      reviews_completed_count: rawStats?.reviews_completed_count ?? 0,
+      approved_entries_count: rawStats?.approved_contributions ?? 0,
+      reviews_completed_count: rawStats?.total_reviews ?? 0,
       dialect_stats: (rawStats?.dialect_stats as DialectStats) ?? {},
     };
 
@@ -134,8 +134,8 @@ export async function getAuthenticatedUserById(
         updated_at,
         user_stats (
           total_points,
-          approved_entries_count,
-          reviews_completed_count,
+          approved_contributions,
+          total_reviews,
           dialect_stats
         )
       `)
@@ -163,8 +163,8 @@ export async function getAuthenticatedUserById(
       is_active: user.is_active,
       created_at: user.created_at,
       updated_at: user.updated_at,
-      approved_entries_count: rawStats?.approved_entries_count ?? 0,
-      reviews_completed_count: rawStats?.reviews_completed_count ?? 0,
+      approved_entries_count: rawStats?.approved_contributions ?? 0,
+      reviews_completed_count: rawStats?.total_reviews ?? 0,
       dialect_stats: (rawStats?.dialect_stats as DialectStats) ?? {},
     };
   } catch (err) {
